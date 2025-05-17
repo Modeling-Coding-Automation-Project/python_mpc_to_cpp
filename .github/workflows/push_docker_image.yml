@@ -1,0 +1,30 @@
+name: Create and push docker image
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build_and_push_docker_image:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: clone MCAP_repo_manager
+        run: git clone https://github.com/Modeling-Coding-Automation-Project/MCAP_repo_manager.git
+
+      - name: Build Docker image
+        run: docker build -t claudeashford/mcap_env:latest ./MCAP_repo_manager/docker/docker_image_creation
+
+      - name: Push Docker image
+        run: docker push claudeashford/mcap_env:latest
