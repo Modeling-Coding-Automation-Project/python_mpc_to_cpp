@@ -1,0 +1,27 @@
+/* This settings are for debugging C++ code
+ * in Visual Studio Code in Linux environment. */
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Active File",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/${fileBasenameNoExtension}",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "Build Active File"
+    }
+  ]
+}
