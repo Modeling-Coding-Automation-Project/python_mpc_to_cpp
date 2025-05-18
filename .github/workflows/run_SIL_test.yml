@@ -41,4 +41,5 @@ jobs:
     - name: Run SIL tests
       run: |
         /opt/venv_py_MCAP/bin/python3 ./test_sil/linear_mpc/state_space_SISO_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/linear_mpc/state_space_SISO_trajectory_SIL.py
         /opt/venv_py_MCAP/bin/python3 ./test_sil/linear_mpc/servo_motor_SIL.py
