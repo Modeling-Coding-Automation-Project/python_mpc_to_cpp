@@ -2,7 +2,7 @@ name: Run SIL test
 
 on:
   push:
-    branches: [ develop, fix_test ]
+    branches: [ develop ]
 
 jobs:
 
