@@ -10,7 +10,7 @@
       "args": [
         "-g",
         "-std=c++11",
-        "-I${workspaceFolder}/",
+        "-I${workspaceFolder}",
         "-I${workspaceFolder}/mpc_utility",
         "-I${workspaceFolder}/python_mpc",
         "-I${workspaceFolder}/external_libraries/python_control_to_cpp/python_control",
