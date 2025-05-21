@@ -81,7 +81,7 @@ public:
   using PredictionMatrices_Type = PredictionMatrices_Type_In;
   using ReferenceTrajectory_Type = ReferenceTrajectory_Type_In;
 
-private:
+protected:
   /* Type */
   using _T = typename PredictionMatrices_Type::Value_Type;
 
@@ -247,7 +247,7 @@ public:
     return this->_U_latest;
   }
 
-private:
+protected:
   /* Function */
   inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
                                     X_Type &X_out, Y_Type &Y_out) {
@@ -272,7 +272,7 @@ private:
     return U;
   }
 
-private:
+protected:
   /* Variables */
   LKF_Type _kalman_filter;
   PredictionMatrices_Type _prediction_matrices;
