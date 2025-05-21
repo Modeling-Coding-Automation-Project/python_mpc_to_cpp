@@ -14,7 +14,7 @@ template <typename F_Type, typename Phi_Type, std::size_t Np, std::size_t Nc,
           std::size_t Number_Of_Input, std::size_t Number_Of_State,
           std::size_t Number_Of_Output>
 class MPC_PredictionMatrices {
-private:
+protected:
   /* Type */
   using _T = typename F_Type::Value_Type;
 
@@ -195,7 +195,7 @@ inline void calculate_dif(const Ref_Type &ref, const Fx_Type &Fx,
 
 /* MPC Reference Trajectory */
 template <typename Ref_Type, std::size_t Np> class MPC_ReferenceTrajectory {
-private:
+protected:
   /* Type */
   using _T = typename Ref_Type::Value_Type;
 
