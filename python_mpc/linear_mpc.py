@@ -235,16 +235,35 @@ class LTI_MPC:
 
         self.Weight_U_Nc = update_weight(self.Nc, Weight_U)
 
-        self.prediction_matrices = self.create_prediction_matrices(Weight_Y)
+        self.prediction_matrices = create_prediction_matrices(self.Np, self.Nc,
+                                                              self.AUGMENTED_INPUT_SIZE,
+                                                              self.AUGMENTED_STATE_SIZE,
+                                                              self.AUGMENTED_OUTPUT_SIZE,
+                                                              self.augmented_ss,
+                                                              Weight_Y)
 
         self.Y_store = DelayedVectorObject(self.AUGMENTED_OUTPUT_SIZE,
                                            self.Number_of_Delay)
 
         self.is_ref_trajectory = is_ref_trajectory
 
+        self.QP_x_size = self.AUGMENTED_INPUT_SIZE * self.Nc
+
         self.E_QP = self.prediction_matrices.Phi_numeric.T * \
             self.prediction_matrices.Phi_numeric + self.Weight_U_Nc
 
+        self.L_QP = np.zeros((self.Weight_U_Nc[0], 1))
+
+        self.M_QP, self.gamma_QP, self.NUMBER_OF_CONSTRAINTS = \
+            self.initialize_constraints(
+                U_min, U_max, Y_min, Y_max)
+
     def initialize_constraints(self, U_min: np.ndarray, U_max: np.ndarray,
                                Y_min: np.ndarray, Y_max: np.ndarray):
-        pass
+        M_QP = np.zeros((0, self.QP_x_size))
+        gamma_QP = np.zeros((0, 1))
+
+        if U_min is not None:
+            for i, val in enumerate(U_min):
+                if np.isfinite(val):
+                    pass
