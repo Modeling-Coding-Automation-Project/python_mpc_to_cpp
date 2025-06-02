@@ -120,7 +120,4 @@ class LTI_MPC_QP_Solver:
         M = np.zeros((self.number_of_constraints, self.number_of_variables))
         gamma = np.zeros((self.number_of_constraints, 1))
 
-        M_delta_U = np.vstack((-np.eye(self.number_of_variables),
-                               np.eye(self.number_of_variables)))
-
-        gamma_delta_U = np.vstack((-delta_U_min, delta_U_max))
+        return M, gamma
