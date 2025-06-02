@@ -168,3 +168,15 @@ class LTI_MPC_NoConstraints:
         self.X_inner_model = X_compensated
 
         return self.U_latest
+
+
+class LTI_MPC(LTI_MPC_NoConstraints):
+    def __init__(self, state_space: SymbolicStateSpace, Np: int, Nc: int,
+                 Weight_U: np.ndarray, Weight_Y: np.ndarray,
+                 Q_kf: np.ndarray = None, R_kf: np.ndarray = None,
+                 is_ref_trajectory: bool = False,
+                 delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
+                 U_min: np.ndarray = None, U_max: np.ndarray = None,
+                 Y_min: np.ndarray = None, Y_max: np.ndarray = None):
+        super().__init__(state_space, Np, Nc, Weight_U, Weight_Y,
+                         Q_kf, R_kf, is_ref_trajectory)
