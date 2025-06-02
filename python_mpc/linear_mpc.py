@@ -3,67 +3,6 @@ import numpy as np
 from mpc_utility.state_space_utility import *
 from external_libraries.python_control_to_cpp.python_control.kalman_filter import LinearKalmanFilter
 from external_libraries.python_control_to_cpp.python_control.kalman_filter import DelayedVectorObject
-from external_libraries.python_optimization_to_cpp.python_optimization.qp_active_set import QP_ActiveSetSolver
-
-
-def initialize_kalman_filter(state_space: SymbolicStateSpace,
-                             Q_kf: np.ndarray, R_kf: np.ndarray) -> LinearKalmanFilter:
-    if Q_kf is None:
-        Q_kf = np.eye(state_space.A.shape[0])
-    if R_kf is None:
-        R_kf = np.eye(state_space.C.shape[0])
-
-    lkf = LinearKalmanFilter(
-        A=symbolic_to_numeric_matrix(state_space.A),
-        B=symbolic_to_numeric_matrix(state_space.B),
-        C=symbolic_to_numeric_matrix(state_space.C),
-        Q=Q_kf, R=R_kf,
-        Number_of_Delay=state_space.Number_of_Delay)
-
-    lkf.converge_G()
-
-    return lkf
-
-
-def create_prediction_matrices(Np: int, Nc: int,
-                               AUGMENTED_INPUT_SIZE: int,
-                               AUGMENTED_STATE_SIZE: int,
-                               AUGMENTED_OUTPUT_SIZE: int,
-                               augmented_ss: SymbolicStateSpace,
-                               Weight_Y: np.ndarray) -> MPC_PredictionMatrices:
-
-    prediction_matrices = MPC_PredictionMatrices(
-        Np=Np,
-        Nc=Nc,
-        INPUT_SIZE=AUGMENTED_INPUT_SIZE,
-        STATE_SIZE=AUGMENTED_STATE_SIZE,
-        OUTPUT_SIZE=AUGMENTED_OUTPUT_SIZE)
-
-    if (0 != len(augmented_ss.A.free_symbols)) or \
-            (0 != len(augmented_ss.B.free_symbols)) or \
-            (0 != len(augmented_ss.C.free_symbols)):
-        raise ValueError("State space model must be numeric.")
-
-    prediction_matrices.substitute_numeric(
-        augmented_ss.A, augmented_ss.B, Weight_Y * augmented_ss.C)
-
-    return prediction_matrices
-
-
-def create_reference_trajectory(Np: int, is_ref_trajectory: bool, reference_trajectory: np.ndarray):
-    if is_ref_trajectory:
-        if not ((reference_trajectory.shape[1] == Np) or
-                (reference_trajectory.shape[1] == 1)):
-            raise ValueError(
-                "Reference vector must be either a single row vector or a Np row vectors.")
-
-    trajectory = MPC_ReferenceTrajectory(reference_trajectory, Np)
-
-    return trajectory
-
-
-def update_weight(Nc: int, Weight: np.ndarray):
-    return np.diag(np.tile(Weight, (Nc, 1)).flatten())
 
 
 class LTI_MPC_NoConstraints:
@@ -84,7 +23,7 @@ class LTI_MPC_NoConstraints:
             raise ValueError(
                 "Prediction horizon Np must be greater than the number of delays.")
 
-        self.kalman_filter = initialize_kalman_filter(
+        self.kalman_filter = self.initialize_kalman_filter(
             state_space, Q_kf, R_kf)
 
         self.augmented_ss = StateSpaceEmbeddedIntegrator(state_space)
@@ -110,14 +49,9 @@ class LTI_MPC_NoConstraints:
         self.Np = Np
         self.Nc = Nc
 
-        self.Weight_U_Nc = update_weight(self.Nc, Weight_U)
+        self.Weight_U_Nc = self.update_weight(Weight_U)
 
-        self.prediction_matrices = create_prediction_matrices(self.Np, self.Nc,
-                                                              self.AUGMENTED_INPUT_SIZE,
-                                                              self.AUGMENTED_STATE_SIZE,
-                                                              self.AUGMENTED_OUTPUT_SIZE,
-                                                              self.augmented_ss,
-                                                              Weight_Y)
+        self.prediction_matrices = self.create_prediction_matrices(Weight_Y)
 
         self.solver_factor = np.zeros(
             (self.AUGMENTED_INPUT_SIZE * self.Nc,
@@ -129,6 +63,57 @@ class LTI_MPC_NoConstraints:
                                            self.Number_of_Delay)
 
         self.is_ref_trajectory = is_ref_trajectory
+
+    def initialize_kalman_filter(self, state_space: SymbolicStateSpace,
+                                 Q_kf: np.ndarray, R_kf: np.ndarray) -> LinearKalmanFilter:
+        if Q_kf is None:
+            Q_kf = np.eye(state_space.A.shape[0])
+        if R_kf is None:
+            R_kf = np.eye(state_space.C.shape[0])
+
+        lkf = LinearKalmanFilter(
+            A=symbolic_to_numeric_matrix(state_space.A),
+            B=symbolic_to_numeric_matrix(state_space.B),
+            C=symbolic_to_numeric_matrix(state_space.C),
+            Q=Q_kf, R=R_kf,
+            Number_of_Delay=state_space.Number_of_Delay)
+
+        lkf.converge_G()
+
+        return lkf
+
+    def update_weight(self, Weight: np.ndarray):
+        return np.diag(np.tile(Weight, (self.Nc, 1)).flatten())
+
+    def create_prediction_matrices(self, Weight_Y: np.ndarray) -> MPC_PredictionMatrices:
+
+        prediction_matrices = MPC_PredictionMatrices(
+            Np=self.Np,
+            Nc=self.Nc,
+            INPUT_SIZE=self.AUGMENTED_INPUT_SIZE,
+            STATE_SIZE=self.AUGMENTED_STATE_SIZE,
+            OUTPUT_SIZE=self.AUGMENTED_OUTPUT_SIZE)
+
+        if (0 != len(self.augmented_ss.A.free_symbols)) or \
+                (0 != len(self.augmented_ss.B.free_symbols)) or \
+                (0 != len(self.augmented_ss.C.free_symbols)):
+            raise ValueError("State space model must be numeric.")
+
+        prediction_matrices.substitute_numeric(
+            self.augmented_ss.A, self.augmented_ss.B, Weight_Y * self.augmented_ss.C)
+
+        return prediction_matrices
+
+    def create_reference_trajectory(self, reference_trajectory: np.ndarray):
+        if self.is_ref_trajectory:
+            if not ((reference_trajectory.shape[1] == self.Np) or
+                    (reference_trajectory.shape[1] == 1)):
+                raise ValueError(
+                    "Reference vector must be either a single row vector or a Np row vectors.")
+
+        trajectory = MPC_ReferenceTrajectory(reference_trajectory, self.Np)
+
+        return trajectory
 
     def update_solver_factor(self, Phi: np.ndarray, Weight_U_Nc: np.ndarray):
         if (Phi.shape[1] != Weight_U_Nc.shape[0]) or (Phi.shape[1] != Weight_U_Nc.shape[1]):
@@ -174,8 +159,7 @@ class LTI_MPC_NoConstraints:
         delta_X = X_compensated - self.X_inner_model
         X_augmented = np.vstack((delta_X, Y_compensated))
 
-        reference_trajectory = create_reference_trajectory(
-            self.Np, self.is_ref_trajectory, reference)
+        reference_trajectory = self.create_reference_trajectory(reference)
 
         delta_U = self.solve(reference_trajectory, X_augmented)
 
@@ -184,86 +168,3 @@ class LTI_MPC_NoConstraints:
         self.X_inner_model = X_compensated
 
         return self.U_latest
-
-
-class LTI_MPC:
-    def __init__(self, state_space: SymbolicStateSpace, Np: int, Nc: int,
-                 Weight_U: np.ndarray, Weight_Y: np.ndarray,
-                 Q_kf: np.ndarray = None, R_kf: np.ndarray = None,
-                 is_ref_trajectory: bool = False, U_min: np.ndarray = None,
-                 U_max: np.ndarray = None, Y_min: np.ndarray = None,
-                 Y_max: np.ndarray = None):
-
-        # Check compatibility
-        if state_space.delta_time <= 0.0:
-            raise ValueError("State space model must be discrete-time.")
-        if not isinstance(state_space, SymbolicStateSpace):
-            raise ValueError(
-                "State space model must be of type SymbolicStateSpace.")
-
-        self.Number_of_Delay = state_space.Number_of_Delay
-
-        if (Np < self.Number_of_Delay):
-            raise ValueError(
-                "Prediction horizon Np must be greater than the number of delays.")
-
-        self.kalman_filter = initialize_kalman_filter(
-            state_space, Q_kf, R_kf)
-
-        self.augmented_ss = StateSpaceEmbeddedIntegrator(state_space)
-
-        self.AUGMENTED_STATE_SIZE = self.augmented_ss.A.shape[0]
-
-        self.AUGMENTED_INPUT_SIZE = self.augmented_ss.B.shape[1]
-        if self.AUGMENTED_INPUT_SIZE != state_space.B.shape[1]:
-            raise ValueError(
-                "the augmented state space input must have the same size of state_space.B.")
-        self.AUGMENTED_OUTPUT_SIZE = self.augmented_ss.C.shape[0]
-        if self.AUGMENTED_OUTPUT_SIZE != state_space.C.shape[0]:
-            raise ValueError(
-                "the augmented state space output must have the same size of state_space.C.")
-
-        self.X_inner_model = np.zeros(
-            (state_space.A.shape[0], 1))
-        self.U_latest = np.zeros(
-            (self.AUGMENTED_INPUT_SIZE, 1))
-
-        if Nc > Np:
-            raise ValueError("Nc must be less than or equal to Np.")
-        self.Np = Np
-        self.Nc = Nc
-
-        self.Weight_U_Nc = update_weight(self.Nc, Weight_U)
-
-        self.prediction_matrices = create_prediction_matrices(self.Np, self.Nc,
-                                                              self.AUGMENTED_INPUT_SIZE,
-                                                              self.AUGMENTED_STATE_SIZE,
-                                                              self.AUGMENTED_OUTPUT_SIZE,
-                                                              self.augmented_ss,
-                                                              Weight_Y)
-
-        self.Y_store = DelayedVectorObject(self.AUGMENTED_OUTPUT_SIZE,
-                                           self.Number_of_Delay)
-
-        self.is_ref_trajectory = is_ref_trajectory
-
-        self.QP_x_size = self.AUGMENTED_INPUT_SIZE * self.Nc
-
-        self.E_QP = self.prediction_matrices.Phi_numeric.T * \
-            self.prediction_matrices.Phi_numeric + self.Weight_U_Nc
-
-        self.L_QP = np.zeros((self.Weight_U_Nc[0], 1))
-
-        self.M_QP, self.gamma_QP, self.NUMBER_OF_CONSTRAINTS = \
-            self.initialize_constraints(
-                U_min, U_max, Y_min, Y_max)
-
-    def initialize_constraints(self, U_min: np.ndarray, U_max: np.ndarray,
-                               Y_min: np.ndarray, Y_max: np.ndarray):
-        M_QP = np.zeros((0, self.QP_x_size))
-        gamma_QP = np.zeros((0, 1))
-
-        if U_min is not None:
-            for i, val in enumerate(U_min):
-                if np.isfinite(val):
-                    pass
