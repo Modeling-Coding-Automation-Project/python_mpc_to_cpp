@@ -27,14 +27,9 @@ class LTI_MPC_QP_Solver:
             number_of_constraints=self.number_of_constraints,
             x=x)
 
-        self.M, self.gamma = self.initialize_constraints(
-            delta_U_min=delta_U_min,
-            delta_U_max=delta_U_max,
-            U_min=U_min,
-            U_max=U_max,
-            Y_min=Y_min,
-            Y_max=Y_max
-        )
+        self.M = np.zeros(
+            (self.number_of_constraints, self.number_of_variables))
+        self.gamma = np.zeros((self.number_of_constraints, 1))
 
     def check_min_max_compatibility(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                                     U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -104,18 +99,13 @@ class LTI_MPC_QP_Solver:
 
         return count
 
-    def initialize_constraints(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
-                               U_min: np.ndarray = None, U_max: np.ndarray = None,
-                               Y_min: np.ndarray = None, Y_max: np.ndarray = None):
+    def update_constraints(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
+                           U_min: np.ndarray = None, U_max: np.ndarray = None,
+                           Y_min: np.ndarray = None, Y_max: np.ndarray = None):
 
-        self.count_constraints(self,
-                               delta_U_min=delta_U_min,
-                               delta_U_max=delta_U_max,
-                               U_min=U_min,
-                               U_max=U_max,
-                               Y_min=Y_min,
-                               Y_max=Y_max
-                               )
+        if 0 == self.number_of_constraints:
+            raise ValueError(
+                "No constraints defined. Please set constraints before updating.")
 
         M = np.zeros((self.number_of_constraints, self.number_of_variables))
         gamma = np.zeros((self.number_of_constraints, 1))
