@@ -156,38 +156,38 @@ class DU_U_Y_Limits:
         if delta_U_min is not None and delta_U_min.shape[0] != self.U_size:
             for i in range(self.U_size):
                 if self.delta_U_active_set[i] and \
-                        np.isfinite(delta_U_min[i]):
-                    self.delta_U_min[i] = delta_U_min[i]
+                        np.isfinite(delta_U_min[i, 0]):
+                    self.delta_U_min[i, 0] = delta_U_min[i, 0]
 
         if delta_U_max is not None and delta_U_max.shape[0] != self.U_size:
             for i in range(self.U_size):
                 if self.delta_U_active_set[i] and \
-                        np.isfinite(delta_U_max[i]):
-                    self.delta_U_max[i] = delta_U_max[i]
+                        np.isfinite(delta_U_max[i, 0]):
+                    self.delta_U_max[i, 0] = delta_U_max[i, 0]
 
         if U_min is not None and U_min.shape[0] != self.U_size:
             for i in range(self.U_size):
                 if self.U_active_set[i] and \
-                        np.isfinite(U_min[i]):
-                    self.U_min[i] = U_min[i]
+                        np.isfinite(U_min[i, 0]):
+                    self.U_min[i, 0] = U_min[i, 0]
 
         if U_max is not None and U_max.shape[0] != self.U_size:
             for i in range(self.U_size):
                 if self.U_active_set[i] and \
-                        np.isfinite(U_max[i]):
-                    self.U_max[i] = U_max[i]
+                        np.isfinite(U_max[i, 0]):
+                    self.U_max[i, 0] = U_max[i, 0]
 
         if Y_min is not None and Y_min.shape[0] != self.Y_size:
             for i in range(self.Y_size):
                 if self.Y_active_set[i] and \
-                        np.isfinite(Y_min[i]):
-                    self.Y_min[i] = Y_min[i]
+                        np.isfinite(Y_min[i, 0]):
+                    self.Y_min[i, 0] = Y_min[i, 0]
 
         if Y_max is not None and Y_max.shape[0] != self.Y_size:
             for i in range(self.Y_size):
                 if self.Y_active_set[i] and \
-                        np.isfinite(Y_max[i]):
-                    self.Y_max[i] = Y_max[i]
+                        np.isfinite(Y_max[i, 0]):
+                    self.Y_max[i, 0] = Y_max[i, 0]
 
     def get_number_of_all_constraints(self):
         return self.number_of_delta_U_constraints + \
@@ -224,8 +224,20 @@ class LTI_MPC_QP_Solver:
             (self.number_of_constraints, self.number_of_variables))
         self.gamma = np.zeros((self.number_of_constraints, 1))
 
+    def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
+                       U_min: np.ndarray = None, U_max: np.ndarray = None,
+                       Y_min: np.ndarray = None, Y_max: np.ndarray = None):
+
+        self.DU_U_Y_Limits.update_min_max(
+            delta_U_min=delta_U_min,
+            delta_U_max=delta_U_max,
+            U_min=U_min,
+            U_max=U_max,
+            Y_min=Y_min,
+            Y_max=Y_max
+        )
+
     def update_constraints(self, U: np.ndarray, X: np.ndarray, Phi: np.ndarray):
 
         if 0 == self.number_of_constraints:
-            raise ValueError(
-                "No constraints defined. Please set constraints before updating.")
+            return
