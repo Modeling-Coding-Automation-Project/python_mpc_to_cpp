@@ -16,20 +16,22 @@ class DU_U_Y_Limits:
         self.Y_min = Y_min
         self.Y_max = Y_max
 
-        self.U_size = delta_U_min.shape[0]
-        self.Y_size = Y_min.shape[0]
+        self._U_size = delta_U_min.shape[0]
+        self._Y_size = Y_min.shape[0]
 
         self.check_min_max_compatibility()
 
-        self.number_of_delta_U_constraints = None
-        self.number_of_U_constraints = None
-        self.number_of_Y_constraints = None
+        self._number_of_delta_U_constraints = None
+        self._number_of_U_constraints = None
+        self._number_of_Y_constraints = None
 
-        self.number_of_delta_U_constraints, \
-            self.number_of_U_constraints, \
-            self.number_of_Y_constraints = self.count_check_constraints()
+        self._number_of_delta_U_constraints, \
+            self._number_of_U_constraints, \
+            self._number_of_Y_constraints = self.count_check_constraints()
 
-        self.delta_U_active_set, self.U_active_set, self.Y_active_set = \
+        self._delta_U_min_active_set, self._delta_U_max_active_set, \
+            self._U_min_active_set, self._U_max_active_set, \
+            self._Y_min_active_set, self._Y_max_active_set = \
             self.generate_DU_U_Y_active_set()
 
     def check_min_max_compatibility(self):
@@ -49,24 +51,24 @@ class DU_U_Y_Limits:
         if self.Y_max is not None or self.Y_max.shape[1] > 1:
             raise ValueError("Y_max must be a (n, 1) vector.")
 
-        if self.U_size != self.delta_U_min.shape[0]:
+        if self._U_size != self.delta_U_min.shape[0]:
             raise ValueError(
                 "size of delta_U_min doesn't match the size of initialized ones.")
-        if self.U_size != self.delta_U_max.shape[0]:
+        if self._U_size != self.delta_U_max.shape[0]:
             raise ValueError(
                 "size of delta_U_max doesn't match the size of initialized ones.")
 
-        if self.U_size != self.U_min.shape[0]:
+        if self._U_size != self.U_min.shape[0]:
             raise ValueError(
                 "size of U_min doesn't match the size of initialized ones.")
-        if self.U_size != self.U_max.shape[0]:
+        if self._U_size != self.U_max.shape[0]:
             raise ValueError(
                 "size of U_max doesn't match the size of initialized ones.")
 
-        if self.Y_size != self.Y_min.shape[0]:
+        if self._Y_size != self.Y_min.shape[0]:
             raise ValueError(
                 "size of Y_min doesn't match the size of initialized ones.")
-        if self.Y_size != self.Y_max.shape[0]:
+        if self._Y_size != self.Y_max.shape[0]:
             raise ValueError(
                 "size of Y_max doesn't match the size of initialized ones.")
 
@@ -84,8 +86,8 @@ class DU_U_Y_Limits:
                 if np.isfinite(self.delta_U_max[i]):
                     number_of_delta_U_constraints += 1
 
-        if self.number_of_delta_U_constraints is not None and \
-                (self.number_of_delta_U_constraints != number_of_delta_U_constraints):
+        if self._number_of_delta_U_constraints is not None and \
+                (self._number_of_delta_U_constraints != number_of_delta_U_constraints):
             raise ValueError(
                 "The number of delta_U constraints does not match the expected count.")
 
@@ -100,8 +102,8 @@ class DU_U_Y_Limits:
                 if np.isfinite(self.U_max[i]):
                     number_of_U_constraints += 1
 
-        if self.number_of_U_constraints is not None and \
-                (self.number_of_U_constraints != number_of_U_constraints):
+        if self._number_of_U_constraints is not None and \
+                (self._number_of_U_constraints != number_of_U_constraints):
             raise ValueError(
                 "The number of U constraints does not match the expected count.")
 
@@ -116,8 +118,8 @@ class DU_U_Y_Limits:
                 if np.isfinite(self.Y_max[i]):
                     number_of_Y_constraints += 1
 
-        if self.number_of_Y_constraints is not None and \
-                (self.number_of_Y_constraints != number_of_Y_constraints):
+        if self._number_of_Y_constraints is not None and \
+                (self._number_of_Y_constraints != number_of_Y_constraints):
             raise ValueError(
                 "The number of Y constraints does not match the expected count.")
 
@@ -126,77 +128,146 @@ class DU_U_Y_Limits:
                 number_of_Y_constraints)
 
     def generate_DU_U_Y_active_set(self):
-        delta_U_active_set = np.zeros(self.U_size, dtype=bool)
-        U_active_set = np.zeros(self.U_size, dtype=bool)
-        Y_active_set = np.zeros(self.Y_size, dtype=bool)
+        delta_U_min_active_set = np.zeros(self._U_size, dtype=bool)
+        delta_U_max_active_set = np.zeros(self._U_size, dtype=bool)
+        U_min_active_set = np.zeros(self._U_size, dtype=bool)
+        U_max_active_set = np.zeros(self._U_size, dtype=bool)
+        Y_min_active_set = np.zeros(self._Y_size, dtype=bool)
+        Y_max_active_set = np.zeros(self._Y_size, dtype=bool)
 
-        for i in range(self.U_size):
+        for i in range(self._U_size):
             if self.delta_U_min is not None and np.isfinite(self.delta_U_min[i]):
-                delta_U_active_set[i] = True
+                delta_U_min_active_set[i] = True
             if self.delta_U_max is not None and np.isfinite(self.delta_U_max[i]):
-                delta_U_active_set[i] = True
+                delta_U_max_active_set[i] = True
 
             if self.U_min is not None and np.isfinite(self.U_min[i]):
-                U_active_set[i] = True
+                U_min_active_set[i] = True
             if self.U_max is not None and np.isfinite(self.U_max[i]):
-                U_active_set[i] = True
+                U_max_active_set[i] = True
 
-        for i in range(self.Y_size):
+        for i in range(self._Y_size):
             if self.Y_min is not None and np.isfinite(self.Y_min[i]):
-                Y_active_set[i] = True
+                Y_min_active_set[i] = True
             if self.Y_max is not None and np.isfinite(self.Y_max[i]):
-                Y_active_set[i] = True
+                Y_max_active_set[i] = True
 
-        return delta_U_active_set, U_active_set, Y_active_set
+        return delta_U_min_active_set, delta_U_max_active_set, \
+            U_min_active_set, U_max_active_set, \
+            Y_min_active_set, Y_max_active_set
 
     def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                        U_min: np.ndarray = None, U_max: np.ndarray = None,
                        Y_min: np.ndarray = None, Y_max: np.ndarray = None):
 
-        if delta_U_min is not None and delta_U_min.shape[0] != self.U_size:
-            for i in range(self.U_size):
-                if self.delta_U_active_set[i] and \
+        if delta_U_min is not None and delta_U_min.shape[0] != self._U_size:
+            for i in range(self._U_size):
+                if self._delta_U_active_set[i] and \
                         np.isfinite(delta_U_min[i, 0]):
                     self.delta_U_min[i, 0] = delta_U_min[i, 0]
 
-        if delta_U_max is not None and delta_U_max.shape[0] != self.U_size:
-            for i in range(self.U_size):
-                if self.delta_U_active_set[i] and \
+        if delta_U_max is not None and delta_U_max.shape[0] != self._U_size:
+            for i in range(self._U_size):
+                if self._delta_U_active_set[i] and \
                         np.isfinite(delta_U_max[i, 0]):
                     self.delta_U_max[i, 0] = delta_U_max[i, 0]
 
-        if U_min is not None and U_min.shape[0] != self.U_size:
-            for i in range(self.U_size):
-                if self.U_active_set[i] and \
+        if U_min is not None and U_min.shape[0] != self._U_size:
+            for i in range(self._U_size):
+                if self._U_active_set[i] and \
                         np.isfinite(U_min[i, 0]):
                     self.U_min[i, 0] = U_min[i, 0]
 
-        if U_max is not None and U_max.shape[0] != self.U_size:
-            for i in range(self.U_size):
-                if self.U_active_set[i] and \
+        if U_max is not None and U_max.shape[0] != self._U_size:
+            for i in range(self._U_size):
+                if self._U_active_set[i] and \
                         np.isfinite(U_max[i, 0]):
                     self.U_max[i, 0] = U_max[i, 0]
 
-        if Y_min is not None and Y_min.shape[0] != self.Y_size:
-            for i in range(self.Y_size):
-                if self.Y_active_set[i] and \
+        if Y_min is not None and Y_min.shape[0] != self._Y_size:
+            for i in range(self._Y_size):
+                if self._Y_active_set[i] and \
                         np.isfinite(Y_min[i, 0]):
                     self.Y_min[i, 0] = Y_min[i, 0]
 
-        if Y_max is not None and Y_max.shape[0] != self.Y_size:
-            for i in range(self.Y_size):
-                if self.Y_active_set[i] and \
+        if Y_max is not None and Y_max.shape[0] != self._Y_size:
+            for i in range(self._Y_size):
+                if self._Y_active_set[i] and \
                         np.isfinite(Y_max[i, 0]):
                     self.Y_max[i, 0] = Y_max[i, 0]
 
+    def is_delta_U_min_active(self, index: int) -> bool:
+        if index < 0:
+            index = 0
+        if index >= self._U_size:
+            index = self._U_size - 1
+
+        return self._delta_U_min_active_set[index]
+
+    def is_delta_U_max_active(self, index: int) -> bool:
+        if index < 0:
+            index = 0
+        if index >= self._U_size:
+            index = self._U_size - 1
+
+        return self._delta_U_max_active_set[index]
+
+    def is_U_min_active(self, index: int) -> bool:
+        if index < 0:
+            index = 0
+        if index >= self._U_size:
+            index = self._U_size - 1
+
+        return self._U_min_active_set[index]
+
+    def is_U_max_active(self, index: int) -> bool:
+        if index < 0:
+            index = 0
+        if index >= self._U_size:
+            index = self._U_size - 1
+
+        return self._U_max_active_set[index]
+
+    def is_Y_min_active(self, index: int) -> bool:
+        if index < 0:
+            index = 0
+        if index >= self._Y_size:
+            index = self._Y_size - 1
+
+        return self._Y_min_active_set[index]
+
+    def is_Y_max_active(self, index: int) -> bool:
+        if index < 0:
+            index = 0
+        if index >= self._Y_size:
+            index = self._Y_size - 1
+
+        return self._Y_max_active_set[index]
+
     def get_number_of_all_constraints(self):
-        return self.number_of_delta_U_constraints + \
-            self.number_of_U_constraints + \
-            self.number_of_Y_constraints
+        return self._number_of_delta_U_constraints + \
+            self._number_of_U_constraints + \
+            self._number_of_Y_constraints
+
+    def get_number_of_delta_U_constraints(self):
+        return self._number_of_delta_U_constraints
+
+    def get_number_of_U_constraints(self):
+        return self._number_of_U_constraints
+
+    def get_number_of_Y_constraints(self):
+        return self._number_of_Y_constraints
+
+    def get_U_size(self):
+        return self._U_size
+
+    def get_Y_size(self):
+        return self._Y_size
 
 
 class LTI_MPC_QP_Solver:
-    def __init__(self, number_of_variables: int, x: np.ndarray = None,
+    def __init__(self, number_of_variables: int, U: np.ndarray, X: np.ndarray,
+                 Phi: np.ndarray, F: np.ndarray, delta_U_Nc: np.ndarray = None,
                  delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                  U_min: np.ndarray = None, U_max: np.ndarray = None,
                  Y_min: np.ndarray = None, Y_max: np.ndarray = None):
@@ -218,11 +289,10 @@ class LTI_MPC_QP_Solver:
         self.active_set_solver = QP_ActiveSetSolver(
             number_of_variables=number_of_variables,
             number_of_constraints=self.number_of_constraints,
-            x=x)
+            x=delta_U_Nc)
 
-        self.M = np.zeros(
-            (self.number_of_constraints, self.number_of_variables))
-        self.gamma = np.zeros((self.number_of_constraints, 1))
+        self.M = self.initialize_constraints(
+            U=U, X=X, Phi=Phi, F=F)
 
     def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                        U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -237,7 +307,91 @@ class LTI_MPC_QP_Solver:
             Y_max=Y_max
         )
 
-    def update_constraints(self, U: np.ndarray, X: np.ndarray, Phi: np.ndarray):
+    def calculate_M_gamma_delta_U(self):
+        M_delta_U = np.zeros((self.DU_U_Y_Limits.get_number_of_delta_U_constraints(),
+                              self.number_of_variables))
+
+        for i in range(self.DU_U_Y_Limits.get_U_size()):
+            if self.DU_U_Y_Limits.is_delta_U_min_active(i):
+                M_delta_U[i, i] = -1.0
+            if self.DU_U_Y_Limits.is_delta_U_max_active(i):
+                M_delta_U[i + self.DU_U_Y_Limits.get_number_of_delta_U_constraints(),
+                          i] = 1.0
+
+        gamma_delta_U = np.zeros(
+            (self.DU_U_Y_Limits.get_number_of_delta_U_constraints(), 1))
+
+        for i in range(self.DU_U_Y_Limits.get_U_size()):
+            if self.DU_U_Y_Limits.is_delta_U_min_active(i):
+                gamma_delta_U[i, 0] = -self.DU_U_Y_Limits.delta_U_min[i, 0]
+            if self.DU_U_Y_Limits.is_delta_U_max_active(i):
+                gamma_delta_U[i + self.DU_U_Y_Limits.get_number_of_delta_U_constraints(), 0] = \
+                    self.DU_U_Y_Limits.delta_U_max[i, 0]
+
+        return M_delta_U, gamma_delta_U
+
+    def calculate_M_gamma_U(self, U: np.ndarray):
+        M_U = np.zeros((self.DU_U_Y_Limits.get_number_of_U_constraints(),
+                       self.number_of_variables))
+
+        for i in range(self.DU_U_Y_Limits.get_U_size()):
+            if self.DU_U_Y_Limits.is_U_min_active(i):
+                M_U[i, i] = -1.0
+            if self.DU_U_Y_Limits.is_U_max_active(i):
+                M_U[i + self.DU_U_Y_Limits.get_number_of_U_constraints(),
+                    i] = 1.0
+
+        gamma_U = np.zeros(
+            (self.DU_U_Y_Limits.get_number_of_U_constraints(), 1))
+
+        for i in range(self.DU_U_Y_Limits.get_U_size()):
+            if self.DU_U_Y_Limits.is_U_min_active(i):
+                gamma_U[i, 0] = -self.DU_U_Y_Limits.U_min[i, 0] + U[i, 0]
+            if self.DU_U_Y_Limits.is_U_max_active(i):
+                gamma_U[i + self.DU_U_Y_Limits.get_number_of_U_constraints(), 0] = \
+                    self.DU_U_Y_Limits.U_max[i, 0] - U[i, 0]
+
+    def calculate_M_gamma_Y(self, X: np.ndarray,
+                            Phi: np.ndarray, F: np.ndarray):
+        M_Y = np.zeros((self.DU_U_Y_Limits.get_number_of_Y_constraints(),
+                        self.number_of_variables))
+
+        for i in range(self.DU_U_Y_Limits.get_Y_size()):
+            if self.DU_U_Y_Limits.is_Y_min_active(i):
+                M_Y[i, :] = -Phi[i, :]
+            if self.DU_U_Y_Limits.is_Y_max_active(i):
+                M_Y[i + self.DU_U_Y_Limits.get_number_of_Y_constraints(),
+                    :] = Phi[i, :]
+
+        gamma_Y = np.zeros(
+            (self.DU_U_Y_Limits.get_number_of_Y_constraints(), 1))
+
+        F_X = F @ X
+
+        for i in range(self.DU_U_Y_Limits.get_Y_size()):
+            if self.DU_U_Y_Limits.is_Y_min_active(i):
+                gamma_Y[i, 0] = -self.DU_U_Y_Limits.Y_min[i, 0] + \
+                    F_X[i, 0]
+            if self.DU_U_Y_Limits.is_Y_max_active(i):
+                gamma_Y[i + self.DU_U_Y_Limits.get_number_of_Y_constraints(), 0] = \
+                    self.DU_U_Y_Limits.Y_max[i, 0] - F_X[i, 0]
+
+        return M_Y, gamma_Y
+
+    def initialize_constraints(self,
+                               U: np.ndarray, X: np.ndarray,
+                               Phi: np.ndarray, F: np.ndarray):
 
         if 0 == self.number_of_constraints:
             return
+
+        M_delta_U, gamma_delta_U = self.calculate_M_gamma_delta_U()
+
+        M_U, gamma_U = self.calculate_M_gamma_U(U)
+
+        M_Y, gamma_Y = self.calculate_M_gamma_Y(X, Phi, F)
+
+        M = np.vstack((M_delta_U, M_U, M_Y))
+        gamma = np.vstack((gamma_delta_U, gamma_U, gamma_Y))
+
+        return M, gamma
