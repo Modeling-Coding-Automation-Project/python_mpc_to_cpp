@@ -16,8 +16,14 @@ class DU_U_Y_Limits:
         self.Y_min = Y_min
         self.Y_max = Y_max
 
-        self._U_size = delta_U_min.shape[0]
-        self._Y_size = Y_min.shape[0]
+        self._U_size, self._Y_size = self.check_U_Y_size(
+            delta_U_min=delta_U_min,
+            delta_U_max=delta_U_max,
+            U_min=U_min,
+            U_max=U_max,
+            Y_min=Y_min,
+            Y_max=Y_max
+        )
 
         self.check_min_max_compatibility()
 
@@ -34,41 +40,64 @@ class DU_U_Y_Limits:
             self._Y_min_active_set, self._Y_max_active_set = \
             self.generate_DU_U_Y_active_set()
 
+    def check_U_Y_size(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
+                       U_min: np.ndarray = None, U_max: np.ndarray = None,
+                       Y_min: np.ndarray = None, Y_max: np.ndarray = None):
+
+        U_size = 0
+        if delta_U_min is not None:
+            U_size = delta_U_min.shape[0]
+        if delta_U_max is not None and delta_U_max.shape[0] != U_size:
+            raise ValueError(
+                "delta_U_max must have the same size as delta_U_min.")
+        if U_min is not None and U_min.shape[0] != U_size:
+            raise ValueError("U_min must have the same size as delta_U_min.")
+        if U_max is not None and U_max.shape[0] != U_size:
+            raise ValueError("U_max must have the same size as delta_U_min.")
+
+        Y_size = 0
+        if Y_min is not None:
+            Y_size = Y_min.shape[0]
+        if Y_max is not None and Y_max.shape[0] != Y_size:
+            raise ValueError("Y_max must have the same size as Y_min.")
+
+        return U_size, Y_size
+
     def check_min_max_compatibility(self):
 
-        if self.delta_U_min is not None or self.delta_U_min.shape[1] > 1:
+        if self.delta_U_min is not None and self.delta_U_min.shape[1] > 1:
             raise ValueError("delta_U_min must be a (n, 1) vector.")
-        if self.delta_U_max is not None or self.delta_U_max.shape[1] > 1:
+        if self.delta_U_max is not None and self.delta_U_max.shape[1] > 1:
             raise ValueError("delta_U_max must be a (n, 1) vector.")
 
-        if self.U_min is not None or self.U_min.shape[1] > 1:
+        if self.U_min is not None and self.U_min.shape[1] > 1:
             raise ValueError("U_min must be a (n, 1) vector.")
-        if self.U_max is not None or self.U_max.shape[1] > 1:
+        if self.U_max is not None and self.U_max.shape[1] > 1:
             raise ValueError("U_max must be a (n, 1) vector.")
 
-        if self.Y_min is not None or self.Y_min.shape[1] > 1:
+        if self.Y_min is not None and self.Y_min.shape[1] > 1:
             raise ValueError("Y_min must be a (n, 1) vector.")
-        if self.Y_max is not None or self.Y_max.shape[1] > 1:
+        if self.Y_max is not None and self.Y_max.shape[1] > 1:
             raise ValueError("Y_max must be a (n, 1) vector.")
 
-        if self._U_size != self.delta_U_min.shape[0]:
+        if self.delta_U_min is not None and self._U_size != self.delta_U_min.shape[0]:
             raise ValueError(
                 "size of delta_U_min doesn't match the size of initialized ones.")
-        if self._U_size != self.delta_U_max.shape[0]:
+        if self.delta_U_max is not None and self._U_size != self.delta_U_max.shape[0]:
             raise ValueError(
                 "size of delta_U_max doesn't match the size of initialized ones.")
 
-        if self._U_size != self.U_min.shape[0]:
+        if self.U_min is not None and self._U_size != self.U_min.shape[0]:
             raise ValueError(
                 "size of U_min doesn't match the size of initialized ones.")
-        if self._U_size != self.U_max.shape[0]:
+        if self.U_max is not None and self._U_size != self.U_max.shape[0]:
             raise ValueError(
                 "size of U_max doesn't match the size of initialized ones.")
 
-        if self._Y_size != self.Y_min.shape[0]:
+        if self.Y_min is not None and self._Y_size != self.Y_min.shape[0]:
             raise ValueError(
                 "size of Y_min doesn't match the size of initialized ones.")
-        if self._Y_size != self.Y_max.shape[0]:
+        if self.Y_max is not None and self._Y_size != self.Y_max.shape[0]:
             raise ValueError(
                 "size of Y_max doesn't match the size of initialized ones.")
 

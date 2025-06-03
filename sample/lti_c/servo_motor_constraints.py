@@ -15,7 +15,7 @@ import numpy as np
 import control
 
 from mpc_utility.state_space_utility import SymbolicStateSpace
-from python_mpc.linear_mpc import LTI_MPC_NoConstraints
+from python_mpc.linear_mpc import LTI_MPC_NoConstraints, LTI_MPC
 from python_mpc.linear_mpc_deploy import LinearMPC_Deploy
 
 from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
@@ -93,6 +93,9 @@ def main():
     lti_mpc = LTI_MPC_NoConstraints(
         ideal_plant_model, Np=Np, Nc=Nc,
         Weight_U=Weight_U, Weight_Y=Weight_Y)
+
+    mpc = LTI_MPC(ideal_plant_model, Np=Np, Nc=Nc,
+                  Weight_U=Weight_U, Weight_Y=Weight_Y)
 
     # You can create cpp header which can easily define lti_mpc as C++ code
     # deployed_file_names = LinearMPC_Deploy.generate_LTI_MPC_NC_cpp_code(
