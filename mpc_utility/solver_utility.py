@@ -4,7 +4,7 @@ import sympy as sp
 from external_libraries.python_optimization_to_cpp.python_optimization.qp_active_set import QP_ActiveSetSolver
 
 
-class UXY_Limits:
+class DU_U_Y_Limits:
     def __init__(self,
                  delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                  U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -28,6 +28,9 @@ class UXY_Limits:
         self.number_of_delta_U_constraints, \
             self.number_of_U_constraints, \
             self.number_of_Y_constraints = self.count_check_constraints()
+
+        self.delta_U_active_set, self.U_active_set, self.Y_active_set = \
+            self.generate_DU_U_Y_active_set()
 
     def check_min_max_compatibility(self):
 
@@ -122,26 +125,69 @@ class UXY_Limits:
                 number_of_U_constraints,
                 number_of_Y_constraints)
 
+    def generate_DU_U_Y_active_set(self):
+        delta_U_active_set = np.zeros(self.U_size, dtype=bool)
+        U_active_set = np.zeros(self.U_size, dtype=bool)
+        Y_active_set = np.zeros(self.Y_size, dtype=bool)
+
+        for i in range(self.U_size):
+            if self.delta_U_min is not None and np.isfinite(self.delta_U_min[i]):
+                delta_U_active_set[i] = True
+            if self.delta_U_max is not None and np.isfinite(self.delta_U_max[i]):
+                delta_U_active_set[i] = True
+
+            if self.U_min is not None and np.isfinite(self.U_min[i]):
+                U_active_set[i] = True
+            if self.U_max is not None and np.isfinite(self.U_max[i]):
+                U_active_set[i] = True
+
+        for i in range(self.Y_size):
+            if self.Y_min is not None and np.isfinite(self.Y_min[i]):
+                Y_active_set[i] = True
+            if self.Y_max is not None and np.isfinite(self.Y_max[i]):
+                Y_active_set[i] = True
+
+        return delta_U_active_set, U_active_set, Y_active_set
+
     def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                        U_min: np.ndarray = None, U_max: np.ndarray = None,
                        Y_min: np.ndarray = None, Y_max: np.ndarray = None):
 
-        if delta_U_min is not None:
-            self.delta_U_min = delta_U_min
-        if delta_U_max is not None:
-            self.delta_U_max = delta_U_max
+        if delta_U_min is not None and delta_U_min.shape[0] != self.U_size:
+            for i in range(self.U_size):
+                if self.delta_U_active_set[i] and \
+                        np.isfinite(delta_U_min[i]):
+                    self.delta_U_min[i] = delta_U_min[i]
 
-        if U_min is not None:
-            self.U_min = U_min
-        if U_max is not None:
-            self.U_max = U_max
+        if delta_U_max is not None and delta_U_max.shape[0] != self.U_size:
+            for i in range(self.U_size):
+                if self.delta_U_active_set[i] and \
+                        np.isfinite(delta_U_max[i]):
+                    self.delta_U_max[i] = delta_U_max[i]
 
-        if Y_min is not None:
-            self.Y_min = Y_min
-        if Y_max is not None:
-            self.Y_max = Y_max
+        if U_min is not None and U_min.shape[0] != self.U_size:
+            for i in range(self.U_size):
+                if self.U_active_set[i] and \
+                        np.isfinite(U_min[i]):
+                    self.U_min[i] = U_min[i]
 
-        self.check_min_max_compatibility()
+        if U_max is not None and U_max.shape[0] != self.U_size:
+            for i in range(self.U_size):
+                if self.U_active_set[i] and \
+                        np.isfinite(U_max[i]):
+                    self.U_max[i] = U_max[i]
+
+        if Y_min is not None and Y_min.shape[0] != self.Y_size:
+            for i in range(self.Y_size):
+                if self.Y_active_set[i] and \
+                        np.isfinite(Y_min[i]):
+                    self.Y_min[i] = Y_min[i]
+
+        if Y_max is not None and Y_max.shape[0] != self.Y_size:
+            for i in range(self.Y_size):
+                if self.Y_active_set[i] and \
+                        np.isfinite(Y_max[i]):
+                    self.Y_max[i] = Y_max[i]
 
     def get_number_of_all_constraints(self):
         return self.number_of_delta_U_constraints + \
@@ -157,7 +203,7 @@ class LTI_MPC_QP_Solver:
 
         self.number_of_variables = number_of_variables
 
-        self.UXY_Limits = UXY_Limits(
+        self.DU_U_Y_Limits = DU_U_Y_Limits(
             delta_U_min=delta_U_min,
             delta_U_max=delta_U_max,
             U_min=U_min,
@@ -165,9 +211,9 @@ class LTI_MPC_QP_Solver:
             Y_min=Y_min,
             Y_max=Y_max
         )
-        self.UXY_Limits.count_check_constraints()
+        self.DU_U_Y_Limits.count_check_constraints()
 
-        self.number_of_constraints = self.UXY_Limits.get_number_of_all_constraints()
+        self.number_of_constraints = self.DU_U_Y_Limits.get_number_of_all_constraints()
 
         self.active_set_solver = QP_ActiveSetSolver(
             number_of_variables=number_of_variables,
