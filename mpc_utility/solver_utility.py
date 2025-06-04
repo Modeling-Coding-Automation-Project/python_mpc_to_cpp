@@ -295,8 +295,7 @@ class DU_U_Y_Limits:
 
 
 class LTI_MPC_QP_Solver:
-    def __init__(self, number_of_variables: int, U: np.ndarray, X: np.ndarray,
-                 Phi: np.ndarray, F: np.ndarray, delta_U_Nc: np.ndarray = None,
+    def __init__(self, number_of_variables: int, delta_U_Nc: np.ndarray = None,
                  delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                  U_min: np.ndarray = None, U_max: np.ndarray = None,
                  Y_min: np.ndarray = None, Y_max: np.ndarray = None):
@@ -320,8 +319,9 @@ class LTI_MPC_QP_Solver:
             number_of_constraints=self.number_of_constraints,
             x=delta_U_Nc)
 
-        self.M = self.initialize_constraints(
-            U=U, X=X, Phi=Phi, F=F)
+        self.M = np.zeros(
+            (self.number_of_constraints, self.number_of_variables))
+        self.gamma = np.zeros((self.number_of_constraints, 1))
 
     def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                        U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -336,91 +336,81 @@ class LTI_MPC_QP_Solver:
             Y_max=Y_max
         )
 
-    def calculate_M_gamma_delta_U(self):
-        M_delta_U = np.zeros((self.DU_U_Y_Limits.get_number_of_delta_U_constraints(),
-                              self.number_of_variables))
+    def _calculate_M_gamma_delta_U(self, total_index: int):
 
         for i in range(self.DU_U_Y_Limits.get_U_size()):
             if self.DU_U_Y_Limits.is_delta_U_min_active(i):
-                M_delta_U[i, i] = -1.0
+                self.M[total_index + i, i] = -1.0
             if self.DU_U_Y_Limits.is_delta_U_max_active(i):
-                M_delta_U[i + self.DU_U_Y_Limits.get_number_of_delta_U_constraints(),
-                          i] = 1.0
+                self.M[total_index + i + self.DU_U_Y_Limits.get_number_of_delta_U_constraints(),
+                       i] = 1.0
 
-        gamma_delta_U = np.zeros(
-            (self.DU_U_Y_Limits.get_number_of_delta_U_constraints(), 1))
+            total_index += 1
 
         for i in range(self.DU_U_Y_Limits.get_U_size()):
             if self.DU_U_Y_Limits.is_delta_U_min_active(i):
-                gamma_delta_U[i, 0] = -self.DU_U_Y_Limits.delta_U_min[i, 0]
+                self.gamma[total_index + i, 0] = - \
+                    self.DU_U_Y_Limits.delta_U_min[i, 0]
             if self.DU_U_Y_Limits.is_delta_U_max_active(i):
-                gamma_delta_U[i + self.DU_U_Y_Limits.get_number_of_delta_U_constraints(), 0] = \
+                self.gamma[total_index + i + self.DU_U_Y_Limits.get_number_of_delta_U_constraints(), 0] = \
                     self.DU_U_Y_Limits.delta_U_max[i, 0]
 
-        return M_delta_U, gamma_delta_U
+            total_index += 1
 
-    def calculate_M_gamma_U(self, U: np.ndarray):
-        M_U = np.zeros((self.DU_U_Y_Limits.get_number_of_U_constraints(),
-                       self.number_of_variables))
+        return total_index
 
-        for i in range(self.DU_U_Y_Limits.get_U_size()):
-            if self.DU_U_Y_Limits.is_U_min_active(i):
-                M_U[i, i] = -1.0
-            if self.DU_U_Y_Limits.is_U_max_active(i):
-                M_U[i + self.DU_U_Y_Limits.get_number_of_U_constraints(),
-                    i] = 1.0
-
-        gamma_U = np.zeros(
-            (self.DU_U_Y_Limits.get_number_of_U_constraints(), 1))
+    def _calculate_M_gamma_U(self, total_index: int, U: np.ndarray):
 
         for i in range(self.DU_U_Y_Limits.get_U_size()):
             if self.DU_U_Y_Limits.is_U_min_active(i):
-                gamma_U[i, 0] = -self.DU_U_Y_Limits.U_min[i, 0] + U[i, 0]
+                self.M[total_index + i, i] = -1.0
             if self.DU_U_Y_Limits.is_U_max_active(i):
-                gamma_U[i + self.DU_U_Y_Limits.get_number_of_U_constraints(), 0] = \
+                self.M[total_index + i + self.DU_U_Y_Limits.get_number_of_U_constraints(),
+                       i] = 1.0
+
+            total_index += 1
+
+        for i in range(self.DU_U_Y_Limits.get_U_size()):
+            if self.DU_U_Y_Limits.is_U_min_active(i):
+                self.gamma[total_index + i, 0] = - \
+                    self.DU_U_Y_Limits.U_min[i, 0] + U[i, 0]
+            if self.DU_U_Y_Limits.is_U_max_active(i):
+                self.gamma[total_index + i + self.DU_U_Y_Limits.get_number_of_U_constraints(), 0] = \
                     self.DU_U_Y_Limits.U_max[i, 0] - U[i, 0]
 
-    def calculate_M_gamma_Y(self, X: np.ndarray,
-                            Phi: np.ndarray, F: np.ndarray):
-        M_Y = np.zeros((self.DU_U_Y_Limits.get_number_of_Y_constraints(),
-                        self.number_of_variables))
+            total_index += 1
+
+        return total_index
+
+    def _calculate_M_gamma_Y(self, total_index: int, X: np.ndarray,
+                             Phi: np.ndarray, F: np.ndarray):
 
         for i in range(self.DU_U_Y_Limits.get_Y_size()):
             if self.DU_U_Y_Limits.is_Y_min_active(i):
-                M_Y[i, :] = -Phi[i, :]
+                self.M[total_index + i, :] = -Phi[i, :]
             if self.DU_U_Y_Limits.is_Y_max_active(i):
-                M_Y[i + self.DU_U_Y_Limits.get_number_of_Y_constraints(),
-                    :] = Phi[i, :]
-
-        gamma_Y = np.zeros(
-            (self.DU_U_Y_Limits.get_number_of_Y_constraints(), 1))
+                self.M[total_index + i + self.DU_U_Y_Limits.get_number_of_Y_constraints(),
+                       :] = Phi[i, :]
 
         F_X = F @ X
 
         for i in range(self.DU_U_Y_Limits.get_Y_size()):
             if self.DU_U_Y_Limits.is_Y_min_active(i):
-                gamma_Y[i, 0] = -self.DU_U_Y_Limits.Y_min[i, 0] + \
+                self.gamma[total_index + i, 0] = -self.DU_U_Y_Limits.Y_min[i, 0] + \
                     F_X[i, 0]
             if self.DU_U_Y_Limits.is_Y_max_active(i):
-                gamma_Y[i + self.DU_U_Y_Limits.get_number_of_Y_constraints(), 0] = \
+                self.gamma[total_index + i + self.DU_U_Y_Limits.get_number_of_Y_constraints(), 0] = \
                     self.DU_U_Y_Limits.Y_max[i, 0] - F_X[i, 0]
 
-        return M_Y, gamma_Y
-
-    def initialize_constraints(self,
-                               U: np.ndarray, X: np.ndarray,
-                               Phi: np.ndarray, F: np.ndarray):
+    def update_constraints(self,
+                           U: np.ndarray, X: np.ndarray,
+                           Phi: np.ndarray, F: np.ndarray):
 
         if 0 == self.number_of_constraints:
             return
 
-        M_delta_U, gamma_delta_U = self.calculate_M_gamma_delta_U()
+        total_index = 0
 
-        M_U, gamma_U = self.calculate_M_gamma_U(U)
-
-        M_Y, gamma_Y = self.calculate_M_gamma_Y(X, Phi, F)
-
-        M = np.vstack((M_delta_U, M_U, M_Y))
-        gamma = np.vstack((gamma_delta_U, gamma_U, gamma_Y))
-
-        return M, gamma
+        total_index = self._calculate_M_gamma_delta_U(total_index)
+        total_index = self._calculate_M_gamma_U(total_index, U)
+        self._calculate_M_gamma_Y(total_index, X, Phi, F)
