@@ -184,9 +184,8 @@ class LTI_MPC(LTI_MPC_NoConstraints):
                          Q_kf, R_kf, is_ref_trajectory)
 
         self.qp_solver = LTI_MPC_QP_Solver(
-            number_of_variables=self.AUGMENTED_INPUT_SIZE * self.Nc)
-
-        self.qp_solver.update_constraints(U=self.U_latest, X=np.vstack(
-            (self.X_inner_model, self.Y_store.get())),
+            number_of_variables=self.AUGMENTED_INPUT_SIZE * self.Nc,
+            U=self.U_latest, X=np.vstack(
+                (self.X_inner_model, self.Y_store.get())),
             Phi=self.prediction_matrices.Phi_numeric,
             F=self.prediction_matrices.F_numeric)

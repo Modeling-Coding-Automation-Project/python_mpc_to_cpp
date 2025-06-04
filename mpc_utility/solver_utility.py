@@ -295,7 +295,8 @@ class DU_U_Y_Limits:
 
 
 class LTI_MPC_QP_Solver:
-    def __init__(self, number_of_variables: int, delta_U_Nc: np.ndarray = None,
+    def __init__(self, number_of_variables: int, U: np.ndarray, X: np.ndarray,
+                 Phi: np.ndarray, F: np.ndarray, delta_U_Nc: np.ndarray = None,
                  delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                  U_min: np.ndarray = None, U_max: np.ndarray = None,
                  Y_min: np.ndarray = None, Y_max: np.ndarray = None):
@@ -322,6 +323,13 @@ class LTI_MPC_QP_Solver:
         self.M = np.zeros(
             (self.number_of_constraints, self.number_of_variables))
         self.gamma = np.zeros((self.number_of_constraints, 1))
+
+        self.U_shape = U.shape
+        self.X_shape = X.shape
+        self.Phi_shape = Phi.shape
+        self.F_shape = F.shape
+
+        self.update_constraints(U, X, Phi, F)
 
     def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                        U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -405,6 +413,22 @@ class LTI_MPC_QP_Solver:
     def update_constraints(self,
                            U: np.ndarray, X: np.ndarray,
                            Phi: np.ndarray, F: np.ndarray):
+
+        if not (U.shape[0] == self.U_shape[0]) or \
+                not (U.shape[1] == self.U_shape[1]):
+            raise ValueError("U shape does not match the initialized shape.")
+
+        if not (X.shape[0] == self.X_shape[0]) or \
+                not (X.shape[1] == self.X_shape[1]):
+            raise ValueError("X shape does not match the initialized shape.")
+
+        if not (Phi.shape[0] == self.Phi_shape[0]) or \
+                not (Phi.shape[1] == self.Phi_shape[1]):
+            raise ValueError("Phi shape does not match the initialized shape.")
+
+        if not (F.shape[0] == self.F_shape[0]) or \
+                not (F.shape[1] == self.F_shape[1]):
+            raise ValueError("F shape does not match the initialized shape.")
 
         if 0 == self.number_of_constraints:
             return
