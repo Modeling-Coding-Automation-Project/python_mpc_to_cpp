@@ -298,6 +298,12 @@ class DU_U_Y_Limits:
         return self._Y_size
 
 
+class NoConsiderFlag:
+    def __init__(self, vector_size: int):
+        self.min = np.zeros((vector_size, 1), dtype=bool)
+        self.max = np.zeros((vector_size, 1), dtype=bool)
+
+
 class LTI_MPC_QP_Solver:
     def __init__(self, number_of_variables: int, U: np.ndarray, X: np.ndarray,
                  Phi: np.ndarray, F: np.ndarray, delta_U_Nc: np.ndarray,
@@ -345,6 +351,7 @@ class LTI_MPC_QP_Solver:
         self.F_shape = F.shape
 
         self.prediction_offset = Y_constraints_prediction_offset
+        self.Y_no_consider_flag = NoConsiderFlag(self.Y_size)
 
         self.update_constraints(U, X, Phi, F)
 
@@ -419,13 +426,18 @@ class LTI_MPC_QP_Solver:
 
         for i in range(self.DU_U_Y_Limits.get_Y_size()):
             if self.DU_U_Y_Limits.is_Y_min_active(i):
-                if np.linalg.norm(Phi[self.prediction_offset + i, :]) < self.tol:
-                    print("[Warning] " +
-                          f"Y[{i}] min cannot be constrained because Phi row is zero. " +
-                          f"Y[{i}] min constraint is no linger considered.")
+                if self.Y_no_consider_flag.min[i] or \
+                        np.linalg.norm(Phi[self.prediction_offset + i, :]) < self.tol:
+
+                    if not self.Y_no_consider_flag.min[i]:
+                        print("[Warning] " +
+                              f"Y[{i}] min cannot be constrained because Phi row is zero. " +
+                              f"Y[{i}] min constraint is no linger considered.")
 
                     Phi_vec = np.zeros((1, self.number_of_variables))
                     F_X_value = 0.0
+
+                    self.Y_no_consider_flag.min[i] = True
                 else:
                     Phi_vec = -Phi[self.prediction_offset + i, :]
                     F_X_value = - \
@@ -438,13 +450,18 @@ class LTI_MPC_QP_Solver:
                     F_X_value
 
             if self.DU_U_Y_Limits.is_Y_max_active(i):
-                if np.linalg.norm(Phi[self.prediction_offset + i, :]) < self.tol:
-                    print("[Warning] " +
-                          f"Y[{i}] max cannot be constrained because Phi row is zero. " +
-                          f"Y[{i}] max constraint is no linger considered.")
+                if self.Y_no_consider_flag.max[i] or \
+                        np.linalg.norm(Phi[self.prediction_offset + i, :]) < self.tol:
+
+                    if not self.Y_no_consider_flag.max[i]:
+                        print("[Warning] " +
+                              f"Y[{i}] max cannot be constrained because Phi row is zero. " +
+                              f"Y[{i}] max constraint is no linger considered.")
 
                     Phi_vec = np.zeros((1, self.number_of_variables))
                     F_X_value = 0.0
+
+                    self.Y_no_consider_flag.max[i] = True
                 else:
                     Phi_vec = Phi[self.prediction_offset + i, :]
                     F_X_value = self.DU_U_Y_Limits.Y_max[i, 0] - \
@@ -490,7 +507,7 @@ class LTI_MPC_QP_Solver:
               X: np.ndarray) -> np.ndarray:
 
         E = Phi.T @ Phi + Weight_U_Nc
-        L = Phi.T @ (reference_trajectory - F @ X)
+        L = Phi.T @ reference_trajectory.calculate_dif(F @ X)
 
         x_opt = self.solver.solve(E, L, self.M, self.gamma)
 
