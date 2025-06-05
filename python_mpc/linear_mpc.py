@@ -183,9 +183,14 @@ class LTI_MPC(LTI_MPC_NoConstraints):
         super().__init__(state_space, Np, Nc, Weight_U, Weight_Y,
                          Q_kf, R_kf, is_ref_trajectory)
 
+        delta_U_Nc = np.zeros((self.solver_factor.shape[0], 1))
+
         self.qp_solver = LTI_MPC_QP_Solver(
             number_of_variables=self.AUGMENTED_INPUT_SIZE * self.Nc,
             U=self.U_latest, X=np.vstack(
                 (self.X_inner_model, self.Y_store.get())),
             Phi=self.prediction_matrices.Phi_numeric,
-            F=self.prediction_matrices.F_numeric)
+            F=self.prediction_matrices.F_numeric, delta_U_Nc=delta_U_Nc,
+            delta_U_min=delta_U_min, delta_U_max=delta_U_max,
+            U_min=U_min, U_max=U_max,
+            Y_min=Y_min, Y_max=Y_max)
