@@ -303,6 +303,9 @@ class LTI_MPC_QP_Solver:
 
         self.number_of_variables = number_of_variables
 
+        self.U_size = U_min.shape[0]
+        self.Y_size = Y_min.shape[0]
+
         self.DU_U_Y_Limits = DU_U_Y_Limits(
             delta_U_min=delta_U_min,
             delta_U_max=delta_U_max,
@@ -399,18 +402,21 @@ class LTI_MPC_QP_Solver:
 
         initial_position = total_index
         F_X = F @ X
+        prediction_offset = self.Y_size
 
         for i in range(self.DU_U_Y_Limits.get_Y_size()):
             if self.DU_U_Y_Limits.is_Y_min_active(i):
-                self.M[initial_position + 2 * i, :] = -Phi[i, :]
+                self.M[initial_position + 2 * i, :] = - \
+                    Phi[prediction_offset + i, :]
                 self.gamma[initial_position + 2 * i, 0] = -self.DU_U_Y_Limits.Y_min[i, 0] + \
-                    F_X[i, 0]
+                    F_X[prediction_offset + i, 0]
 
             if self.DU_U_Y_Limits.is_Y_max_active(i):
                 self.M[initial_position + 2 * i + 1,
-                       :] = Phi[i, :]
+                       :] = Phi[prediction_offset + i, :]
                 self.gamma[initial_position + 2 * i + 1, 0] = \
-                    self.DU_U_Y_Limits.Y_max[i, 0] - F_X[i, 0]
+                    self.DU_U_Y_Limits.Y_max[i, 0] - \
+                    F_X[prediction_offset + i, 0]
 
     def update_constraints(self,
                            U: np.ndarray, X: np.ndarray,
