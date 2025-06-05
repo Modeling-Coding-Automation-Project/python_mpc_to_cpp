@@ -1,6 +1,7 @@
 import numpy as np
 import sympy as sp
 
+from mpc_utility.state_space_utility import *
 from external_libraries.python_optimization_to_cpp.python_optimization.qp_active_set import QP_ActiveSetSolver
 
 MAX_ITERATION_DEFAULT = 10
@@ -327,7 +328,7 @@ class LTI_MPC_QP_Solver:
 
         self.number_of_constraints = self.DU_U_Y_Limits.get_number_of_all_constraints()
 
-        self.active_set_solver = QP_ActiveSetSolver(
+        self.solver = QP_ActiveSetSolver(
             number_of_variables=number_of_variables,
             number_of_constraints=self.number_of_constraints,
             x=delta_U_Nc)
@@ -480,3 +481,15 @@ class LTI_MPC_QP_Solver:
         total_index = self._calculate_M_gamma_delta_U(total_index)
         total_index = self._calculate_M_gamma_U(total_index, U)
         self._calculate_M_gamma_Y(total_index, X, Phi, F)
+
+    def solve(self, Phi: np.ndarray, F: np.ndarray,
+              Weight_U_Nc: np.ndarray,
+              reference_trajectory: MPC_ReferenceTrajectory,
+              X: np.ndarray) -> np.ndarray:
+
+        E = Phi.T @ Phi + Weight_U_Nc
+        L = Phi.T @ (reference_trajectory - F @ X)
+
+        x_opt = self.solver.solve(E, L, self.M, self.gamma)
+
+        return x_opt

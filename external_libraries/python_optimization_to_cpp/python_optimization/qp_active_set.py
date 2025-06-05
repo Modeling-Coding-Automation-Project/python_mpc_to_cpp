@@ -250,4 +250,4 @@ class QP_ActiveSetSolver:
 
         self.iteration_count = iteration_count + 1
 
-        return self.x, lambda_values
+        return self.x
