@@ -96,8 +96,8 @@ def main():
 
     delta_U_min = np.array([[-101.0]])
     delta_U_max = np.array([[102.0]])
-    U_min = np.array([[-201.0]])
-    U_max = np.array([[202.0]])
+    U_min = np.array([[-301.0]])
+    U_max = np.array([[302.0]])
     Y_min = np.array([[-10.0], [-100.0]])
     Y_max = np.array([[10.0], [100.0]])
 
@@ -161,8 +161,8 @@ def main():
 
         # controller
         ref = np.array([[input_signal[i, 0]], [0.0]])
-        U = lti_mpc.update(ref, y_measured)
-        # U = mpc.update(ref, y_measured)
+        # U = lti_mpc.update(ref, y_measured)
+        U = mpc.update(ref, y_measured)
 
         plotter.append_name(ref, "ref")
         plotter.append_name(U, "U")

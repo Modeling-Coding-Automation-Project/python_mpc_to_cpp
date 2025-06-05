@@ -232,11 +232,11 @@ class QP_ActiveSetSolver:
                             min_lambda_index = index_local
 
                 if min_lambda_index >= 0:
-                    constraint_to_remove = self.active_set[min_lambda_index]
-                    self.active_set.push_inactive(constraint_to_remove)
+                    self.active_set.push_inactive(min_lambda_index)
                     # Since a constraint was removed, re-optimize
                     self.x = x_candidate
                     continue
+
             # If there are no constraint violations and all lambda are non-negative, consider as optimal solution
             self.x = x_candidate
             lambda_values[:] = 0.0
