@@ -161,7 +161,8 @@ def main():
 
         # controller
         ref = np.array([[input_signal[i, 0]], [0.0]])
-        U = lti_mpc.update(ref, y_measured)
+        # U = lti_mpc.update(ref, y_measured)
+        U = mpc.update(ref, y_measured)
 
         plotter.append_name(ref, "ref")
         plotter.append_name(U, "U")

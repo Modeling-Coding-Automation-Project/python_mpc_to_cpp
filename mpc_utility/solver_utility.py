@@ -331,7 +331,9 @@ class LTI_MPC_QP_Solver:
         self.solver = QP_ActiveSetSolver(
             number_of_variables=number_of_variables,
             number_of_constraints=self.number_of_constraints,
-            x=delta_U_Nc)
+            x=delta_U_Nc,
+            max_iteration=max_iteration,
+            tol=tol)
 
         self.M = np.zeros(
             (self.number_of_constraints, self.number_of_variables))
