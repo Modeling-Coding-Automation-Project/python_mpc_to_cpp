@@ -305,7 +305,8 @@ class NoConsiderFlag:
 
 
 class LTI_MPC_QP_Solver:
-    def __init__(self, number_of_variables: int, U: np.ndarray, X: np.ndarray,
+    def __init__(self, number_of_variables: int, output_size: int,
+                 U: np.ndarray, X_augmented: np.ndarray,
                  Phi: np.ndarray, F: np.ndarray, delta_U_Nc: np.ndarray,
                  delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                  U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -319,8 +320,8 @@ class LTI_MPC_QP_Solver:
 
         self.number_of_variables = number_of_variables
 
-        self.U_size = U_min.shape[0]
-        self.Y_size = Y_min.shape[0]
+        self.U_size = U.shape[0]
+        self.Y_size = output_size
 
         self.DU_U_Y_Limits = DU_U_Y_Limits(
             delta_U_min=delta_U_min,
@@ -346,14 +347,32 @@ class LTI_MPC_QP_Solver:
         self.gamma = np.zeros((self.number_of_constraints, 1))
 
         self.U_shape = U.shape
-        self.X_shape = X.shape
+        self.X_shape = X_augmented.shape
         self.Phi_shape = Phi.shape
         self.F_shape = F.shape
 
         self.prediction_offset = Y_constraints_prediction_offset
-        self.Y_no_consider_flag = NoConsiderFlag(self.Y_size)
+        self.Y_no_consider_flag = self.check_Y_constraints(
+            Phi, self.DU_U_Y_Limits)
 
-        self.update_constraints(U, X, Phi, F)
+        self.update_constraints(U, X_augmented, Phi, F)
+
+    def check_Y_constraints(self,
+                            Phi: np.ndarray, DU_U_Y_Limits: DU_U_Y_Limits):
+        Y_no_consider_flag = NoConsiderFlag(self.Y_size)
+
+        for i in range(DU_U_Y_Limits.get_Y_size()):
+            Phi_factor_norm = np.linalg.norm(
+                Phi[self.prediction_offset + i, :])
+
+            if Phi_factor_norm < self.tol:
+                Y_no_consider_flag.min[i] = True
+                Y_no_consider_flag.max[i] = True
+                print("[Warning] " +
+                      f"Y[{i}] min, max cannot be constrained because Phi row is zero. " +
+                      f"Y[{i}] min, max constraint is no linger considered.")
+
+        return Y_no_consider_flag
 
     def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                        U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -418,26 +437,18 @@ class LTI_MPC_QP_Solver:
 
         return total_index
 
-    def _calculate_M_gamma_Y(self, total_index: int, X: np.ndarray,
+    def _calculate_M_gamma_Y(self, total_index: int, X_augmented: np.ndarray,
                              Phi: np.ndarray, F: np.ndarray):
 
         initial_position = total_index
-        F_X = F @ X
+        F_X = F @ X_augmented
 
         for i in range(self.DU_U_Y_Limits.get_Y_size()):
             if self.DU_U_Y_Limits.is_Y_min_active(i):
-                if self.Y_no_consider_flag.min[i] or \
-                        np.linalg.norm(Phi[self.prediction_offset + i, :]) < self.tol:
-
-                    if not self.Y_no_consider_flag.min[i]:
-                        print("[Warning] " +
-                              f"Y[{i}] min cannot be constrained because Phi row is zero. " +
-                              f"Y[{i}] min constraint is no linger considered.")
+                if self.Y_no_consider_flag.min[i]:
 
                     Phi_vec = np.zeros((1, self.number_of_variables))
                     F_X_value = 0.0
-
-                    self.Y_no_consider_flag.min[i] = True
                 else:
                     Phi_vec = -Phi[self.prediction_offset + i, :]
                     F_X_value = - \
@@ -450,18 +461,10 @@ class LTI_MPC_QP_Solver:
                     F_X_value
 
             if self.DU_U_Y_Limits.is_Y_max_active(i):
-                if self.Y_no_consider_flag.max[i] or \
-                        np.linalg.norm(Phi[self.prediction_offset + i, :]) < self.tol:
-
-                    if not self.Y_no_consider_flag.max[i]:
-                        print("[Warning] " +
-                              f"Y[{i}] max cannot be constrained because Phi row is zero. " +
-                              f"Y[{i}] max constraint is no linger considered.")
+                if self.Y_no_consider_flag.max[i]:
 
                     Phi_vec = np.zeros((1, self.number_of_variables))
                     F_X_value = 0.0
-
-                    self.Y_no_consider_flag.max[i] = True
                 else:
                     Phi_vec = Phi[self.prediction_offset + i, :]
                     F_X_value = self.DU_U_Y_Limits.Y_max[i, 0] - \
@@ -473,15 +476,15 @@ class LTI_MPC_QP_Solver:
                     F_X_value
 
     def update_constraints(self,
-                           U: np.ndarray, X: np.ndarray,
+                           U: np.ndarray, X_augmented: np.ndarray,
                            Phi: np.ndarray, F: np.ndarray):
 
         if not (U.shape[0] == self.U_shape[0]) or \
                 not (U.shape[1] == self.U_shape[1]):
             raise ValueError("U shape does not match the initialized shape.")
 
-        if not (X.shape[0] == self.X_shape[0]) or \
-                not (X.shape[1] == self.X_shape[1]):
+        if not (X_augmented.shape[0] == self.X_shape[0]) or \
+                not (X_augmented.shape[1] == self.X_shape[1]):
             raise ValueError("X shape does not match the initialized shape.")
 
         if not (Phi.shape[0] == self.Phi_shape[0]) or \
@@ -499,15 +502,15 @@ class LTI_MPC_QP_Solver:
 
         total_index = self._calculate_M_gamma_delta_U(total_index)
         total_index = self._calculate_M_gamma_U(total_index, U)
-        self._calculate_M_gamma_Y(total_index, X, Phi, F)
+        self._calculate_M_gamma_Y(total_index, X_augmented, Phi, F)
 
     def solve(self, Phi: np.ndarray, F: np.ndarray,
               Weight_U_Nc: np.ndarray,
               reference_trajectory: MPC_ReferenceTrajectory,
-              X: np.ndarray) -> np.ndarray:
+              X_augmented: np.ndarray) -> np.ndarray:
 
         E = Phi.T @ Phi + Weight_U_Nc
-        L = Phi.T @ reference_trajectory.calculate_dif(F @ X)
+        L = Phi.T @ reference_trajectory.calculate_dif(F @ X_augmented)
 
         x_opt = self.solver.solve(E, L, self.M, self.gamma)
 
