@@ -16,6 +16,13 @@ public:
   /* Type */
   using Value_Type = typename Delta_U_Min_Type::Value_Type;
 
+  using Delta_U_Min_Flags = typename Delta_U_Min_Type::SparseAvailable_Type;
+  using Delta_U_Max_Flags = typename Delta_U_Max_Type::SparseAvailable_Type;
+  using U_Min_Flags = typename U_Min_Type::SparseAvailable_Type;
+  using U_Max_Flags = typename U_Max_Type::SparseAvailable_Type;
+  using Y_Min_Flags = typename Y_Min_Type::SparseAvailable_Type;
+  using Y_Max_Flags = typename Y_Max_Type::SparseAvailable_Type;
+
   /* Check Compatibility */
   static_assert(
       std::is_same<typename Delta_U_Max_Type::Value_Type, Value_Type>::value,
@@ -157,13 +164,6 @@ public:
 protected:
   /* Function */
   inline void _count_constraints(void) {
-
-    using Delta_U_Min_Flags = typename Delta_U_Min_Type::SparseAvailable_Type;
-    using Delta_U_Max_Flags = typename Delta_U_Max_Type::SparseAvailable_Type;
-    using U_Min_Flags = typename U_Min_Type::SparseAvailable_Type;
-    using U_Max_Flags = typename U_Max_Type::SparseAvailable_Type;
-    using Y_Min_Flags = typename Y_Min_Type::SparseAvailable_Type;
-    using Y_Max_Flags = typename Y_Max_Type::SparseAvailable_Type;
 
     this->_number_of_delta_U_constraints = static_cast<std::size_t>(0);
     this->_number_of_U_constraints = static_cast<std::size_t>(0);
