@@ -208,10 +208,12 @@ class QP_ActiveSetSolver:
             M_x = M @ x_candidate
 
             for j in range(self.number_of_constraints):
+                gamma_tol = gamma[j] + self.tol
+                if M_x[j, 0] > gamma_tol:
 
-                if M_x[j, 0] > gamma[j] + self.tol:
-                    if M_x[j, 0] - gamma[j] > max_violation:
-                        max_violation = M_x[j, 0] - gamma[j]
+                    M_x_gamma = M_x[j, 0] - gamma[j]
+                    if M_x_gamma > max_violation:
+                        max_violation = M_x_gamma
                         violation_index = j
 
             if violation_index >= 0:
