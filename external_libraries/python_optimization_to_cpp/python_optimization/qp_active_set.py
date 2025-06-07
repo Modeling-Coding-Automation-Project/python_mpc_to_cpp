@@ -237,14 +237,13 @@ class QP_ActiveSetSolver:
                     self.x = x_candidate
                     continue
 
-            # If there are no constraint violations and all lambda are non-negative, consider as optimal solution
+            # If there are no constraint violations and all lambda are non-negative,
+            # consider as optimal solution
             self.x = x_candidate
-            lambda_values[:] = 0.0
 
-            if self.active_set.get_number_of_active() > 0:
-                for i in range(self.active_set.get_number_of_active()):
-                    index_global = self.active_set.get_active(i)
-                    lambda_values[index_global] = lambda_candidate[i]
+            for j in range(self.number_of_constraints):
+                if self.active_set.is_active(j):
+                    self.active_set.push_inactive(j)
 
             break
 
