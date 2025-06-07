@@ -97,7 +97,6 @@ class QP_ActiveSetSolver:
         n = self.number_of_constraints
 
         self.KKT[:m, :m] = E
-        self.KKT[m:, m:] = np.zeros((n, n))
 
         k = self.active_set.get_number_of_active()
 
