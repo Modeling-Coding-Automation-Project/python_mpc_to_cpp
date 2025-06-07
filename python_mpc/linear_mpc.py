@@ -1,7 +1,7 @@
 import numpy as np
 
 from mpc_utility.state_space_utility import *
-from mpc_utility.solver_utility import *
+from mpc_utility.linear_solver_utility import *
 from external_libraries.python_control_to_cpp.python_control.kalman_filter import LinearKalmanFilter
 from external_libraries.python_control_to_cpp.python_control.kalman_filter import DelayedVectorObject
 
