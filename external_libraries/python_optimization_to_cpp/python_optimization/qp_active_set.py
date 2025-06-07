@@ -91,25 +91,40 @@ class QP_ActiveSetSolver:
                              number_of_variables + number_of_constraints))
         self.rhs = np.zeros((number_of_variables + number_of_constraints, 1))
 
-    def _set_KKT(self, E: np.ndarray, M: np.ndarray):
-
+    def update_E(self, E: np.ndarray):
         m = self.number_of_variables
-        n = self.number_of_constraints
 
         self.KKT[:m, :m] = E
 
-        k = self.active_set.get_number_of_active()
+    def update_L(self, L: np.ndarray):
+        m = self.number_of_variables
 
-        for i in range(k):
+        self.rhs[:m, 0] = L.flatten()
+
+    def _set_KKT(self, E: np.ndarray = None, M: np.ndarray = None):
+
+        if E is None and M is None:
+            return
+
+        m = self.number_of_variables
+
+        if E is not None:
+            self.update_E(E)
+
+        for i in range(self.active_set.get_number_of_active()):
             index = self.active_set.get_active(i)
             self.KKT[:m, m + i] = M[index, :].T
             self.KKT[m + i, :m] = M[index, :]
 
-    def _set_rhs(self, L: np.ndarray, gamma: np.ndarray):
+    def _set_rhs(self, L: np.ndarray = None, gamma: np.ndarray = None):
+
+        if L is None and gamma is None:
+            return
 
         m = self.number_of_variables
 
-        self.rhs[:m, 0] = L.flatten()
+        if L is not None:
+            self.update_L(L)
 
         k = self.active_set.get_number_of_active()
 
@@ -127,8 +142,26 @@ class QP_ActiveSetSolver:
 
         return sol
 
-    def solve_no_constrained_X(self, E: np.ndarray, L: np.ndarray):
-        return np.linalg.solve(E, L)
+    def solve_no_constrained_X(self,
+                               E: np.ndarray = None,
+                               L: np.ndarray = None):
+
+        m = self.number_of_variables
+
+        if E is None and L is None:
+            return self.X
+
+        if E is None:
+            E_matrix = self.KKT[:m, :m]
+        else:
+            E_matrix = E
+
+        if L is None:
+            L_matrix = self.rhs[:m, 0]
+        else:
+            L_matrix = L
+
+        return np.linalg.solve(E_matrix, L_matrix)
 
     def initialize_X(self, E: np.ndarray, L: np.ndarray,
                      M: np.ndarray, gamma: np.ndarray):
@@ -151,17 +184,24 @@ class QP_ActiveSetSolver:
             sol = self._solve_KKT_inv(k)
             self.X = sol[:n]
 
-    def solve(self, E: np.ndarray, L: np.ndarray,
-              M: np.ndarray, gamma: np.ndarray):
+    def solve(self,
+              E: np.ndarray = None, L: np.ndarray = None,
+              M: np.ndarray = None, gamma: np.ndarray = None) -> np.ndarray:
         # check compatibility
-        if E.shape[0] != self.number_of_variables or \
-                E.shape[1] != self.number_of_variables:
-            raise ValueError(
-                "E must be a square matrix of size (n, n) where n is the number of variables.")
+        if E is not None:
+            if E.shape[0] != self.number_of_variables or \
+                    E.shape[1] != self.number_of_variables:
+                raise ValueError(
+                    "E must be a square matrix of size (n, n) where n is the number of variables.")
 
-        if L.shape[0] != self.number_of_variables or L.shape[1] != 1:
+        if L is not None:
+            if L.shape[0] != self.number_of_variables or L.shape[1] != 1:
+                raise ValueError(
+                    "L must be a column vector of size (n, 1) where n is the number of variables.")
+
+        if M is None or gamma is None:
             raise ValueError(
-                "L must be a column vector of size (n, 1) where n is the number of variables.")
+                "M and gamma must be provided for solving QP.")
 
         if M.shape[1] != self.number_of_variables or M.shape[0] != self.number_of_constraints:
             raise ValueError(
@@ -172,8 +212,6 @@ class QP_ActiveSetSolver:
                 "gamma must be a column vector of size (m, 1) where m is the number of constraints.")
 
         # Initialize
-        n = E.shape[0]
-
         if self.active_set is None:
             self.active_set = ActiveSet(self.number_of_constraints)
 

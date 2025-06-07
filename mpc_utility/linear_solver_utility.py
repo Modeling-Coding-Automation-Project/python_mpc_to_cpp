@@ -416,7 +416,9 @@ class NoConsiderFlag:
 class LTI_MPC_QP_Solver:
     def __init__(self, number_of_variables: int, output_size: int,
                  U: np.ndarray, X_augmented: np.ndarray,
-                 Phi: np.ndarray, F: np.ndarray, delta_U_Nc: np.ndarray,
+                 Phi: np.ndarray, F: np.ndarray,
+                 Weight_U_Nc: np.ndarray,
+                 delta_U_Nc: np.ndarray,
                  delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                  U_min: np.ndarray = None, U_max: np.ndarray = None,
                  Y_min: np.ndarray = None, Y_max: np.ndarray = None,
@@ -466,7 +468,8 @@ class LTI_MPC_QP_Solver:
             max_iteration=max_iteration,
             tol=tol)
 
-        self.E = np.zeros((self.number_of_variables, self.number_of_variables))
+        self.update_E(Phi=Phi,
+                      Weight_U_Nc=Weight_U_Nc)
 
     def check_Y_constraints_feasibility(self,
                                         Phi: np.ndarray):
@@ -632,7 +635,7 @@ class LTI_MPC_QP_Solver:
 
     def update_E(self, Phi: np.ndarray, Weight_U_Nc: np.ndarray):
 
-        self.E = Phi.T @ Phi + Weight_U_Nc
+        self.solver.update_E(Phi.T @ Phi + Weight_U_Nc)
 
     def solve(self, Phi: np.ndarray, F: np.ndarray,
               reference_trajectory: MPC_ReferenceTrajectory,
@@ -644,7 +647,6 @@ class LTI_MPC_QP_Solver:
             self.update_E(Phi, Weight_U_Nc)
 
         x_opt = self.solver.solve(
-            E=self.E,
             L=L,
             M=self.M,
             gamma=self.gamma)
