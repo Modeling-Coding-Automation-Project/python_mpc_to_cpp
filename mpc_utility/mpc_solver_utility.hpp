@@ -2,12 +2,21 @@
 #define __MPC_SOLVER_UTILITY_HPP__
 
 #include "python_numpy.hpp"
+#include "python_optimization.hpp"
 
 #include <functional>
 #include <type_traits>
 
 namespace PythonMPC {
 
+namespace SolverUtility {
+
+static constexpr std::size_t MAX_ITERATION_DEFAULT = 10;
+static constexpr double TOL_DEFAULT = 1e-8;
+
+} // namespace SolverUtility
+
+/* Define delta U, U, Y limits */
 template <typename Delta_U_Min_Type, typename Delta_U_Max_Type,
           typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
           typename Y_Max_Type>
@@ -267,6 +276,33 @@ template <typename Delta_U_Min_Type, typename Delta_U_Max_Type,
 using DU_U_Y_Limits_Type =
     DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
                   Y_Min_Type, Y_Max_Type>;
+
+/* LTI MPC QP solver */
+template <std::size_t Number_Of_Variables, std::size_t Output_Size,
+          typename U_Type, typename X_augmented_Type, typename Phi_Type,
+          typename F_Type>
+class LTI_MPC_QP_Solver {
+public:
+  /* Type */
+  using Value_Type = typename U_Type::Value_Type;
+
+  /* Check Compatibility */
+
+public:
+  /* Constant */
+  static constexpr std::size_t NUMBER_OF_VARIABLES = Number_Of_Variables;
+  static constexpr std::size_t U_SIZE = U_Type::COLS;
+  static constexpr std::size_t Y_SIZE = Output_Size;
+
+public:
+  /* Variable */
+  std::size_t max_iteration;
+  Value_Type tol;
+
+protected:
+  /* Variable */
+  std::size_t Y_constraints_prediction_offset;
+};
 
 } // namespace PythonMPC
 
