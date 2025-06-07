@@ -643,6 +643,10 @@ class LTI_MPC_QP_Solver:
         if Weight_U_Nc is not None:
             self.update_E(Phi, Weight_U_Nc)
 
-        x_opt = self.solver.solve(self.E, L, self.M, self.gamma)
+        x_opt = self.solver.solve(
+            E=self.E,
+            L=L,
+            M=self.M,
+            gamma=self.gamma)
 
         return x_opt
