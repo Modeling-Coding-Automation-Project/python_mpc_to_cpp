@@ -269,6 +269,7 @@ class DU_U_Y_Limits:
                         np.isfinite(Y_max[i, 0]):
                     self.Y_max[i, 0] = Y_max[i, 0]
 
+    # Check if the constraints are active
     def is_delta_U_min_active(self, index: int) -> bool:
         if index < 0:
             index = 0
@@ -317,6 +318,62 @@ class DU_U_Y_Limits:
 
         return self._Y_max_active_set[index]
 
+    # set constraints inactive
+    def set_delta_U_min_inactive(self, index: int):
+        if index < 0:
+            index = 0
+        if index >= self._delta_U_min_size:
+            index = self._delta_U_min_size - 1
+
+        self._delta_U_min_active_set[index] = False
+
+    def set_delta_U_max_inactive(self, index: int):
+        if index < 0:
+            index = 0
+        if index >= self._delta_U_max_size:
+            index = self._delta_U_max_size - 1
+
+        self._delta_U_max_active_set[index] = False
+
+    def set_U_min_inactive(self, index: int):
+        if index < 0:
+            index = 0
+        if index >= self._U_min_size:
+            index = self._U_min_size - 1
+
+        self._U_min_active_set[index] = False
+
+    def set_U_max_inactive(self, index: int):
+        if index < 0:
+            index = 0
+        if index >= self._U_max_size:
+            index = self._U_max_size - 1
+
+        self._U_max_active_set[index] = False
+
+    def set_Y_min_inactive(self, index: int):
+        if index < 0:
+            index = 0
+        if index >= self._Y_min_size:
+            index = self._Y_min_size - 1
+
+        if True == self._Y_min_active_set[index]:
+            self._number_of_Y_constraints -= 1
+
+            self._Y_min_active_set[index] = False
+
+    def set_Y_max_inactive(self, index: int):
+        if index < 0:
+            index = 0
+        if index >= self._Y_max_size:
+            index = self._Y_max_size - 1
+
+        if True == self._Y_max_active_set[index]:
+            self._number_of_Y_constraints -= 1
+
+            self._Y_max_active_set[index] = False
+
+    # Getters for the sizes and counts of constraints
     def get_number_of_all_constraints(self):
         return self._number_of_delta_U_constraints + \
             self._number_of_U_constraints + \
@@ -385,7 +442,22 @@ class LTI_MPC_QP_Solver:
         )
         self.DU_U_Y_Limits.count_check_constraints()
 
-        self.number_of_constraints = self.DU_U_Y_Limits.get_number_of_all_constraints()
+        self.U_shape = U.shape
+        self.X_shape = X_augmented.shape
+        self.Phi_shape = Phi.shape
+        self.F_shape = F.shape
+
+        self.prediction_offset = Y_constraints_prediction_offset
+        self.check_Y_constraints_feasibility(Phi)
+
+        self.number_of_constraints = \
+            self.DU_U_Y_Limits.get_number_of_all_constraints()
+
+        self.M = np.zeros(
+            (self.number_of_constraints, self.number_of_variables))
+        self.gamma = np.zeros((self.number_of_constraints, 1))
+
+        self.update_constraints(U, X_augmented, Phi, F)
 
         self.solver = QP_ActiveSetSolver(
             number_of_variables=number_of_variables,
@@ -394,46 +466,31 @@ class LTI_MPC_QP_Solver:
             max_iteration=max_iteration,
             tol=tol)
 
-        self.M = np.zeros(
-            (self.number_of_constraints, self.number_of_variables))
-        self.gamma = np.zeros((self.number_of_constraints, 1))
+    def check_Y_constraints_feasibility(self,
+                                        Phi: np.ndarray):
 
-        self.U_shape = U.shape
-        self.X_shape = X_augmented.shape
-        self.Phi_shape = Phi.shape
-        self.F_shape = F.shape
-
-        self.prediction_offset = Y_constraints_prediction_offset
-        self.Y_no_consider_flag = self.check_Y_constraints(
-            Phi, self.DU_U_Y_Limits)
-
-        self.update_constraints(U, X_augmented, Phi, F)
-
-    def check_Y_constraints(self,
-                            Phi: np.ndarray, DU_U_Y_Limits: DU_U_Y_Limits):
-        Y_no_consider_flag = NoConsiderFlag(self.Y_size)
-
-        for i in range(DU_U_Y_Limits.get_Y_min_size()):
+        for i in range(self.DU_U_Y_Limits.get_Y_min_size()):
             Phi_factor_norm = np.linalg.norm(
                 Phi[self.prediction_offset + i, :])
 
             if Phi_factor_norm < self.tol:
-                Y_no_consider_flag.min[i] = True
                 print("[Warning] " +
                       f"Y[{i}] min cannot be constrained because Phi row is zero. " +
                       f"Y[{i}] min constraint is no linger considered.")
 
-        for i in range(DU_U_Y_Limits.get_Y_max_size()):
+                self.DU_U_Y_Limits.set_Y_min_inactive(i)
+
+        for i in range(self.DU_U_Y_Limits.get_Y_max_size()):
             Phi_factor_norm = np.linalg.norm(
                 Phi[self.prediction_offset + i, :])
 
             if Phi_factor_norm < self.tol:
-                Y_no_consider_flag.max[i] = True
+
                 print("[Warning] " +
                       f"Y[{i}] max cannot be constrained because Phi row is zero. " +
                       f"Y[{i}] max constraint is no linger considered.")
 
-        return Y_no_consider_flag
+                self.DU_U_Y_Limits.set_Y_max_inactive(i)
 
     def update_min_max(self, delta_U_min: np.ndarray = None, delta_U_max: np.ndarray = None,
                        U_min: np.ndarray = None, U_max: np.ndarray = None,
@@ -519,20 +576,13 @@ class LTI_MPC_QP_Solver:
         for i in range(self.DU_U_Y_Limits.get_Y_min_size()):
             set_count = 0
             if self.DU_U_Y_Limits.is_Y_min_active(i):
-                if self.Y_no_consider_flag.min[i]:
-
-                    Phi_vec = np.zeros((1, self.number_of_variables))
-                    F_X_value = 0.0
-                else:
-                    Phi_vec = -Phi[self.prediction_offset + i, :]
-                    F_X_value = - \
-                        self.DU_U_Y_Limits.Y_min[i, 0] + \
-                        F_X[self.prediction_offset + i, 0]
 
                 self.M[initial_position + i, :] = \
-                    Phi_vec
+                    -Phi[self.prediction_offset + i, :]
                 self.gamma[initial_position + i, 0] = \
-                    F_X_value
+                    - \
+                    self.DU_U_Y_Limits.Y_min[i, 0] + \
+                    F_X[self.prediction_offset + i, 0]
 
                 set_count += 1
 
@@ -542,19 +592,12 @@ class LTI_MPC_QP_Solver:
 
         for i in range(self.DU_U_Y_Limits.get_Y_max_size()):
             if self.DU_U_Y_Limits.is_Y_max_active(i):
-                if self.Y_no_consider_flag.max[i]:
-
-                    Phi_vec = np.zeros((1, self.number_of_variables))
-                    F_X_value = 0.0
-                else:
-                    Phi_vec = Phi[self.prediction_offset + i, :]
-                    F_X_value = self.DU_U_Y_Limits.Y_max[i, 0] - \
-                        F_X[self.prediction_offset + i, 0]
 
                 self.M[initial_position + i,
-                       :] = Phi_vec
+                       :] = Phi[self.prediction_offset + i, :]
                 self.gamma[initial_position + i, 0] = \
-                    F_X_value
+                    self.DU_U_Y_Limits.Y_max[i, 0] - \
+                    F_X[self.prediction_offset + i, 0]
 
     def update_constraints(self,
                            U: np.ndarray, X_augmented: np.ndarray,
