@@ -397,6 +397,104 @@ void check_LTI_MPC_NoConstraints(void) {
 }
 
 
+template <typename T>
+void check_DU_U_Y_Limits(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+
+    /* 定義 */
+    using Delta_U_Min_SparseAvailable = SparseAvailable<
+        ColumnAvailable<true>,
+        ColumnAvailable<true>,
+        ColumnAvailable<false>
+    >;
+    auto delta_U_Min = make_SparseMatrix<Delta_U_Min_SparseAvailable>(
+        static_cast<T>(-0.1),
+        static_cast<T>(0.2)
+    );
+
+    using Delta_U_Max_SparseAvailable = SparseAvailable<
+        ColumnAvailable<true>,
+        ColumnAvailable<false>,
+        ColumnAvailable<false>
+    >;
+    auto delta_U_Max = make_SparseMatrix<Delta_U_Max_SparseAvailable>(
+        static_cast<T>(-0.3)
+    );
+
+    using U_Min_SparseAvailable = SparseAvailable<
+        ColumnAvailable<false>,
+        ColumnAvailable<true>,
+        ColumnAvailable<false>
+    >;
+    auto U_Min = make_SparseMatrix<U_Min_SparseAvailable>(
+        static_cast<T>(0.4)
+    );
+
+    using U_Max_SparseAvailable = SparseAvailable<
+        ColumnAvailable<false>,
+        ColumnAvailable<false>,
+        ColumnAvailable<true>
+    >;
+    auto U_Max = make_SparseMatrix<U_Max_SparseAvailable>(
+        static_cast<T>(-0.5)
+    );
+
+    using Y_Min_SparseAvailable = SparseAvailable<
+        ColumnAvailable<false>,
+        ColumnAvailable<true>
+    >;
+    auto Y_Min = make_SparseMatrix<Y_Min_SparseAvailable>(
+        static_cast<T>(0.6)
+    );
+
+    auto Y_Max = make_SparseMatrixEmpty<T, 2, 1>();
+
+    DU_U_Y_Limits_Type<decltype(delta_U_Min), decltype(delta_U_Max),
+        decltype(U_Min), decltype(U_Max),
+        decltype(Y_Min), decltype(Y_Max)> limits = make_DU_U_Y_Limits(
+            delta_U_Min, delta_U_Max, U_Min, U_Max, Y_Min, Y_Max);
+
+    decltype(limits) limits_copy(limits);
+    decltype(limits) limits_move = std::move(limits_copy);
+    limits = limits_move;
+
+    auto number_of_delta_U_constraints = limits.get_number_of_delta_U_constraints();
+
+    tester.expect_near(static_cast<T>(number_of_delta_U_constraints), static_cast<T>(3),
+        NEAR_LIMIT_STRICT,
+        "check number of delta U constraints.");
+
+    auto number_of_U_constraints = limits.get_number_of_U_constraints();
+
+    tester.expect_near(static_cast<T>(number_of_U_constraints), static_cast<T>(2),
+        NEAR_LIMIT_STRICT,
+        "check number of U constraints.");
+
+    auto number_of_Y_constraints = limits.get_number_of_Y_constraints();
+
+    tester.expect_near(static_cast<T>(number_of_Y_constraints), static_cast<T>(1),
+        NEAR_LIMIT_STRICT,
+        "check number of Y constraints.");
+
+    auto number_of_all_constraints = limits.get_number_of_all_constraints();
+
+    tester.expect_near(static_cast<T>(number_of_all_constraints), static_cast<T>(6),
+        NEAR_LIMIT_STRICT,
+        "check number of all constraints.");
+
+
+
+    tester.throw_error_if_test_failed();
+}
+
+
 int main(void) {
 
     check_MPC_PredictionMatrices<double>();
@@ -410,6 +508,10 @@ int main(void) {
     check_LTI_MPC_NoConstraints<double>();
 
     check_LTI_MPC_NoConstraints<float>();
+
+    check_DU_U_Y_Limits<double>();
+
+    check_DU_U_Y_Limits<float>();
 
 
     return 0;

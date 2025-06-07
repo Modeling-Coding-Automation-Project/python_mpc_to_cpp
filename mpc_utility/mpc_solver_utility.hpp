@@ -56,16 +56,102 @@ protected:
 public:
   /* Constructor */
   DU_U_Y_Limits()
-      : delta_U_min(), delta_U_max(), U_min(), U_max(), Y_min(), Y_max() {}
+      : delta_U_min(), delta_U_max(), U_min(), U_max(), Y_min(), Y_max(),
+        _number_of_delta_U_constraints(0), _number_of_U_constraints(0),
+        _number_of_Y_constraints(0) {}
 
   DU_U_Y_Limits(const Delta_U_Min_Type &delta_U_min_in,
                 const Delta_U_Max_Type &delta_U_max_in,
                 const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
                 const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
       : delta_U_min(delta_U_min_in), delta_U_max(delta_U_max_in),
-        U_min(U_min_in), U_max(U_max_in), Y_min(Y_min_in), Y_max(Y_max_in) {
+        U_min(U_min_in), U_max(U_max_in), Y_min(Y_min_in), Y_max(Y_max_in),
+        _number_of_delta_U_constraints(0), _number_of_U_constraints(0),
+        _number_of_Y_constraints(0) {
 
     this->_count_constraints();
+  }
+
+  /* Copy Constructor */
+  DU_U_Y_Limits(
+      const DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                          U_Max_Type, Y_Min_Type, Y_Max_Type> &input)
+      : delta_U_min(input.delta_U_min), delta_U_max(input.delta_U_max),
+        U_min(input.U_min), U_max(input.U_max), Y_min(input.Y_min),
+        Y_max(input.Y_max),
+        _number_of_delta_U_constraints(input._number_of_delta_U_constraints),
+        _number_of_U_constraints(input._number_of_U_constraints),
+        _number_of_Y_constraints(input._number_of_Y_constraints) {}
+
+  DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+                Y_Min_Type, Y_Max_Type> &
+  operator=(const DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                                U_Max_Type, Y_Min_Type, Y_Max_Type> &input) {
+    if (this != &input) {
+      this->delta_U_min = input.delta_U_min;
+      this->delta_U_max = input.delta_U_max;
+      this->U_min = input.U_min;
+      this->U_max = input.U_max;
+      this->Y_min = input.Y_min;
+      this->Y_max = input.Y_max;
+      this->_number_of_delta_U_constraints =
+          input._number_of_delta_U_constraints;
+      this->_number_of_U_constraints = input._number_of_U_constraints;
+      this->_number_of_Y_constraints = input._number_of_Y_constraints;
+    }
+    return *this;
+  }
+
+  /* Move Constructor */
+  DU_U_Y_Limits(
+      DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+                    Y_Min_Type, Y_Max_Type> &&input) noexcept
+      : delta_U_min(std::move(input.delta_U_min)),
+        delta_U_max(std::move(input.delta_U_max)),
+        U_min(std::move(input.U_min)), U_max(std::move(input.U_max)),
+        Y_min(std::move(input.Y_min)), Y_max(std::move(input.Y_max)),
+        _number_of_delta_U_constraints(input._number_of_delta_U_constraints),
+        _number_of_U_constraints(input._number_of_U_constraints),
+        _number_of_Y_constraints(input._number_of_Y_constraints) {}
+
+  DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+                Y_Min_Type, Y_Max_Type> &
+  operator=(
+      DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+                    Y_Min_Type, Y_Max_Type> &&input) noexcept {
+    if (this != &input) {
+      this->delta_U_min = std::move(input.delta_U_min);
+      this->delta_U_max = std::move(input.delta_U_max);
+      this->U_min = std::move(input.U_min);
+      this->U_max = std::move(input.U_max);
+      this->Y_min = std::move(input.Y_min);
+      this->Y_max = std::move(input.Y_max);
+      this->_number_of_delta_U_constraints =
+          input._number_of_delta_U_constraints;
+      this->_number_of_U_constraints = input._number_of_U_constraints;
+      this->_number_of_Y_constraints = input._number_of_Y_constraints;
+    }
+    return *this;
+  }
+
+public:
+  /* Function */
+  inline auto get_number_of_all_constraints(void) const -> std::size_t {
+
+    return this->_number_of_delta_U_constraints +
+           this->_number_of_U_constraints + this->_number_of_Y_constraints;
+  }
+
+  inline auto get_number_of_delta_U_constraints(void) const -> std::size_t {
+    return this->_number_of_delta_U_constraints;
+  }
+
+  inline auto get_number_of_U_constraints(void) const -> std::size_t {
+    return this->_number_of_U_constraints;
+  }
+
+  inline auto get_number_of_Y_constraints(void) const -> std::size_t {
+    return this->_number_of_Y_constraints;
   }
 
 protected:
@@ -83,48 +169,48 @@ protected:
     this->_number_of_U_constraints = static_cast<std::size_t>(0);
     this->_number_of_Y_constraints = static_cast<std::size_t>(0);
 
-    for (std::size_t i = 0; i < Delta_U_Min_Flags::COLS; ++i) {
-      for (std::size_t j = 0; j < Delta_U_Min_Flags::ROWS; ++j) {
+    for (std::size_t i = 0; i < Delta_U_Min_Type::COLS; ++i) {
+      for (std::size_t j = 0; j < Delta_U_Min_Type::ROWS; ++j) {
         if (Delta_U_Min_Flags::lists[i][j]) {
           this->_number_of_delta_U_constraints++;
         }
       }
     }
 
-    for (std::size_t i = 0; i < Delta_U_Max_Flags::COLS; ++i) {
-      for (std::size_t j = 0; j < Delta_U_Max_Flags::ROWS; ++j) {
+    for (std::size_t i = 0; i < Delta_U_Max_Type::COLS; ++i) {
+      for (std::size_t j = 0; j < Delta_U_Max_Type::ROWS; ++j) {
         if (Delta_U_Max_Flags::lists[i][j]) {
           this->_number_of_delta_U_constraints++;
         }
       }
     }
 
-    for (std::size_t i = 0; i < U_Min_Flags::COLS; ++i) {
-      for (std::size_t j = 0; j < U_Min_Flags::ROWS; ++j) {
+    for (std::size_t i = 0; i < U_Min_Type::COLS; ++i) {
+      for (std::size_t j = 0; j < U_Min_Type::ROWS; ++j) {
         if (U_Min_Flags::lists[i][j]) {
           this->_number_of_U_constraints++;
         }
       }
     }
 
-    for (std::size_t i = 0; i < U_Max_Flags::COLS; ++i) {
-      for (std::size_t j = 0; j < U_Max_Flags::ROWS; ++j) {
+    for (std::size_t i = 0; i < U_Max_Type::COLS; ++i) {
+      for (std::size_t j = 0; j < U_Max_Type::ROWS; ++j) {
         if (U_Max_Flags::lists[i][j]) {
           this->_number_of_U_constraints++;
         }
       }
     }
 
-    for (std::size_t i = 0; i < Y_Min_Flags::COLS; ++i) {
-      for (std::size_t j = 0; j < Y_Min_Flags::ROWS; ++j) {
+    for (std::size_t i = 0; i < Y_Min_Type::COLS; ++i) {
+      for (std::size_t j = 0; j < Y_Min_Type::ROWS; ++j) {
         if (Y_Min_Flags::lists[i][j]) {
           this->_number_of_Y_constraints++;
         }
       }
     }
 
-    for (std::size_t i = 0; i < Y_Max_Flags::COLS; ++i) {
-      for (std::size_t j = 0; j < Y_Max_Flags::ROWS; ++j) {
+    for (std::size_t i = 0; i < Y_Max_Type::COLS; ++i) {
+      for (std::size_t j = 0; j < Y_Max_Type::ROWS; ++j) {
         if (Y_Max_Flags::lists[i][j]) {
           this->_number_of_Y_constraints++;
         }
@@ -147,6 +233,31 @@ protected:
   std::size_t _number_of_U_constraints;
   std::size_t _number_of_Y_constraints;
 };
+
+/* make DU_U_Y_Limits */
+template <typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type>
+inline auto
+make_DU_U_Y_Limits(const Delta_U_Min_Type &delta_U_min_in,
+                   const Delta_U_Max_Type &delta_U_max_in,
+                   const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
+                   const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
+    -> DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+                     Y_Min_Type, Y_Max_Type> {
+
+  return DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                       U_Max_Type, Y_Min_Type, Y_Max_Type>(
+      delta_U_min_in, delta_U_max_in, U_min_in, U_max_in, Y_min_in, Y_max_in);
+}
+
+/* DU_U_Y_Limits Type */
+template <typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type>
+using DU_U_Y_Limits_Type =
+    DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+                  Y_Min_Type, Y_Max_Type>;
 
 } // namespace PythonMPC
 
