@@ -65,12 +65,12 @@ public:
       : delta_U_min(delta_U_min_in), delta_U_max(delta_U_max_in),
         U_min(U_min_in), U_max(U_max_in), Y_min(Y_min_in), Y_max(Y_max_in) {
 
-    this->count_constraints();
+    this->_count_constraints();
   }
 
 protected:
   /* Function */
-  inline void count_constraints(void) {
+  inline void _count_constraints(void) {
 
     using Delta_U_Min_Flags = typename Delta_U_Min_Type::SparseAvailable_Type;
     using Delta_U_Max_Flags = typename Delta_U_Max_Type::SparseAvailable_Type;
