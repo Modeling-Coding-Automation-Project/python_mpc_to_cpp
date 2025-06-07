@@ -197,6 +197,10 @@ class LTI_MPC(LTI_MPC_NoConstraints):
             U_min=U_min, U_max=U_max,
             Y_min=Y_min, Y_max=Y_max)
 
+        self.qp_solver.update_E(
+            Phi=self.prediction_matrices.Phi_numeric,
+            Weight_U_Nc=self.Weight_U_Nc)
+
     def solve(self, reference_trajectory: MPC_ReferenceTrajectory,
               X_augmented: np.ndarray):
 
@@ -209,7 +213,6 @@ class LTI_MPC(LTI_MPC_NoConstraints):
         delta_U = self.qp_solver.solve(
             Phi=self.prediction_matrices.Phi_numeric,
             F=self.prediction_matrices.F_numeric,
-            Weight_U_Nc=self.Weight_U_Nc,
             reference_trajectory=reference_trajectory,
             X_augmented=X_augmented)
 
