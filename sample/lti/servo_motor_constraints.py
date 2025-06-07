@@ -96,8 +96,8 @@ def main():
 
     delta_U_min = np.array([[-100.0]])
     delta_U_max = np.array([[100.0]])
-    U_min = np.array([[-200.0]])
-    U_max = np.array([[200.0]])
+    U_min = np.array([[-180.0]])
+    U_max = np.array([[180.0]])
     Y_min = np.array([[-10.0], [-100.0]])
     Y_max = np.array([[10.0], [100.0]])
 
@@ -165,8 +165,13 @@ def main():
         U = mpc.update(ref, y_measured)
 
         plotter.append_name(ref, "ref")
+
         plotter.append_name(U, "U")
+        plotter.append_name(U_min, "U_min")
+        plotter.append_name(U_max, "U_max")
+
         plotter.append_name(y_measured, "y_measured")
+
         plotter.append_name(X, "X")
 
     plotter.assign("ref", position=(0, 0), column=0, row=0, x_sequence=time)
@@ -181,7 +186,9 @@ def main():
     plotter.assign("X", position=(1, 1), column=2, row=0, x_sequence=time)
     plotter.assign("X", position=(2, 1), column=3, row=0, x_sequence=time)
 
-    plotter.assign_all("U", position=(2, 0), x_sequence=time)
+    plotter.assign("U", position=(2, 0), x_sequence=time)
+    plotter.assign("U_min", position=(2, 0), x_sequence=time, line_style='--')
+    plotter.assign("U_max", position=(2, 0), x_sequence=time, line_style='--')
 
     plotter.plot("Servo Motor plant, MPC Response")
 
