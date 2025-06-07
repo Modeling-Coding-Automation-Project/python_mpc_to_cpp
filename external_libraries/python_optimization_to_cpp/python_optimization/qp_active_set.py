@@ -82,7 +82,11 @@ class QP_ActiveSetSolver:
         self.number_of_constraints = number_of_constraints
 
         self.X = X
-        self.active_set = active_set
+        if active_set is None:
+            self.active_set = ActiveSet(self.number_of_constraints)
+        else:
+            self.active_set = active_set
+
         self.max_iteration = max_iteration
         self.tol = tol
         self.iteration_count = 0
@@ -212,14 +216,10 @@ class QP_ActiveSetSolver:
                 "gamma must be a column vector of size (m, 1) where m is the number of constraints.")
 
         # Initialize
-        if self.active_set is None:
-            self.active_set = ActiveSet(self.number_of_constraints)
-
         if self.X is None:
             self.initialize_X(E, L, M, gamma)
 
         # Main iterative loop
-        lambda_values = np.zeros(self.number_of_constraints)
         lambda_candidate_exists = False
 
         for iteration_count in range(self.max_iteration):
