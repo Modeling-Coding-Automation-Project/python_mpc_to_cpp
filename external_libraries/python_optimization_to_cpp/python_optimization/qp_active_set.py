@@ -205,11 +205,13 @@ class QP_ActiveSetSolver:
             # (1) Check constraint violations for the candidate solution
             violation_index = -1
             max_violation = 0.0
+            M_x = M @ x_candidate
+
             for j in range(self.number_of_constraints):
-                val = M[j].dot(x_candidate)
-                if val > gamma[j] + self.tol:
-                    if val - gamma[j] > max_violation:
-                        max_violation = val - gamma[j]
+
+                if M_x[j, 0] > gamma[j] + self.tol:
+                    if M_x[j, 0] - gamma[j] > max_violation:
+                        max_violation = M_x[j, 0] - gamma[j]
                         violation_index = j
 
             if violation_index >= 0:

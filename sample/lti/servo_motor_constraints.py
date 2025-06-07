@@ -90,10 +90,6 @@ def main():
     Np = 20
     Nc = 2
 
-    lti_mpc = LTI_MPC_NoConstraints(
-        ideal_plant_model, Np=Np, Nc=Nc,
-        Weight_U=Weight_U, Weight_Y=Weight_Y)
-
     delta_U_min = np.array([[-100.0]])
     delta_U_max = np.array([[100.0]])
     U_min = np.array([[-180.0]])
@@ -101,11 +97,11 @@ def main():
     Y_min = np.array([[-10.0], [-100.0]])
     Y_max = np.array([[10.0], [100.0]])
 
-    mpc = LTI_MPC(ideal_plant_model, Np=Np, Nc=Nc,
-                  Weight_U=Weight_U, Weight_Y=Weight_Y,
-                  delta_U_min=delta_U_min, delta_U_max=delta_U_max,
-                  U_min=U_min, U_max=U_max,
-                  Y_min=Y_min, Y_max=Y_max)
+    lti_mpc = LTI_MPC(ideal_plant_model, Np=Np, Nc=Nc,
+                      Weight_U=Weight_U, Weight_Y=Weight_Y,
+                      delta_U_min=delta_U_min, delta_U_max=delta_U_max,
+                      U_min=U_min, U_max=U_max,
+                      Y_min=Y_min, Y_max=Y_max)
 
     # You can create cpp header which can easily define lti_mpc as C++ code
     # deployed_file_names = LinearMPC_Deploy.generate_LTI_MPC_NC_cpp_code(
@@ -161,8 +157,7 @@ def main():
 
         # controller
         ref = np.array([[input_signal[i, 0]], [0.0]])
-        # U = lti_mpc.update(ref, y_measured)
-        U = mpc.update(ref, y_measured)
+        U = lti_mpc.update(ref, y_measured)
 
         plotter.append_name(ref, "ref")
 
