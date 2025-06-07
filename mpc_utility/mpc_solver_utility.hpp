@@ -219,6 +219,15 @@ protected:
   }
 
 public:
+  /* Constant */
+  static constexpr std::size_t DELTA_U_MIN_SIZE = Delta_U_Min_Type::COLS;
+  static constexpr std::size_t DELTA_U_MAX_SIZE = Delta_U_Max_Type::COLS;
+  static constexpr std::size_t U_MIN_SIZE = U_Min_Type::COLS;
+  static constexpr std::size_t U_MAX_SIZE = U_Max_Type::COLS;
+  static constexpr std::size_t Y_MIN_SIZE = Y_Min_Type::COLS;
+  static constexpr std::size_t Y_MAX_SIZE = Y_Max_Type::COLS;
+
+public:
   /* Variables */
   Delta_U_Min_Type delta_U_min;
   Delta_U_Max_Type delta_U_max;

@@ -407,12 +407,6 @@ class DU_U_Y_Limits:
         return self._Y_max_size
 
 
-class NoConsiderFlag:
-    def __init__(self, vector_size: int):
-        self.min = np.zeros((vector_size, 1), dtype=bool)
-        self.max = np.zeros((vector_size, 1), dtype=bool)
-
-
 class LTI_MPC_QP_Solver:
     def __init__(self, number_of_variables: int, output_size: int,
                  U: np.ndarray, X_augmented: np.ndarray,
