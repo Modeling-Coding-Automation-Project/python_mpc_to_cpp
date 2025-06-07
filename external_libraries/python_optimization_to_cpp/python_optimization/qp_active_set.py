@@ -128,6 +128,9 @@ class QP_ActiveSetSolver:
 
         return sol
 
+    def solve_no_constrained_X(self, E: np.ndarray, L: np.ndarray):
+        return np.linalg.solve(E, L)
+
     def initialize_X(self, E: np.ndarray, L: np.ndarray,
                      M: np.ndarray, gamma: np.ndarray):
 
@@ -136,7 +139,7 @@ class QP_ActiveSetSolver:
         if 0 == self.active_set.get_number_of_active():
             # Use the unconstrained optimal solution as the initial point
             try:
-                self.X = np.linalg.solve(E, L)
+                self.X = self.solve_no_constrained_X(E, L)
             except np.linalg.LinAlgError:
                 self.X = np.zeros(self.number_of_variables)
         else:
@@ -148,9 +151,6 @@ class QP_ActiveSetSolver:
 
             sol = self._solve_KKT_inv(k)
             self.X = sol[:n]
-
-    def solve_no_constrained_X(self, E: np.ndarray, L: np.ndarray):
-        return np.linalg.solve(E, L)
 
     def solve(self, E: np.ndarray, L: np.ndarray,
               M: np.ndarray, gamma: np.ndarray):
@@ -190,7 +190,7 @@ class QP_ActiveSetSolver:
             k = self.active_set.get_number_of_active()
             if k == 0:
                 # If there are no active constraints, simply solve E X = L
-                X_candidate = np.linalg.solve(E, L)
+                X_candidate = self.solve_no_constrained_X(E, L)
                 lambda_candidate_exists = False
 
             else:
