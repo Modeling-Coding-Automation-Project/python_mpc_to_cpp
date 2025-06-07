@@ -166,7 +166,7 @@ class QP_ActiveSetSolver:
     def initialize_X(self, E: np.ndarray, L: np.ndarray,
                      M: np.ndarray, gamma: np.ndarray):
 
-        n = E.shape[0]
+        m = self.number_of_variables
 
         if 0 == self.active_set.get_number_of_active():
             # Use the unconstrained optimal solution as the initial point
@@ -182,7 +182,7 @@ class QP_ActiveSetSolver:
             self._set_rhs(L, gamma)
 
             sol = self._solve_KKT_inv(k)
-            self.X = sol[:n]
+            self.X = sol[:m]
 
     def solve(self,
               E: np.ndarray = None, L: np.ndarray = None,
