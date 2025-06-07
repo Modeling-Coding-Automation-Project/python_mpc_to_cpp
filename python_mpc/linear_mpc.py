@@ -202,7 +202,7 @@ class LTI_MPC(LTI_MPC_NoConstraints):
 
         self.qp_solver.update_constraints(
             U=self.U_latest,
-            X=X_augmented,
+            X_augmented=X_augmented,
             Phi=self.prediction_matrices.Phi_numeric,
             F=self.prediction_matrices.F_numeric)
 
@@ -211,6 +211,6 @@ class LTI_MPC(LTI_MPC_NoConstraints):
             F=self.prediction_matrices.F_numeric,
             Weight_U_Nc=self.Weight_U_Nc,
             reference_trajectory=reference_trajectory,
-            X=X_augmented)
+            X_augmented=X_augmented)
 
         return delta_U
