@@ -65,24 +65,23 @@ class QP_ActiveSetSolver:
     """
     Quadratic Programming (QP) solver using the Active Set method.
 
-    Problem: minimize (1/2) x^T E x - x^T L  subject to  M x <= gamma.
+    Problem: minimize (1/2) X^T E X - X^T L  subject to  M X <= gamma.
 
     E, L, M, gamma : Parameters of the above QP (numpy arrays)
     max_iteration: Maximum number of iterations (limit)
     tol     : Tolerance for numerical errors (used for constraint violation and negative lambda checks)
-    x        : Solution vector estimated as optimal
+    X        : Solution vector estimated as optimal
     active_set   : List of indices of constraints that were active at the end
-    lambda_values: Lagrange multipliers for each constraint (size m, zero for inactive constraints)
     """
 
     def __init__(self, number_of_variables, number_of_constraints,
-                 x: np.ndarray = None, active_set: ActiveSet = None,
+                 X: np.ndarray = None, active_set: ActiveSet = None,
                  max_iteration=MAX_ITERATION_DEFAULT, tol=TOL_DEFAULT):
 
         self.number_of_variables = number_of_variables
         self.number_of_constraints = number_of_constraints
 
-        self.x = x
+        self.X = X
         self.active_set = active_set
         self.max_iteration = max_iteration
         self.tol = tol
@@ -129,7 +128,7 @@ class QP_ActiveSetSolver:
 
         return sol
 
-    def initialize_x(self, E: np.ndarray, L: np.ndarray,
+    def initialize_X(self, E: np.ndarray, L: np.ndarray,
                      M: np.ndarray, gamma: np.ndarray):
 
         n = E.shape[0]
@@ -137,9 +136,9 @@ class QP_ActiveSetSolver:
         if 0 == self.active_set.get_number_of_active():
             # Use the unconstrained optimal solution as the initial point
             try:
-                self.x = np.linalg.solve(E, L)
+                self.X = np.linalg.solve(E, L)
             except np.linalg.LinAlgError:
-                self.x = np.zeros(self.number_of_variables)
+                self.X = np.zeros(self.number_of_variables)
         else:
             # If initial active constraints are specified, initialize the solution
             k = self.active_set.get_number_of_active()
@@ -148,7 +147,10 @@ class QP_ActiveSetSolver:
             self._set_rhs(L, gamma)
 
             sol = self._solve_KKT_inv(k)
-            self.x = sol[:n]
+            self.X = sol[:n]
+
+    def solve_no_constrained_X(self, E: np.ndarray, L: np.ndarray):
+        return np.linalg.solve(E, L)
 
     def solve(self, E: np.ndarray, L: np.ndarray,
               M: np.ndarray, gamma: np.ndarray):
@@ -176,8 +178,8 @@ class QP_ActiveSetSolver:
         if self.active_set is None:
             self.active_set = ActiveSet(self.number_of_constraints)
 
-        if self.x is None:
-            self.initialize_x(E, L, M, gamma)
+        if self.X is None:
+            self.initialize_X(E, L, M, gamma)
 
         # Main iterative loop
         lambda_values = np.zeros(self.number_of_constraints)
@@ -187,8 +189,8 @@ class QP_ActiveSetSolver:
             # Build and solve the KKT system for the active constraints A
             k = self.active_set.get_number_of_active()
             if k == 0:
-                # If there are no active constraints, simply solve E x = L
-                x_candidate = np.linalg.solve(E, L)
+                # If there are no active constraints, simply solve E X = L
+                X_candidate = np.linalg.solve(E, L)
                 lambda_candidate_exists = False
 
             else:
@@ -198,29 +200,29 @@ class QP_ActiveSetSolver:
                 self._set_rhs(L, gamma)
 
                 sol = self._solve_KKT_inv(k)
-                x_candidate = sol[:m]
+                X_candidate = sol[:m]
                 lambda_candidate = sol[m:]
                 lambda_candidate_exists = True
 
             # (1) Check constraint violations for the candidate solution
             violation_index = -1
             max_violation = 0.0
-            M_x = M @ x_candidate
+            M_X = M @ X_candidate
 
             for j in range(self.number_of_constraints):
                 gamma_tol = gamma[j] + self.tol
-                if M_x[j, 0] > gamma_tol:
+                if M_X[j, 0] > gamma_tol:
 
-                    M_x_gamma = M_x[j, 0] - gamma[j]
-                    if M_x_gamma > max_violation:
-                        max_violation = M_x_gamma
+                    M_X_gamma = M_X[j, 0] - gamma[j]
+                    if M_X_gamma > max_violation:
+                        max_violation = M_X_gamma
                         violation_index = j
 
             if violation_index >= 0:
                 self.active_set.push_active(violation_index)
 
                 # Since a constraint was added, re-optimize in the next loop
-                self.x = x_candidate
+                self.X = X_candidate
                 continue
 
             # (2) All constraints are satisfied -> Check lambda
@@ -238,12 +240,12 @@ class QP_ActiveSetSolver:
                 if min_lambda_index >= 0:
                     self.active_set.push_inactive(min_lambda_index)
                     # Since a constraint was removed, re-optimize
-                    self.x = x_candidate
+                    self.X = X_candidate
                     continue
 
             # If there are no constraint violations and all lambda are non-negative,
             # consider as optimal solution
-            self.x = x_candidate
+            self.X = X_candidate
 
             for j in range(self.number_of_constraints):
                 if self.active_set.is_active(j):
@@ -253,4 +255,4 @@ class QP_ActiveSetSolver:
 
         self.iteration_count = iteration_count + 1
 
-        return self.x
+        return self.X
