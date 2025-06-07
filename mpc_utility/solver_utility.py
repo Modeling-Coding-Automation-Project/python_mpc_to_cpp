@@ -56,25 +56,32 @@ class DU_U_Y_Limits:
         U_min_size = 0
         U_max_size = 0
 
-        if delta_U_min_size is not None:
+        if delta_U_min is not None:
             delta_U_min_size = delta_U_min.shape[0]
 
+        U_size = delta_U_min_size
+
         if delta_U_max is not None:
-            if delta_U_max.shape[0] != delta_U_min_size:
+            if delta_U_max.shape[0] != U_size and U_size > 0:
                 raise ValueError(
                     "delta_U_max must have the same size as delta_U_min.")
+
             delta_U_max_size = delta_U_max.shape[0]
+            U_size = delta_U_max_size
 
         if U_min is not None:
-            if U_min.shape[0] != delta_U_min_size:
+            if U_min.shape[0] != U_size and U_size > 0:
                 raise ValueError(
                     "U_min must have the same size as delta_U_min.")
+
             U_min_size = U_min.shape[0]
+            U_size = U_min_size
 
         if U_max is not None:
-            if U_max.shape[0] != delta_U_min_size:
+            if U_max.shape[0] != U_size and U_size > 0:
                 raise ValueError(
                     "U_max must have the same size as delta_U_min.")
+
             U_max_size = U_max.shape[0]
 
         Y_min_size = 0
@@ -83,7 +90,7 @@ class DU_U_Y_Limits:
         if Y_min is not None:
             Y_min_size = Y_min.shape[0]
         if Y_max is not None:
-            if Y_max.shape[0] != Y_min_size:
+            if Y_max.shape[0] != Y_min_size and Y_min_size > 0:
                 raise ValueError("Y_max must have the same size as Y_min.")
             Y_max_size = Y_max.shape[0]
 
@@ -448,20 +455,22 @@ class LTI_MPC_QP_Solver:
         for i in range(self.DU_U_Y_Limits.get_delta_U_min_size()):
             set_count = 0
             if self.DU_U_Y_Limits.is_delta_U_min_active(i):
-                self.M[initial_position + 2 * i, i] = -1.0
-                self.gamma[initial_position + 2 * i, 0] = - \
+                self.M[initial_position + i, i] = -1.0
+                self.gamma[initial_position + i, 0] = - \
                     self.DU_U_Y_Limits.delta_U_min[i, 0]
 
                 set_count += 1
 
             total_index += set_count
 
+        initial_position = total_index
+
         for i in range(self.DU_U_Y_Limits.get_delta_U_max_size()):
             set_count = 0
             if self.DU_U_Y_Limits.is_delta_U_max_active(i):
-                self.M[initial_position + 2 * i + 1,
+                self.M[initial_position + i,
                        i] = 1.0
-                self.gamma[initial_position + 2 * i + 1, 0] = \
+                self.gamma[initial_position + i, 0] = \
                     self.DU_U_Y_Limits.delta_U_max[i, 0]
 
                 set_count += 1
@@ -477,20 +486,22 @@ class LTI_MPC_QP_Solver:
         for i in range(self.DU_U_Y_Limits.get_U_min_size()):
             set_count = 0
             if self.DU_U_Y_Limits.is_U_min_active(i):
-                self.M[initial_position + 2 * i, i] = -1.0
-                self.gamma[initial_position + 2 * i, 0] = - \
+                self.M[initial_position + i, i] = -1.0
+                self.gamma[initial_position + i, 0] = - \
                     self.DU_U_Y_Limits.U_min[i, 0] + U[i, 0]
 
                 set_count += 1
 
             total_index += set_count
 
+        initial_position = total_index
+
         for i in range(self.DU_U_Y_Limits.get_U_max_size()):
             set_count = 0
             if self.DU_U_Y_Limits.is_U_max_active(i):
-                self.M[initial_position + 2 * i + 1,
+                self.M[initial_position + i,
                        i] = 1.0
-                self.gamma[initial_position + 2 * i + 1, 0] = \
+                self.gamma[initial_position + i, 0] = \
                     self.DU_U_Y_Limits.U_max[i, 0] - U[i, 0]
 
                 set_count += 1
@@ -506,6 +517,7 @@ class LTI_MPC_QP_Solver:
         F_X = F @ X_augmented
 
         for i in range(self.DU_U_Y_Limits.get_Y_min_size()):
+            set_count = 0
             if self.DU_U_Y_Limits.is_Y_min_active(i):
                 if self.Y_no_consider_flag.min[i]:
 
@@ -517,10 +529,16 @@ class LTI_MPC_QP_Solver:
                         self.DU_U_Y_Limits.Y_min[i, 0] + \
                         F_X[self.prediction_offset + i, 0]
 
-                self.M[initial_position + 2 * i, :] = \
+                self.M[initial_position + i, :] = \
                     Phi_vec
-                self.gamma[initial_position + 2 * i, 0] = \
+                self.gamma[initial_position + i, 0] = \
                     F_X_value
+
+                set_count += 1
+
+            total_index += set_count
+
+        initial_position = total_index
 
         for i in range(self.DU_U_Y_Limits.get_Y_max_size()):
             if self.DU_U_Y_Limits.is_Y_max_active(i):
@@ -533,9 +551,9 @@ class LTI_MPC_QP_Solver:
                     F_X_value = self.DU_U_Y_Limits.Y_max[i, 0] - \
                         F_X[self.prediction_offset + i, 0]
 
-                self.M[initial_position + 2 * i + 1,
+                self.M[initial_position + i,
                        :] = Phi_vec
-                self.gamma[initial_position + 2 * i + 1, 0] = \
+                self.gamma[initial_position + i, 0] = \
                     F_X_value
 
     def update_constraints(self,
