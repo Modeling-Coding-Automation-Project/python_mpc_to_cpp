@@ -636,21 +636,12 @@ class LTI_MPC_QP_Solver:
 
     def solve(self, Phi: np.ndarray, F: np.ndarray,
               reference_trajectory: MPC_ReferenceTrajectory,
-              X_augmented: np.ndarray) -> np.ndarray:
+              X_augmented: np.ndarray, Weight_U_Nc: np.ndarray = None) -> np.ndarray:
 
         L = Phi.T @ reference_trajectory.calculate_dif(F @ X_augmented)
 
-        x_opt = self.solver.solve(self.E, L, self.M, self.gamma)
-
-        return x_opt
-
-    def update_E_and_solve(self, Phi: np.ndarray, F: np.ndarray,
-                           Weight_U_Nc: np.ndarray,
-                           reference_trajectory: MPC_ReferenceTrajectory,
-                           X_augmented: np.ndarray) -> np.ndarray:
-
-        self.update_E(Phi, Weight_U_Nc)
-        L = Phi.T @ reference_trajectory.calculate_dif(F @ X_augmented)
+        if Weight_U_Nc is not None:
+            self.update_E(Phi, Weight_U_Nc)
 
         x_opt = self.solver.solve(self.E, L, self.M, self.gamma)
 
