@@ -94,10 +94,10 @@ def main():
         ideal_plant_model, Np=Np, Nc=Nc,
         Weight_U=Weight_U, Weight_Y=Weight_Y)
 
-    delta_U_min = np.array([[-101.0]])
-    delta_U_max = np.array([[102.0]])
-    U_min = np.array([[-301.0]])
-    U_max = np.array([[302.0]])
+    delta_U_min = np.array([[-100.0]])
+    delta_U_max = np.array([[100.0]])
+    U_min = np.array([[-200.0]])
+    U_max = np.array([[200.0]])
     Y_min = np.array([[-10.0], [-100.0]])
     Y_max = np.array([[10.0], [100.0]])
 
