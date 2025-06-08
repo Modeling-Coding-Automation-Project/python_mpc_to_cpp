@@ -443,6 +443,8 @@ class LinearMPC_Deploy:
 
         code_text += f"using type = LTI_MPC_Type<\n" + \
             "  LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
+            "  Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type,\n" + \
+            "  U_Min_Type, U_Max_Type, Y_Min_Type, Y_Max_Type,\n" + \
             "  SolverFactor_Type>;\n\n"
 
         code_text += "auto make() -> type {\n\n"
@@ -454,6 +456,8 @@ class LinearMPC_Deploy:
         code_text += f"  auto Phi = {Phi_file_name_no_extension}::make();\n\n"
 
         code_text += f"  auto solver_factor = {solver_factor_file_name_no_extension}::make();\n\n"
+
+        code_text += f"  auto Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
         code_text += f"  auto weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 

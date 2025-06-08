@@ -656,12 +656,12 @@ void check_LTI_MPC(void) {
         decltype(U_min), decltype(U_max),
         decltype(Y_min), decltype(Y_max),
         decltype(solver_factor)
-    > lti_mpc(
+    > lti_mpc = make_LTI_MPC(
         kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,
         delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max,
         solver_factor);
 
-    LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
+    LTI_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
         decltype(reference_trajectory), decltype(Weight_U_Nc),
         decltype(delta_U_min),
         decltype(delta_U_max),
@@ -670,7 +670,7 @@ void check_LTI_MPC(void) {
         decltype(solver_factor)
     > lti_mpc_copy(lti_mpc);
 
-    LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
+    LTI_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
         decltype(reference_trajectory), decltype(Weight_U_Nc),
         decltype(delta_U_min),
         decltype(delta_U_max),
