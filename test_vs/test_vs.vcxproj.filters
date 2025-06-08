@@ -38,5 +38,8 @@
     <ClInclude Include="..\mpc_utility\mpc_linear_solver_utility.hpp">
       <Filter>リソース ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="test_mpc_servo_motor_data.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
