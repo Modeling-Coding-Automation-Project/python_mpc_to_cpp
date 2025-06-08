@@ -469,7 +469,6 @@ void check_LTI_MPC_QP_Solver(void) {
             U, X_augmented, Phi, F, weight_U_Nc,
             delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max);
 
-    lti_mpc_qp_solver.set_number_of_Y_constraints_prediction_offset(0);
 
 
 
