@@ -503,6 +503,23 @@ void check_LTI_MPC_QP_Solver(void) {
         gamma_answer.matrix.data, NEAR_LIMIT_STRICT,
         "check LTI MPC QP Solver, gamma vector.");
 
+    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+        U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
+        Delta_U_min_Type, Delta_U_max_Type,
+        U_min_Type, U_max_Type,
+        Y_min_Type, Y_max_Type> lti_mpc_qp_solver_copy(lti_mpc_qp_solver);
+
+    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+        U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
+        Delta_U_min_Type, Delta_U_max_Type,
+        U_min_Type, U_max_Type,
+        Y_min_Type, Y_max_Type> lti_mpc_qp_solver_move = lti_mpc_qp_solver_copy;
+
+    lti_mpc_qp_solver = std::move(lti_mpc_qp_solver_move);
+
+    tester.expect_near(lti_mpc_qp_solver.gamma.matrix.data,
+        gamma_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTI MPC QP Solver, gamma vector, copy move.");
 
 
 

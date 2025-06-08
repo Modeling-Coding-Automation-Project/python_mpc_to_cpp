@@ -1086,8 +1086,42 @@ public:
   }
 
   /* Copy Constructor */
+  LTI_MPC_QP_Solver(const LTI_MPC_QP_Solver &other)
+      : limits(other.limits), M(other.M), gamma(other.gamma),
+        _solver(other._solver) {}
+
+  LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type, X_augmented_Type,
+                    Phi_Type, F_Type, Weight_U_Nc_Type, Delta_U_Min_Type,
+                    Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                    Y_Max_Type, Y_Constraints_Prediction_Offset> &
+  operator=(const LTI_MPC_QP_Solver &other) {
+    if (this != &other) {
+      this->limits = other.limits;
+      this->M = other.M;
+      this->gamma = other.gamma;
+      this->_solver = other._solver;
+    }
+    return *this;
+  }
 
   /* Move Constructor */
+  LTI_MPC_QP_Solver(LTI_MPC_QP_Solver &&other) noexcept
+      : limits(std::move(other.limits)), M(std::move(other.M)),
+        gamma(std::move(other.gamma)), _solver(std::move(other._solver)) {}
+
+  LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type, X_augmented_Type,
+                    Phi_Type, F_Type, Weight_U_Nc_Type, Delta_U_Min_Type,
+                    Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                    Y_Max_Type, Y_Constraints_Prediction_Offset> &
+  operator=(LTI_MPC_QP_Solver &&other) noexcept {
+    if (this != &other) {
+      this->limits = std::move(other.limits);
+      this->M = std::move(other.M);
+      this->gamma = std::move(other.gamma);
+      this->_solver = std::move(other._solver);
+    }
+    return *this;
+  }
 
 public:
   /* Function */
