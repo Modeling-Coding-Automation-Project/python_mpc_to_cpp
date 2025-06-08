@@ -633,9 +633,33 @@ void check_LTI_MPC(void) {
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
 
+    auto Weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE * Nc>() * 
+        static_cast<T>(0.001);
+
+    auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(-100));
+    auto delta_U_max = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(100));
+
+    auto U_min = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(-180));
+    auto U_max = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(180));
+
+    auto Y_min = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
+    auto Y_max = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
+
     LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory)> lti_mpc(
-            kalman_filter, prediction_matrices, reference_trajectory, solver_factor);
+        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(delta_U_min),
+        decltype(delta_U_max),
+        decltype(U_min), decltype(U_max),
+        decltype(Y_min), decltype(Y_max),
+        decltype(solver_factor)
+    > lti_mpc(
+        kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,
+        delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max,
+        solver_factor);
 
 
 

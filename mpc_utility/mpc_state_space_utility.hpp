@@ -10,17 +10,20 @@
 namespace PythonMPC {
 
 /* MPC Prediction Matrices */
-template <typename F_Type, typename Phi_Type, std::size_t Np, std::size_t Nc,
-          std::size_t Number_Of_Input, std::size_t Number_Of_State,
-          std::size_t Number_Of_Output>
+template <typename F_Type_In, typename Phi_Type_In, std::size_t Np,
+          std::size_t Nc, std::size_t Number_Of_Input,
+          std::size_t Number_Of_State, std::size_t Number_Of_Output>
 class MPC_PredictionMatrices {
 protected:
   /* Type */
-  using _T = typename F_Type::Value_Type;
+  using _T = typename F_Type_In::Value_Type;
 
 public:
   /* Type */
   using Value_Type = _T;
+
+  using F_Type = F_Type_In;
+  using Phi_Type = Phi_Type_In;
 
   static constexpr std::size_t INPUT_SIZE = Number_Of_Input;
   static constexpr std::size_t STATE_SIZE = Number_Of_State;
