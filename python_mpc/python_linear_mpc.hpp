@@ -424,6 +424,46 @@ protected:
   _Solver_Type _solver;
 };
 
+/* make LTI MPC */
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Weight_U_Nc_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+inline auto make_LTI_MPC(const LKF_Type &kalman_filter,
+                         const PredictionMatrices_Type &prediction_matrices,
+                         const ReferenceTrajectory_Type &reference_trajectory,
+                         const Weight_U_Nc_Type &Weight_U_Nc,
+                         const Delta_U_Min_Type &delta_U_min,
+                         const Delta_U_Max_Type &delta_U_max,
+                         const U_Min_Type &U_min, const U_Max_Type &U_max,
+                         const Y_Min_Type &Y_min, const Y_Max_Type &Y_max,
+                         const SolverFactor_Type_In &solver_factor_in)
+    -> LTI_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+               Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+               U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In> {
+
+  return LTI_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+                 Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type,
+                 U_Min_Type, U_Max_Type, Y_Min_Type, Y_Max_Type,
+                 SolverFactor_Type_In>(
+      kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,
+      delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max, solver_factor_in);
+}
+
+/* LTI MPC Type */
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Weight_U_Nc_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+using LTI_MPC_Type =
+    LTI_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+            Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+            U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>;
+
 } // namespace PythonMPC
 
 #endif // __PYTHON_LINEAR_MPC_HPP__
