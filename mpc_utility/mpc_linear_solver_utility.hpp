@@ -1060,7 +1060,7 @@ public:
   LTI_MPC_QP_Solver() : limits(), M(), gamma(), _solver() {}
 
   LTI_MPC_QP_Solver(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
-                    Phi_Type &Phi_in, const F_Type &F_in,
+                    const Phi_Type &Phi_in, const F_Type &F_in,
                     const Weight_U_Nc_Type &weight_U_Nc_in,
                     const Delta_U_Min_Type &delta_U_Min_in,
                     const Delta_U_Max_Type &delta_U_Max_in,
@@ -1077,6 +1077,8 @@ public:
         PythonMPC::SolverUtility::MAX_ITERATION_DEFAULT);
     this->_solver.set_tol(
         static_cast<_T>(PythonMPC::SolverUtility::TOL_DEFAULT));
+
+    this->update_E(Phi_in, weight_U_Nc_in);
   }
 
   /* Copy Constructor */
@@ -1088,7 +1090,7 @@ public:
   template <std::size_t N = NUMBER_OF_ALL_CONSTRAINTS>
   inline typename std::enable_if<(N > 0), void>::type
   update_constraints(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
-                     Phi_Type &Phi_in, const F_Type &F_in) {
+                     const Phi_Type &Phi_in, const F_Type &F_in) {
 
     std::size_t total_index = static_cast<std::size_t>(0);
 
@@ -1109,6 +1111,13 @@ public:
     static_cast<void>(X_augmented_in);
     static_cast<void>(Phi_in);
     static_cast<void>(F_in);
+  }
+
+  inline void update_E(const Phi_Type &Phi,
+                       const Weight_U_Nc_Type &Weight_U_Nc) {
+
+    this->_solver.update_E(PythonNumpy::ATranspose_mul_B(Phi, Phi) +
+                           Weight_U_Nc);
   }
 
   inline auto get_number_of_Y_constraints_prediction_offset(void) const
@@ -1160,7 +1169,7 @@ protected:
 
   inline void _calculate_M_gamma_Y(std::size_t &total_index,
                                    const X_augmented_Type &X_augmented,
-                                   Phi_Type &Phi, const F_Type &F) {
+                                   const Phi_Type &Phi, const F_Type &F) {
 
     std::size_t initial_position = total_index;
     auto F_X = F * X_augmented;
@@ -1211,8 +1220,8 @@ template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           std::size_t Y_Constraints_Prediction_Offset = 0>
 inline auto
 make_LTI_MPC_QP_Solver(const U_Type &U_in,
-                       const X_augmented_Type &X_augmented_in, Phi_Type &Phi_in,
-                       const F_Type &F_in,
+                       const X_augmented_Type &X_augmented_in,
+                       const Phi_Type &Phi_in, const F_Type &F_in,
                        const Weight_U_Nc_Type &weight_U_Nc_in,
                        const Delta_U_Min_Type &delta_U_Min_in,
                        const Delta_U_Max_Type &delta_U_Max_in,
