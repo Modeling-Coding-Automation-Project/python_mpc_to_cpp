@@ -439,19 +439,19 @@ void check_LTI_MPC_QP_Solver(void) {
     );
 
     auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
-        static_cast<T>(-100));
+        static_cast<T>(-101));
     auto delta_U_max = make_DenseMatrix<INPUT_SIZE, 1>(
-        static_cast<T>(100));
+        static_cast<T>(102));
 
     auto U_min = make_DenseMatrix<INPUT_SIZE, 1>(
-        static_cast<T>(-180));
+        static_cast<T>(-181));
     auto U_max = make_DenseMatrix<INPUT_SIZE, 1>(
-        static_cast<T>(180));
+        static_cast<T>(182));
 
     auto Y_min = make_DenseMatrix<OUTPUT_SIZE, 1>(
-        static_cast<T>(-10), static_cast<T>(-100));
+        static_cast<T>(-11), static_cast<T>(-102));
     auto Y_max = make_DenseMatrix<OUTPUT_SIZE, 1>(
-        static_cast<T>(10), static_cast<T>(100));
+        static_cast<T>(13), static_cast<T>(104));
 
     using Delta_U_min_Type = decltype(delta_U_min);
     using Delta_U_max_Type = decltype(delta_U_max);

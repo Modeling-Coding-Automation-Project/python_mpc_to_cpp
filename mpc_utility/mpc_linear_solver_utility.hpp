@@ -664,9 +664,8 @@ struct Calculate_M_Gamma_U_Max_Condition<M_Type, Gamma_Type, U_max_Matrix_Type,
   }
 };
 
-template <typename Flags_Type, typename M_Type, typename Gamma_Type,
-          typename U_max_Matrix_Type, typename U_Type, std::size_t I,
-          std::size_t I_Dif>
+template <typename M_Type, typename Gamma_Type, typename U_max_Matrix_Type,
+          typename U_Type, std::size_t I, std::size_t I_Dif>
 struct Calculate_M_Gamma_U_Max_Loop {
   static void apply(M_Type &M, Gamma_Type &gamma,
                     const U_max_Matrix_Type &U_matrix, const U_Type &U,
@@ -677,22 +676,22 @@ struct Calculate_M_Gamma_U_Max_Loop {
 
     Calculate_M_Gamma_U_Max_Condition<
         M_Type, Gamma_Type, U_max_Matrix_Type, U_Type, I,
-        Flags_Type::lists[I][0]>::apply(M, gamma, U_matrix, U, set_count,
-                                        initial_position);
+        U_max_Matrix_Type::SparseAvailable_Type::lists[I][0]>::
+        apply(M, gamma, U_matrix, U, set_count, initial_position);
 
     total_index += set_count;
-    Calculate_M_Gamma_U_Max_Loop<Flags_Type, M_Type, Gamma_Type,
-                                 U_max_Matrix_Type, U_Type, (I + 1),
-                                 (I_Dif - 1)>::apply(M, gamma, U_matrix, U,
-                                                     total_index,
-                                                     initial_position);
+    Calculate_M_Gamma_U_Max_Loop<M_Type, Gamma_Type, U_max_Matrix_Type, U_Type,
+                                 (I + 1), (I_Dif - 1)>::apply(M, gamma,
+                                                              U_matrix, U,
+                                                              total_index,
+                                                              initial_position);
   }
 };
 
-template <typename Flags_Type, typename M_Type, typename Gamma_Type,
-          typename U_max_Matrix_Type, typename U_Type, std::size_t I>
-struct Calculate_M_Gamma_U_Max_Loop<Flags_Type, M_Type, Gamma_Type,
-                                    U_max_Matrix_Type, U_Type, I, 0> {
+template <typename M_Type, typename Gamma_Type, typename U_max_Matrix_Type,
+          typename U_Type, std::size_t I>
+struct Calculate_M_Gamma_U_Max_Loop<M_Type, Gamma_Type, U_max_Matrix_Type,
+                                    U_Type, I, 0> {
   static void apply(M_Type &M, Gamma_Type &gamma,
                     const U_max_Matrix_Type &U_matrix, const U_Type &U,
                     std::size_t &total_index,
@@ -707,11 +706,11 @@ struct Calculate_M_Gamma_U_Max_Loop<Flags_Type, M_Type, Gamma_Type,
   }
 };
 
-template <typename Flags_Type, typename M_Type, typename Gamma_Type,
-          typename U_max_Matrix_Type, typename U_Type, std::size_t U_Max_Size>
+template <typename M_Type, typename Gamma_Type, typename U_max_Matrix_Type,
+          typename U_Type, std::size_t U_Max_Size>
 using Calculate_M_Gamma_U_Max =
-    Calculate_M_Gamma_U_Max_Loop<Flags_Type, M_Type, Gamma_Type,
-                                 U_max_Matrix_Type, U_Type, 0, U_Max_Size>;
+    Calculate_M_Gamma_U_Max_Loop<M_Type, Gamma_Type, U_max_Matrix_Type, U_Type,
+                                 0, U_Max_Size>;
 
 } // namespace LTI_MPC_QP_SolverOperation
 
@@ -829,7 +828,7 @@ public:
 
     this->_calculate_M_gamma_delta_U(total_index);
 
-    // this->_calculate_M_gamma_U(total_index, U_in);
+    this->_calculate_M_gamma_U(total_index, U_in);
 
     // this->_calculate_M_gamma_Y(total_index, X_augmented_in, Phi_in, F_in);
   }
@@ -885,13 +884,12 @@ protected:
 
     initial_position = total_index;
 
-    // // U_max constraints
-    // LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Max<
-    //     Limits_Type::U_Max_Flags, M_Type, Gamma_Type,
-    //     decltype(this->limits.U_max), U_Type,
-    //     Limits_Type::U_MAX_SIZE>::apply(this->M, this->gamma,
-    //                                     this->limits.U_max, U, total_index,
-    //                                     initial_position);
+    // U_max constraints
+    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Max<
+        M_Type, Gamma_Type, decltype(this->limits.U_max), U_Type,
+        Limits_Type::U_MAX_SIZE>::apply(this->M, this->gamma,
+                                        this->limits.U_max, U, total_index,
+                                        initial_position);
   }
 
   inline void _calculate_M_gamma_Y(std::size_t &total_index,
