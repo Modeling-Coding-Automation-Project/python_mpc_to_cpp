@@ -15,7 +15,7 @@ import numpy as np
 import control
 
 from mpc_utility.state_space_utility import SymbolicStateSpace
-from python_mpc.linear_mpc import LTI_MPC_NoConstraints, LTI_MPC
+from python_mpc.linear_mpc import LTI_MPC
 from python_mpc.linear_mpc_deploy import LinearMPC_Deploy
 
 from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
