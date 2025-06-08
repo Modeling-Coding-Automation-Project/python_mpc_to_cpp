@@ -145,4 +145,4 @@ auto get_solver_factor(void) -> DenseMatrix_Type<T, INPUT_SIZE* Nc, Np* OUTPUT_S
 
 } // namespace PythonMPC_ServoMotorData
 
-#endif __TEST_MPC_SERVO_MOTOR_DATA_HPP__
+#endif // __TEST_MPC_SERVO_MOTOR_DATA_HPP__

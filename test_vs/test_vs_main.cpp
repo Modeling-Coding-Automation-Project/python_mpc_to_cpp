@@ -401,7 +401,7 @@ void check_LTI_MPC_QP_Solver(void) {
 
     MCAPTester<T> tester;
 
-    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    //constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
@@ -432,6 +432,12 @@ void check_LTI_MPC_QP_Solver(void) {
 
     using Phi_Type = decltype(Phi);
 
+    using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE * Nc>;
+
+    Weight_U_Nc_Type weight_U_Nc = make_DiagMatrix<INPUT_SIZE * Nc>(
+        static_cast<T>(1.0), static_cast<T>(1.0)
+    );
+
     auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
         static_cast<T>(-100));
     auto delta_U_max = make_DenseMatrix<INPUT_SIZE, 1>(
@@ -455,13 +461,16 @@ void check_LTI_MPC_QP_Solver(void) {
     using Y_max_Type = decltype(Y_max);
 
     LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
-        U_Type, X_augmented_Type, Phi_Type, F_Type,
+        U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
         Delta_U_min_Type, Delta_U_max_Type,
         U_min_Type, U_max_Type,
         Y_min_Type, Y_max_Type> lti_mpc_qp_solver =
         make_LTI_MPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
-            U, X_augmented, Phi, F,
+            U, X_augmented, Phi, F, weight_U_Nc,
             delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max);
+
+    lti_mpc_qp_solver.set_number_of_Y_constraints_prediction_offset(0);
+
 
 
     tester.throw_error_if_test_failed();

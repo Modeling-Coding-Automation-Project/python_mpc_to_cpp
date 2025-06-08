@@ -290,9 +290,9 @@ using DU_U_Y_Limits_Type =
 /* LTI MPC QP solver */
 template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename U_Type, typename X_augmented_Type, typename Phi_Type,
-          typename F_Type, typename Delta_U_Min_Type, typename Delta_U_Max_Type,
-          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
-          typename Y_Max_Type>
+          typename F_Type, typename Weight_U_Nc_Type, typename Delta_U_Min_Type,
+          typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
+          typename Y_Min_Type, typename Y_Max_Type>
 class LTI_MPC_QP_Solver {
 public:
   /* Type */
@@ -361,26 +361,28 @@ protected:
 public:
   /* Constructor */
   LTI_MPC_QP_Solver()
-      : max_iteration(SolverUtility::MAX_ITERATION_DEFAULT),
-        tol(static_cast<_T>(SolverUtility::TOL_DEFAULT)), limits(), M(),
-        gamma(), _solver(),
+      : limits(), M(), gamma(), _solver(),
         _Y_constraints_prediction_offset(static_cast<std::size_t>(0)) {}
 
   LTI_MPC_QP_Solver(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
                     const Phi_Type &Phi_in, const F_Type &F_in,
+                    const Weight_U_Nc_Type &weight_U_Nc_in,
                     const Delta_U_Min_Type &delta_U_Min_in,
                     const Delta_U_Max_Type &delta_U_Max_in,
                     const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
                     const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
-      : max_iteration(SolverUtility::MAX_ITERATION_DEFAULT),
-        tol(static_cast<_T>(SolverUtility::TOL_DEFAULT)), limits(), M(),
-        gamma(), _solver(),
+      : limits(), M(), gamma(), _solver(),
         _Y_constraints_prediction_offset(static_cast<std::size_t>(0)) {
 
     this->limits = make_DU_U_Y_Limits(delta_U_Min_in, delta_U_Max_in, U_min_in,
                                       U_max_in, Y_min_in, Y_max_in);
 
     this->update_constraints(U_in, X_augmented_in, Phi_in, F_in);
+
+    this->_solver.set_max_iteration(
+        PythonMPC::SolverUtility::MAX_ITERATION_DEFAULT);
+    this->_solver.set_tol(
+        static_cast<_T>(PythonMPC::SolverUtility::TOL_DEFAULT));
   }
 
   /* Copy Constructor */
@@ -465,9 +467,6 @@ public:
 
 public:
   /* Variable */
-  std::size_t max_iteration;
-  Value_Type tol;
-
   Limits_Type limits;
 
   M_Type M;
@@ -482,41 +481,42 @@ protected:
 /* make LTI_MPC_QP_Solver */
 template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename U_Type, typename X_augmented_Type, typename Phi_Type,
-          typename F_Type, typename Delta_U_Min_Type, typename Delta_U_Max_Type,
-          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
-          typename Y_Max_Type>
+          typename F_Type, typename Weight_U_Nc_Type, typename Delta_U_Min_Type,
+          typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
+          typename Y_Min_Type, typename Y_Max_Type>
 inline auto
 make_LTI_MPC_QP_Solver(const U_Type &U_in,
                        const X_augmented_Type &X_augmented_in,
                        const Phi_Type &Phi_in, const F_Type &F_in,
+                       const Weight_U_Nc_Type &weight_U_Nc_in,
                        const Delta_U_Min_Type &delta_U_Min_in,
                        const Delta_U_Max_Type &delta_U_Max_in,
                        const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
                        const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
     -> LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type,
-                         X_augmented_Type, Phi_Type, F_Type, Delta_U_Min_Type,
-                         Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
-                         Y_Max_Type> {
+                         X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
+                         Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                         U_Max_Type, Y_Min_Type, Y_Max_Type> {
 
   return LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type,
-                           X_augmented_Type, Phi_Type, F_Type, Delta_U_Min_Type,
-                           Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
-                           Y_Max_Type>(U_in, X_augmented_in, Phi_in, F_in,
-                                       delta_U_Min_in, delta_U_Max_in, U_min_in,
-                                       U_max_in, Y_min_in, Y_max_in);
+                           X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
+                           Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                           U_Max_Type, Y_Min_Type, Y_Max_Type>(
+      U_in, X_augmented_in, Phi_in, F_in, weight_U_Nc_in, delta_U_Min_in,
+      delta_U_Max_in, U_min_in, U_max_in, Y_min_in, Y_max_in);
 }
 
 /* LTI_MPC_QP_Solver Type */
 template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename U_Type, typename X_augmented_Type, typename Phi_Type,
-          typename F_Type, typename Delta_U_Min_Type, typename Delta_U_Max_Type,
-          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
-          typename Y_Max_Type>
+          typename F_Type, typename Weight_U_Nc_Type, typename Delta_U_Min_Type,
+          typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
+          typename Y_Min_Type, typename Y_Max_Type>
 using LTI_MPC_QP_Solver_Type =
     LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type,
-                      X_augmented_Type, Phi_Type, F_Type, Delta_U_Min_Type,
-                      Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
-                      Y_Max_Type>;
+                      X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
+                      Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                      U_Max_Type, Y_Min_Type, Y_Max_Type>;
 
 } // namespace PythonMPC
 
