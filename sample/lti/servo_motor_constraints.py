@@ -104,9 +104,9 @@ def main():
                       Y_min=Y_min, Y_max=Y_max)
 
     # You can create cpp header which can easily define lti_mpc as C++ code
-    # deployed_file_names = LinearMPC_Deploy.generate_LTI_MPC_NC_cpp_code(
-    #     lti_mpc, number_of_delay=Number_of_Delay)
-    # print(deployed_file_names)
+    deployed_file_names = LinearMPC_Deploy.generate_LTI_MPC_cpp_code(
+        lti_mpc, number_of_delay=Number_of_Delay)
+    print(deployed_file_names)
 
     # %% simulation
     t_sim = 20.0
