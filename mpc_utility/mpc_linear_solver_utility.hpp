@@ -576,9 +576,8 @@ struct Calculate_M_Gamma_U_Min_Condition<M_Type, Gamma_Type, U_min_Matrix_Type,
   }
 };
 
-template <typename Flags_Type, typename M_Type, typename Gamma_Type,
-          typename U_min_Matrix_Type, typename U_Type, std::size_t I,
-          std::size_t I_Dif>
+template <typename M_Type, typename Gamma_Type, typename U_min_Matrix_Type,
+          typename U_Type, std::size_t I, std::size_t I_Dif>
 struct Calculate_M_Gamma_U_Min_Loop {
   static void apply(M_Type &M, Gamma_Type &gamma,
                     const U_min_Matrix_Type &U_matrix, const U_Type &U,
@@ -589,22 +588,22 @@ struct Calculate_M_Gamma_U_Min_Loop {
 
     Calculate_M_Gamma_U_Min_Condition<
         M_Type, Gamma_Type, U_min_Matrix_Type, U_Type, I,
-        Flags_Type::lists[I][0]>::apply(M, gamma, U_matrix, U, set_count,
-                                        initial_position);
+        U_min_Matrix_Type::SparseAvailable_Type::lists[I][0]>::
+        apply(M, gamma, U_matrix, U, set_count, initial_position);
 
     total_index += set_count;
-    Calculate_M_Gamma_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
-                                 U_min_Matrix_Type, U_Type, (I + 1),
-                                 (I_Dif - 1)>::apply(M, gamma, U_matrix, U,
-                                                     total_index,
-                                                     initial_position);
+    Calculate_M_Gamma_U_Min_Loop<M_Type, Gamma_Type, U_min_Matrix_Type, U_Type,
+                                 (I + 1), (I_Dif - 1)>::apply(M, gamma,
+                                                              U_matrix, U,
+                                                              total_index,
+                                                              initial_position);
   }
 };
 
-template <typename Flags_Type, typename M_Type, typename Gamma_Type,
-          typename U_min_Matrix_Type, typename U_Type, std::size_t I>
-struct Calculate_M_Gamma_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
-                                    U_min_Matrix_Type, U_Type, I, 0> {
+template <typename M_Type, typename Gamma_Type, typename U_min_Matrix_Type,
+          typename U_Type, std::size_t I>
+struct Calculate_M_Gamma_U_Min_Loop<M_Type, Gamma_Type, U_min_Matrix_Type,
+                                    U_Type, I, 0> {
   static void apply(M_Type &M, Gamma_Type &gamma,
                     const U_min_Matrix_Type &U_matrix, const U_Type &U,
                     const std::size_t &total_index,
@@ -619,11 +618,11 @@ struct Calculate_M_Gamma_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
   }
 };
 
-template <typename Flags_Type, typename M_Type, typename Gamma_Type,
-          typename U_min_Matrix_Type, typename U_Type, std::size_t U_Min_Size>
+template <typename M_Type, typename Gamma_Type, typename U_min_Matrix_Type,
+          typename U_Type, std::size_t U_Min_Size>
 using Calculate_M_Gamma_U_Min =
-    Calculate_M_Gamma_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
-                                 U_min_Matrix_Type, U_Type, 0, U_Min_Size>;
+    Calculate_M_Gamma_U_Min_Loop<M_Type, Gamma_Type, U_min_Matrix_Type, U_Type,
+                                 0, U_Min_Size>;
 
 /* calculate M gamma for U max */
 template <typename M_Type, typename Gamma_Type, typename U_max_Matrix_Type,
@@ -877,15 +876,14 @@ protected:
   inline void _calculate_M_gamma_U(std::size_t &total_index, const U_Type &U) {
     std::size_t initial_position = total_index;
 
-    // // U_min constraints
-    // LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Min<
-    //     Limits_Type::U_Min_Flags, M_Type, Gamma_Type,
-    //     decltype(this->limits.U_min), U_Type,
-    //     Limits_Type::U_MIN_SIZE>::apply(this->M, this->gamma,
-    //                                     this->limits.U_min, U, total_index,
-    //                                     initial_position);
+    // U_min constraints
+    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Min<
+        M_Type, Gamma_Type, decltype(this->limits.U_min), U_Type,
+        Limits_Type::U_MIN_SIZE>::apply(this->M, this->gamma,
+                                        this->limits.U_min, U, total_index,
+                                        initial_position);
 
-    // initial_position = total_index;
+    initial_position = total_index;
 
     // // U_max constraints
     // LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Max<
