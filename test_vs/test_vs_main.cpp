@@ -493,15 +493,17 @@ void check_LTI_MPC_QP_Solver(void) {
             static_cast<T>(102.0),
             static_cast<T>(181.0),
             static_cast<T>(182.0),
-            static_cast<T>(0.0),
-            static_cast<T>(0.0),
-            static_cast<T>(0.0),
-            static_cast<T>(0.0)
+            static_cast<T>(11.0),
+            static_cast<T>(102.0),
+            static_cast<T>(13.0),
+            static_cast<T>(104.0)
         );
 
     tester.expect_near(lti_mpc_qp_solver.gamma.matrix.data,
         gamma_answer.matrix.data, NEAR_LIMIT_STRICT,
         "check LTI MPC QP Solver, gamma vector.");
+
+
 
 
     tester.throw_error_if_test_failed();
