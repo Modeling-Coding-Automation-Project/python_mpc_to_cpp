@@ -5,12 +5,14 @@ sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 
 import inspect
+import numpy as np
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.python_control_to_cpp.python_control.control_deploy import ControlDeploy
 
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
 
+from mpc_utility.linear_solver_utility import DU_U_Y_Limits
 from python_mpc.linear_mpc import LTI_MPC_NoConstraints, LTI_MPC
 
 
@@ -256,6 +258,43 @@ class LinearMPC_Deploy:
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
             0]
+
+        # create Limits code
+        delta_U_min = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
+        delta_U_min_active_set = np.zeros(np.size(delta_U_min), dtype=bool)
+        for i in range(len(delta_U_min)):
+            if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
+                delta_U_min_active_set[i] = True
+
+        delta_U_max = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
+        delta_U_max_active_set = np.zeros(np.size(delta_U_max), dtype=bool)
+        for i in range(len(delta_U_max)):
+            if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active(i):
+                delta_U_max_active_set[i] = True
+
+        U_min = lti_mpc.qp_solver.DU_U_Y_Limits.U_min
+        U_min_active_set = np.zeros(np.size(U_min), dtype=bool)
+        for i in range(len(U_min)):
+            if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active(i):
+                U_min_active_set[i] = True
+
+        U_max = lti_mpc.qp_solver.DU_U_Y_Limits.U_max
+        U_max_active_set = np.zeros(np.size(U_max), dtype=bool)
+        for i in range(len(U_max)):
+            if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active(i):
+                U_max_active_set[i] = True
+
+        Y_min = lti_mpc.qp_solver.DU_U_Y_Limits.Y_min
+        Y_min_active_set = np.zeros(np.size(Y_min), dtype=bool)
+        for i in range(len(Y_min)):
+            if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active(i):
+                Y_min_active_set[i] = True
+
+        Y_max = lti_mpc.qp_solver.DU_U_Y_Limits.Y_max
+        Y_max_active_set = np.zeros(np.size(Y_max), dtype=bool)
+        for i in range(len(Y_max)):
+            if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active(i):
+                Y_max_active_set[i] = True
 
         # create cpp code
         code_text = ""
