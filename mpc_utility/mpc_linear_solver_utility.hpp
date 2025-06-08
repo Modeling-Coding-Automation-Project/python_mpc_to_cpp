@@ -713,6 +713,35 @@ using Calculate_M_Gamma_U_Max =
                                  0, U_Max_Size>;
 
 /* calculate M gamma for Y min */
+template <typename M_Type, typename Phi_Type,
+          std::size_t Y_Constraints_Prediction_Offset, std::size_t I,
+          std::size_t J, std::size_t J_Dif>
+struct Set_M_Y_Min_Cols {
+  static void apply(M_Type &M, const Phi_Type &Phi,
+                    std::size_t initial_position) {
+
+    M.access(initial_position + I, J) =
+        -Phi.template get<Y_Constraints_Prediction_Offset + I, J>();
+    Set_M_Y_Min_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I,
+                     J + 1, J_Dif - 1>::apply(M, Phi, initial_position);
+  }
+};
+
+template <typename M_Type, typename Phi_Type,
+          std::size_t Y_Constraints_Prediction_Offset, std::size_t I,
+          std::size_t J>
+struct Set_M_Y_Min_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, J,
+                        0> {
+  static void apply(M_Type &M, const Phi_Type &Phi,
+                    std::size_t initial_position) {
+
+    // Do Nothing.
+    static_cast<void>(M);
+    static_cast<void>(Phi);
+    static_cast<void>(initial_position);
+  }
+};
+
 template <typename M_Type, typename Gamma_Type, typename Y_min_Type,
           typename Phi_Type, typename F_X_Type,
           std::size_t Y_Constraints_Prediction_Offset, std::size_t I, bool Flag>
@@ -729,13 +758,12 @@ struct Calculate_M_Gamma_Y_Min_Condition<
                     const F_X_Type &F_X, std::size_t &set_count,
                     std::size_t initial_position) {
 
-    for (std::size_t j = 0; j < M_Type::COLS; ++j) {
-      M.access(initial_position + I, j) =
-          -Phi.access(Y_Constraints_Prediction_Offset + I, j);
-    }
+    Set_M_Y_Min_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, 0,
+                     (Phi_Type::ROWS - 1)>::apply(M, Phi, initial_position);
+
     gamma.access(initial_position + I, 0) =
-        -Y_min_matrix.access(I, 0) +
-        F_X.access(Y_Constraints_Prediction_Offset + I, 0);
+        -Y_min_matrix.template get<I, 0>() +
+        F_X.template get<Y_Constraints_Prediction_Offset + I, 0>();
     set_count += 1;
   }
 };
@@ -774,9 +802,10 @@ struct Calculate_M_Gamma_Y_Min_Loop {
     Calculate_M_Gamma_Y_Min_Condition<
         M_Type, Gamma_Type, Y_min_Type, Phi_Type, F_X_Type,
         Y_Constraints_Prediction_Offset, I,
-        Y_min_Type::Y_Min_Flags::lists[I][0]>::apply(M, gamma, Y_min_matrix,
-                                                     Phi, F_X, set_count,
-                                                     initial_position);
+        Y_min_Type::SparseAvailable_Type::lists[I][0]>::apply(M, gamma,
+                                                              Y_min_matrix, Phi,
+                                                              F_X, set_count,
+                                                              initial_position);
     total_index += set_count;
     Calculate_M_Gamma_Y_Min_Loop<M_Type, Gamma_Type, Y_min_Type, Phi_Type,
                                  F_X_Type, Y_Constraints_Prediction_Offset,
@@ -817,6 +846,35 @@ using Calculate_M_Gamma_Y_Min =
                                  Y_Min_Size>;
 
 /* calculate M gamma for Y max */
+template <typename M_Type, typename Phi_Type,
+          std::size_t Y_Constraints_Prediction_Offset, std::size_t I,
+          std::size_t J, std::size_t J_Dif>
+struct Set_M_Y_Max_Cols {
+  static void apply(M_Type &M, const Phi_Type &Phi,
+                    std::size_t initial_position) {
+
+    M.access(initial_position + I, J) =
+        Phi.template get<Y_Constraints_Prediction_Offset + I, J>();
+    Set_M_Y_Max_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I,
+                     J + 1, J_Dif - 1>::apply(M, Phi, initial_position);
+  }
+};
+
+template <typename M_Type, typename Phi_Type,
+          std::size_t Y_Constraints_Prediction_Offset, std::size_t I,
+          std::size_t J>
+struct Set_M_Y_Max_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, J,
+                        0> {
+  static void apply(M_Type &M, const Phi_Type &Phi,
+                    std::size_t initial_position) {
+
+    // Do Nothing.
+    static_cast<void>(M);
+    static_cast<void>(Phi);
+    static_cast<void>(initial_position);
+  }
+};
+
 template <typename M_Type, typename Gamma_Type, typename Y_max_Type,
           typename Phi_Type, typename F_X_Type,
           std::size_t Y_Constraints_Prediction_Offset, std::size_t I, bool Flag>
@@ -833,13 +891,12 @@ struct Calculate_M_Gamma_Y_Max_Condition<
                     const F_X_Type &F_X, std::size_t &set_count,
                     std::size_t initial_position) {
 
-    for (std::size_t j = 0; j < M_Type::COLS; ++j) {
-      M.access(initial_position + I, j) =
-          Phi.access(Y_Constraints_Prediction_Offset + I, j);
-    }
+    Set_M_Y_Max_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, 0,
+                     (Phi_Type::ROWS - 1)>::apply(M, Phi, initial_position);
+
     gamma.access(initial_position + I, 0) =
-        Y_max_matrix.access(I, 0) -
-        F_X.access(Y_Constraints_Prediction_Offset + I, 0);
+        Y_max_matrix.template get<I, 0>() -
+        F_X.template get<Y_Constraints_Prediction_Offset + I, 0>();
     set_count += 1;
   }
 };
@@ -878,9 +935,10 @@ struct Calculate_M_Gamma_Y_Max_Loop {
     Calculate_M_Gamma_Y_Max_Condition<
         M_Type, Gamma_Type, Y_max_Type, Phi_Type, F_X_Type,
         Y_Constraints_Prediction_Offset, I,
-        Y_max_Type::Y_Max_Flags::lists[I][0]>::apply(M, gamma, Y_max_matrix,
-                                                     Phi, F_X, set_count,
-                                                     initial_position);
+        Y_max_Type::SparseAvailable_Type::lists[I][0]>::apply(M, gamma,
+                                                              Y_max_matrix, Phi,
+                                                              F_X, set_count,
+                                                              initial_position);
     total_index += set_count;
     Calculate_M_Gamma_Y_Max_Loop<M_Type, Gamma_Type, Y_max_Type, Phi_Type,
                                  F_X_Type, Y_Constraints_Prediction_Offset,
@@ -1038,7 +1096,7 @@ public:
 
     this->_calculate_M_gamma_U(total_index, U_in);
 
-    // this->_calculate_M_gamma_Y(total_index, X_augmented_in, Phi_in, F_in);
+    this->_calculate_M_gamma_Y(total_index, X_augmented_in, Phi_in, F_in);
   }
 
   template <std::size_t N = NUMBER_OF_ALL_CONSTRAINTS>
@@ -1111,8 +1169,9 @@ protected:
     LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Y_Min<
         M_Type, Gamma_Type, decltype(this->limits.Y_min), Phi_Type,
         decltype(F_X), Y_CONSTRAINTS_PREDICTION_OFFSET,
-        Limits_Type::Y_MIN_SIZE>::apply(this->M, this->gamma, this->limits, Phi,
-                                        F_X, total_index, initial_position);
+        Limits_Type::Y_MIN_SIZE>::apply(this->M, this->gamma,
+                                        this->limits.Y_min, Phi, F_X,
+                                        total_index, initial_position);
 
     initial_position = total_index;
 
@@ -1120,8 +1179,9 @@ protected:
     LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Y_Max<
         M_Type, Gamma_Type, decltype(this->limits.Y_max), Phi_Type,
         decltype(F_X), Y_CONSTRAINTS_PREDICTION_OFFSET,
-        Limits_Type::Y_MAX_SIZE>::apply(this->M, this->gamma, this->limits, Phi,
-                                        F_X, total_index, initial_position);
+        Limits_Type::Y_MAX_SIZE>::apply(this->M, this->gamma,
+                                        this->limits.Y_max, Phi, F_X,
+                                        total_index, initial_position);
   }
 
 public:
