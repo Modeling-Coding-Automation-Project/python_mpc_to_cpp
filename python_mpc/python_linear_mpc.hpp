@@ -405,7 +405,6 @@ public:
 
 public:
   /* Function */
-  template <typename ReferenceTrajectory_Type>
   inline auto solve(const ReferenceTrajectory_Type &reference_trajectory,
                     const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type {
 

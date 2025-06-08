@@ -686,7 +686,10 @@ void check_LTI_MPC(void) {
 
     auto U = lti_mpc.update(ref, Y);
 
+    auto U_answer = make_StateSpaceInput<INPUT_SIZE>(static_cast<T>(23.535215353823776));
 
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTI MPC, update.");
 
 
     tester.throw_error_if_test_failed();
