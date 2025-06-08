@@ -403,18 +403,17 @@ public:
     return *this;
   }
 
-public:
+protected:
   /* Function */
-  inline auto solve(const ReferenceTrajectory_Type &reference_trajectory,
-                    const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type {
+  inline auto _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
                                      this->_prediction_matrices.F);
 
-    auto delta_U = this->_solver.solve(this->_prediction_matrices.Phi,
-                                       this->_prediction_matrices.F,
-                                       reference_trajectory, X_augmented);
+    auto delta_U = this->_solver.solve(
+        this->_prediction_matrices.Phi, this->_prediction_matrices.F,
+        this->_reference_trajectory, X_augmented);
 
     return delta_U;
   }
