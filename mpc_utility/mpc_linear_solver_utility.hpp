@@ -1010,6 +1010,9 @@ public:
   using Gamma_Type =
       PythonNumpy::DenseMatrix_Type<Value_Type, NUMBER_OF_ALL_CONSTRAINTS, 1>;
 
+  using U_Nc_Type =
+      PythonNumpy::DenseMatrix_Type<Value_Type, Number_Of_Variables, 1>;
+
   static constexpr std::size_t Y_CONSTRAINTS_PREDICTION_OFFSET =
       Y_Constraints_Prediction_Offset;
 
@@ -1055,6 +1058,10 @@ public:
 protected:
   /* Type */
   using _T = Value_Type;
+
+  using _E_Empty_Type =
+      PythonNumpy::SparseMatrixEmpty_Type<_T, Number_Of_Variables,
+                                          Number_Of_Variables>;
 
   using _Solver_Type = PythonOptimization::QP_ActiveSetSolver_Type<
       Value_Type, Number_Of_Variables, NUMBER_OF_ALL_CONSTRAINTS>;
@@ -1165,13 +1172,13 @@ public:
 
   template <typename ReferenceTrajectoryType>
   inline auto solve(const Phi_Type &Phi, const F_Type &F,
-                    const ReferenceTrajectoryType &reference_trajectory,
-                    const X_augmented_Type &X_augmented) -> U_Type {
+                    ReferenceTrajectoryType &reference_trajectory,
+                    const X_augmented_Type &X_augmented) -> U_Nc_Type {
 
     auto L = PythonNumpy::ATranspose_mul_B(
         Phi, reference_trajectory.calculate_dif(F * X_augmented));
 
-    auto x_opt = this->_solver.solve(L, this->M, this->gamma);
+    auto x_opt = this->_solver.solve(_E_Empty_Type{}, L, this->M, this->gamma);
 
     return x_opt;
   }
@@ -1180,14 +1187,14 @@ public:
   inline auto solve(const Phi_Type &Phi, const F_Type &F,
                     const ReferenceTrajectoryType &reference_trajectory,
                     const X_augmented_Type &X_augmented,
-                    const Weight_U_Nc_Type &Weight_U_Nc) -> U_Type {
+                    const Weight_U_Nc_Type &Weight_U_Nc) -> U_Nc_Type {
 
     auto L = PythonNumpy::ATranspose_mul_B(
         Phi, reference_trajectory.calculate_dif(F * X_augmented));
 
     this->update_E(Phi, Weight_U_Nc);
 
-    auto x_opt = this->_solver.solve(L, this->M, this->gamma);
+    auto x_opt = this->_solver.solve(_E_Empty_Type{}, L, this->M, this->gamma);
 
     return x_opt;
   }

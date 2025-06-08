@@ -405,7 +405,7 @@ void check_LTI_MPC_QP_Solver(void) {
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
-    //constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
+    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
     constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
 
     constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
@@ -521,6 +521,12 @@ void check_LTI_MPC_QP_Solver(void) {
         gamma_answer.matrix.data, NEAR_LIMIT_STRICT,
         "check LTI MPC QP Solver, gamma vector, copy move.");
 
+    /* 計算 */
+    auto ref_vector = make_DenseMatrix<OUTPUT_SIZE, 1>(
+        static_cast<T>(1), static_cast<T>(0));
+    MPC_ReferenceTrajectory<decltype(ref_vector), Np> reference_trajectory(ref_vector);
+
+    auto delta_U = lti_mpc_qp_solver.solve(Phi, F, reference_trajectory, X_augmented);
 
 
     tester.throw_error_if_test_failed();
@@ -546,7 +552,7 @@ int main(void) {
 
     check_LTI_MPC_QP_Solver<double>();
 
-    //check_LTI_MPC_QP_Solver<float>();
+    check_LTI_MPC_QP_Solver<float>();
 
 
     return 0;
