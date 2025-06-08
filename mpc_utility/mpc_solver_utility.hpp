@@ -276,13 +276,44 @@ using DU_U_Y_Limits_Type =
 /* LTI MPC QP solver */
 template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename U_Type, typename X_augmented_Type, typename Phi_Type,
-          typename F_Type>
+          typename F_Type, typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type>
 class LTI_MPC_QP_Solver {
 public:
   /* Type */
   using Value_Type = typename U_Type::Value_Type;
 
+  using Limits_Type =
+      DU_U_Y_Limits_Type<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                         U_Max_Type, Y_Min_Type, Y_Max_Type>;
+
+  static constexpr std::size_t NUMBER_OF_ALL_CONSTRAINTS =
+      Limits_Type::NUMBER_OF_ALL_CONSTRAINTS;
+
+  using M_Type =
+      PythonNumpy::DenseMatrix_Type<Value_Type, NUMBER_OF_ALL_CONSTRAINTS,
+                                    Number_Of_Variables>;
+
+  using Gamma_Type =
+      PythonNumpy::DenseMatrix_Type<Value_Type, NUMBER_OF_ALL_CONSTRAINTS, 1>;
+
   /* Check Compatibility */
+
+protected:
+  /* Type */
+  using _T = Value_Type;
+
+  using _Solver_Type = PythonOptimization::QP_ActiveSetSolver_Type<
+      Value_Type, Number_Of_Variables, NUMBER_OF_ALL_CONSTRAINTS>;
+
+public:
+  /* Constructor */
+  LTI_MPC_QP_Solver()
+      : max_iteration(SolverUtility::MAX_ITERATION_DEFAULT),
+        tol(static_cast<_T>(SolverUtility::TOL_DEFAULT)), M(), gamma(),
+        _solver(),
+        _Y_constraints_prediction_offset(static_cast<std::size_t>(0)) {}
 
 public:
   /* Constant */
@@ -295,9 +326,13 @@ public:
   std::size_t max_iteration;
   Value_Type tol;
 
+  M_Type M;
+  Gamma_Type gamma;
+
 protected:
   /* Variable */
-  std::size_t Y_constraints_prediction_offset;
+  _Solver_Type _solver;
+  std::size_t _Y_constraints_prediction_offset;
 };
 
 } // namespace PythonMPC

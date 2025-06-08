@@ -495,6 +495,24 @@ void check_DU_U_Y_Limits(void) {
 }
 
 
+template <typename T>
+void check_LTI_MPC_QP_Solver(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+
+    /* 定義 */
+
+
+
+    tester.throw_error_if_test_failed();
+}
+
 int main(void) {
 
     check_MPC_PredictionMatrices<double>();
@@ -512,6 +530,10 @@ int main(void) {
     check_DU_U_Y_Limits<double>();
 
     check_DU_U_Y_Limits<float>();
+
+    check_LTI_MPC_QP_Solver<double>();
+
+    check_LTI_MPC_QP_Solver<float>();
 
 
     return 0;
