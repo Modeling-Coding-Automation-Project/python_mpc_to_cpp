@@ -362,6 +362,52 @@ using DU_U_Y_Limits_Type =
     DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
                   Y_Min_Type, Y_Max_Type>;
 
+namespace LTI_MPC_QP_SolverOperation {
+
+template <typename M_Type, typename Gamma_Type, typename Limits_Type,
+          std::size_t I, std::size_t I_Dif>
+struct Calculate_M_Gamma_Delta_U_Loop {
+  static void apply(M_Type &M, Gamma_Type &gamma, Limits_Type &limits,
+                    std::size_t &total_index,
+                    const std::size_t &initial_position) {
+
+    std::size_t set_count = static_cast<std::size_t>(0);
+
+    if (limits.is_delta_U_min_active(I)) {
+      M.access(initial_position + I, I) = static_cast<M_Type::Value_Type>(-1.0);
+      gamma.access(initial_position + I, 0) = -limits.delta_U_min.access(I, 0);
+      set_count += 1;
+    }
+    total_index += set_count;
+    Calculate_M_Gamma_Delta_U_Loop<M_Type, Gamma_Type, Limits_Type, (I + 1),
+                                   (I_Dif - 1)>::apply(M, gamma, limits,
+                                                       total_index,
+                                                       initial_position);
+  }
+};
+
+template <typename M_Type, typename Gamma_Type, typename Limits_Type,
+          std::size_t I>
+struct Calculate_M_Gamma_Delta_U_Loop<M_Type, Gamma_Type, Limits_Type, I, 0> {
+  static void apply(M_Type &M, Gamma_Type &gamma, Limits_Type &limits,
+                    std::size_t &total_index,
+                    const std::size_t &initial_position) {
+
+    // Do Nothing.
+    static_cast<void>(limits);
+    static_cast<void>(total_index);
+    static_cast<void>(initial_position);
+  }
+};
+
+template <typename M_Type, typename Gamma_Type, typename Limits_Type,
+          std::size_t Delta_U_Size>
+using Calculate_M_Gamma_Delta_U =
+    Calculate_M_Gamma_Delta_U_Loop<M_Type, Gamma_Type, Limits_Type, 0,
+                                   Delta_U_Size>;
+
+} // namespace LTI_MPC_QP_SolverOperation
+
 /* LTI MPC QP solver */
 template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename U_Type, typename X_augmented_Type, typename Phi_Type,
@@ -508,17 +554,11 @@ protected:
     std::size_t initial_position = total_index;
 
     // delta_U_min constraints
-    for (std::size_t i = 0; i < Limits_Type::DELTA_U_MIN_SIZE; ++i) {
-      std::size_t set_count = static_cast<std::size_t>(0);
-
-      if (this->limits.is_delta_U_min_active(i)) {
-        this->M.access(initial_position + i, i) = static_cast<_T>(-1.0);
-        this->gamma.access(initial_position + i, 0) =
-            -this->limits.delta_U_min(i, 0);
-        set_count += 1;
-      }
-      total_index += set_count;
-    }
+    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U<
+        M_Type, Gamma_Type, Limits_Type,
+        Limits_Type::DELTA_U_MIN_SIZE>::apply(this->M, this->gamma,
+                                              this->limits, total_index,
+                                              initial_position);
 
     initial_position = total_index;
 
@@ -529,7 +569,39 @@ protected:
       if (this->limits.is_delta_U_max_active(i)) {
         this->M.access(initial_position + i, i) = static_cast<_T>(1.0);
         this->gamma.access(initial_position + i, 0) =
-            this->limits.delta_U_max(i, 0);
+            this->limits.delta_U_max.access(i, 0);
+        set_count += 1;
+      }
+      total_index += set_count;
+    }
+  }
+
+  inline void _calculate_M_gamma_U(std::size_t &total_index, const U_Type &U) {
+    std::size_t initial_position = total_index;
+
+    // U_min constraints
+    for (std::size_t i = 0; i < Limits_Type::U_MIN_SIZE; ++i) {
+      std::size_t set_count = static_cast<std::size_t>(0);
+
+      if (this->limits.is_U_min_active(i)) {
+        this->M.access(initial_position + i, i) = static_cast<_T>(-1.0);
+        this->gamma.access(initial_position + i, 0) =
+            -this->limits.U_min(i, 0) + U(0, i);
+        set_count += 1;
+      }
+      total_index += set_count;
+    }
+
+    initial_position = total_index;
+
+    // U_max constraints
+    for (std::size_t i = 0; i < Limits_Type::U_MAX_SIZE; ++i) {
+      std::size_t set_count = static_cast<std::size_t>(0);
+
+      if (this->limits.is_U_max_active(i)) {
+        this->M.access(initial_position + i, i) = static_cast<_T>(1.0);
+        this->gamma.access(initial_position + i, 0) =
+            this->limits.U_max(i, 0) - U(0, i);
         set_count += 1;
       }
       total_index += set_count;
