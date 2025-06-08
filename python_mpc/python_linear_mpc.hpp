@@ -256,7 +256,8 @@ protected:
         X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
   }
 
-  inline auto _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
 
     auto delta_U =
         this->_solver_factor * this->_reference_trajectory.calculate_dif(
@@ -405,7 +406,8 @@ public:
 
 protected:
   /* Function */
-  inline auto _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type {
+  inline auto _solve(const _X_Augmented_Type &X_augmented)
+      -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
