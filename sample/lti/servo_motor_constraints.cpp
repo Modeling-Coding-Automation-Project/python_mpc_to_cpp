@@ -1,7 +1,7 @@
 #include <iostream>
 
 /* CAUTION */
-// You need to run "servo_motor.py" before running this code.
+// You need to run "servo_motor_constraints.py" before running this code.
 #include "servo_motor_constraints_lti_mpc.hpp"
 
 #include "python_control.hpp"
