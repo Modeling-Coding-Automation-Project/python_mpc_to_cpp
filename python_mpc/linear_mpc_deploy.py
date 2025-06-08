@@ -382,6 +382,7 @@ class LinearMPC_Deploy:
 
         code_text += f"  auto weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
+        # limits
         if delta_U_min is not None:
             code_text += f"  using Delta_U_Min_Type = SparseAvailable<\n"
             for i in range(len(delta_U_min)):
@@ -393,6 +394,62 @@ class LinearMPC_Deploy:
         else:
             code_text += f"  using Delta_U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>\n\n"
 
+        if delta_U_max is not None:
+            code_text += f"  using Delta_U_Max_Type = SparseAvailable<\n"
+            for i in range(len(delta_U_max)):
+                code_text += \
+                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(delta_U_max_active_set[i])}>"
+                if i < len(delta_U_max) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+        else:
+            code_text += f"  using Delta_U_Max_Type = SparseAvailableEmpty<INPUT_SIZE, 1>\n\n"
+
+        if U_min is not None:
+            code_text += f"  using U_Min_Type = SparseAvailable<\n"
+            for i in range(len(U_min)):
+                code_text += \
+                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(U_min_active_set[i])}>"
+                if i < len(U_min) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+        else:
+            code_text += f"  using U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>\n\n"
+
+        if U_max is not None:
+            code_text += f"  using U_Max_Type = SparseAvailable<\n"
+            for i in range(len(U_max)):
+                code_text += \
+                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(U_max_active_set[i])}>"
+                if i < len(U_max) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+        else:
+            code_text += f"  using U_Max_Type = SparseAvailableEmpty<INPUT_SIZE, 1>\n\n"
+
+        if Y_min is not None:
+            code_text += f"  using Y_Min_Type = SparseAvailable<\n"
+            for i in range(len(Y_min)):
+                code_text += \
+                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(Y_min_active_set[i])}>"
+                if i < len(Y_min) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+        else:
+            code_text += f"  using Y_Min_Type = SparseAvailableEmpty<OUTPUT_SIZE, 1>\n\n"
+
+        if Y_max is not None:
+            code_text += f"  using Y_Max_Type = SparseAvailable<\n"
+            for i in range(len(Y_max)):
+                code_text += \
+                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(Y_max_active_set[i])}>"
+                if i < len(Y_max) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+        else:
+            code_text += f"  using Y_Max_Type = SparseAvailableEmpty<OUTPUT_SIZE, 1>\n\n"
+
+        # prediction matrices
         code_text += f"  PredictionMatrices_Type prediction_matrices(F, Phi);\n\n"
 
         code_text += f"  ReferenceTrajectory_Type reference_trajectory;\n\n"
