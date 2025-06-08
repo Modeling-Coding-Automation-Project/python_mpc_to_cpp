@@ -309,6 +309,65 @@ using LTI_MPC_NoConstraints_Type =
     LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                           ReferenceTrajectory_Type, SolverFactor_Type>;
 
+/* LTI MPC */
+template <typename LKF_Type_In, typename PredictionMatrices_Type_In,
+          typename ReferenceTrajectory_Type_In,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+class LTI_MPC
+    : public LTI_MPC_NoConstraints<LKF_Type_In, PredictionMatrices_Type_In,
+                                   ReferenceTrajectory_Type_In,
+                                   SolverFactor_Type_In> {
+public:
+  /* Constructor */
+  LTI_MPC()
+      : LTI_MPC_NoConstraints<LKF_Type_In, PredictionMatrices_Type_In,
+                              ReferenceTrajectory_Type_In,
+                              SolverFactor_Type_In>() {}
+
+  template <typename LKF_Type, typename PredictionMatrices_Type,
+            typename ReferenceTrajectory_Type,
+            typename SolverFactor_Type_In_Constructor>
+  LTI_MPC(const LKF_Type &kalman_filter,
+          const PredictionMatrices_Type &prediction_matrices,
+          const ReferenceTrajectory_Type &reference_trajectory,
+          const SolverFactor_Type_In_Constructor &solver_factor_in)
+      : LTI_MPC_NoConstraints<LKF_Type_In, PredictionMatrices_Type_In,
+                              ReferenceTrajectory_Type_In,
+                              SolverFactor_Type_In>(
+            kalman_filter, prediction_matrices, reference_trajectory,
+            solver_factor_in) {}
+
+  /* Copy Constructor */
+  LTI_MPC(const LTI_MPC &other)
+      : LTI_MPC_NoConstraints<LKF_Type_In, PredictionMatrices_Type_In,
+                              ReferenceTrajectory_Type_In,
+                              SolverFactor_Type_In>(other) {}
+
+  LTI_MPC &operator=(const LTI_MPC &other) {
+    if (this != &other) {
+      this->LTI_MPC_NoConstraints<LKF_Type_In, PredictionMatrices_Type_In,
+                                  ReferenceTrajectory_Type_In,
+                                  SolverFactor_Type_In>::operator=(other);
+    }
+    return *this;
+  }
+
+  /* Move Constructor */
+  LTI_MPC(LTI_MPC &&other) noexcept
+      : LTI_MPC_NoConstraints<LKF_Type_In, PredictionMatrices_Type_In,
+                              ReferenceTrajectory_Type_In,
+                              SolverFactor_Type_In>(std::move(other)) {}
+
+  LTI_MPC &operator=(LTI_MPC &&other) noexcept {
+    if (this != &other) {
+      this->LTI_MPC_NoConstraints<
+          LKF_Type_In, PredictionMatrices_Type_In, ReferenceTrajectory_Type_In,
+          SolverFactor_Type_In>::operator=(std::move(other));
+    }
+    return *this;
+  }
+};
+
 } // namespace PythonMPC
 
 #endif // __PYTHON_LINEAR_MPC_HPP__

@@ -552,6 +552,96 @@ void check_LTI_MPC_QP_Solver(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_LTI_MPC(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+
+    /* 定義 */
+    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
+    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+
+    constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = PythonMPC_ServoMotorData::OUTPUT_SIZE;
+
+    constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_ServoMotorData::AUGMENTED_STATE_SIZE;
+
+    auto A = make_DenseMatrix<4, 4>(
+        static_cast<T>(1.0), static_cast<T>(0.05), static_cast<T>(0.0), static_cast<T>(0.0),
+        static_cast<T>(-2.56038538), static_cast<T>(0.95000025), static_cast<T>(0.12801927), static_cast<T>(0.0),
+        static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.05),
+        static_cast<T>(6.40099503), static_cast<T>(0.0), static_cast<T>(-0.32004975), static_cast<T>(0.49)
+    );
+
+    auto B = make_DenseMatrix<4, 1>(
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.05)
+    );
+
+    auto C = make_DenseMatrix<2, 4>(
+        static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
+        static_cast<T>(1280.19900634), static_cast<T>(0.0), static_cast<T>(-64.00995032), static_cast<T>(0.0)
+    );
+
+    auto D = make_DenseMatrixZeros<T, OUTPUT_SIZE, INPUT_SIZE>();
+
+    T dt = static_cast<T>(0.05);
+
+    auto sys = make_DiscreteStateSpace(A, B, C, D, dt);
+
+    auto Q = make_KalmanFilter_Q<STATE_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    auto R = make_KalmanFilter_R<OUTPUT_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    auto kalman_filter = make_LinearKalmanFilter(sys, Q, R);
+
+    kalman_filter.G = make_DenseMatrix<STATE_SIZE, OUTPUT_SIZE>(
+        static_cast<T>(0.04893929), static_cast<T>(0.00074138),
+        static_cast<T>(0.00827874), static_cast<T>(0.00030475),
+        static_cast<T>(9.78774203e-01), static_cast<T>(-7.95038792e-04),
+        static_cast<T>(2.86510380e-03), static_cast<T>(-3.43928205e-06)
+    );
+
+    auto F = PythonMPC_ServoMotorData::get_F<T>();
+
+    auto Phi = PythonMPC_ServoMotorData::get_Phi<T>();
+
+    MPC_PredictionMatrices<decltype(F), decltype(Phi),
+        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
+
+    auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
+        static_cast<T>(1.0), static_cast<T>(0.0));
+
+    MPC_ReferenceTrajectory_Type<decltype(ref), Np> reference_trajectory(ref);
+
+    auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
+
+    LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
+        decltype(reference_trajectory)> lti_mpc(
+            kalman_filter, prediction_matrices, reference_trajectory, solver_factor);
+
+
+
+    tester.throw_error_if_test_failed();
+}
+
 int main(void) {
 
     check_MPC_PredictionMatrices<double>();
@@ -573,6 +663,10 @@ int main(void) {
     check_LTI_MPC_QP_Solver<double>();
 
     check_LTI_MPC_QP_Solver<float>();
+
+    check_LTI_MPC<double>();
+
+    check_LTI_MPC<float>();
 
 
     return 0;
