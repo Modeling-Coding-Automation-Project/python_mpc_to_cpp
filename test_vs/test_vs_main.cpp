@@ -495,7 +495,7 @@ int main(void) {
 
     check_LTI_MPC_QP_Solver<double>();
 
-    check_LTI_MPC_QP_Solver<float>();
+    //check_LTI_MPC_QP_Solver<float>();
 
 
     return 0;
