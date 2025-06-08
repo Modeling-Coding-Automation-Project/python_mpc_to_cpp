@@ -1,5 +1,5 @@
-#ifndef __MPC_SOLVER_UTILITY_HPP__
-#define __MPC_SOLVER_UTILITY_HPP__
+#ifndef __MPC_LINEAR_SOLVER_UTILITY__
+#define __MPC_LINEAR_SOLVER_UTILITY__
 
 #include "python_numpy.hpp"
 #include "python_optimization.hpp"
@@ -337,4 +337,4 @@ protected:
 
 } // namespace PythonMPC
 
-#endif // __MPC_SOLVER_UTILITY_HPP__
+#endif // __MPC_LINEAR_SOLVER_UTILITY__
