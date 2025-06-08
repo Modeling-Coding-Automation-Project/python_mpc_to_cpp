@@ -439,6 +439,8 @@ struct Calculate_M_Gamma_Delta_U_Min_Loop<Delta_U_min_Matrix_Type, M_Type,
                     const std::size_t &initial_position) {
 
     // Do Nothing.
+    static_cast<void>(M);
+    static_cast<void>(gamma);
     static_cast<void>(delta_U_matrix);
     static_cast<void>(total_index);
     static_cast<void>(initial_position);
@@ -525,6 +527,8 @@ struct Calculate_M_Gamma_Delta_U_Max_Loop<M_Type, Gamma_Type,
                     const std::size_t &initial_position) {
 
     // Do Nothing.
+    static_cast<void>(M);
+    static_cast<void>(gamma);
     static_cast<void>(delta_U_matrix);
     static_cast<void>(total_index);
     static_cast<void>(initial_position);
