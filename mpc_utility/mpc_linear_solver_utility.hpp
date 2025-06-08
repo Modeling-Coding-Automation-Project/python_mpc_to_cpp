@@ -111,6 +111,15 @@ protected:
   using _T = Value_Type;
 
 public:
+  /* Constant */
+  static constexpr std::size_t DELTA_U_MIN_SIZE = Delta_U_Min_Type::COLS;
+  static constexpr std::size_t DELTA_U_MAX_SIZE = Delta_U_Max_Type::COLS;
+  static constexpr std::size_t U_MIN_SIZE = U_Min_Type::COLS;
+  static constexpr std::size_t U_MAX_SIZE = U_Max_Type::COLS;
+  static constexpr std::size_t Y_MIN_SIZE = Y_Min_Type::COLS;
+  static constexpr std::size_t Y_MAX_SIZE = Y_Max_Type::COLS;
+
+public:
   /* Constructor */
   DU_U_Y_Limits()
       : delta_U_min(), delta_U_max(), U_min(), U_max(), Y_min(), Y_max() {}
@@ -172,6 +181,21 @@ public:
 
 public:
   /* Function */
+  inline auto is_delta_U_min_active(const std::size_t &index) const -> bool {
+
+    std::size_t index_wrapped;
+
+    if (index < 0) {
+      index_wrapped = 0;
+    } else if (index >= DELTA_U_MIN_SIZE) {
+      index_wrapped = DELTA_U_MIN_SIZE - 1;
+    } else {
+      index_wrapped = index;
+    }
+
+    return Delta_U_Min_Flags::lists[index_wrapped][0];
+  }
+
   inline auto get_number_of_all_constraints(void) const -> std::size_t {
 
     return this->_number_of_delta_U_constraints +
@@ -190,18 +214,8 @@ public:
     return this->_number_of_Y_constraints;
   }
 
-protected:
-  /* Function */
-
 public:
   /* Constant */
-  static constexpr std::size_t DELTA_U_MIN_SIZE = Delta_U_Min_Type::COLS;
-  static constexpr std::size_t DELTA_U_MAX_SIZE = Delta_U_Max_Type::COLS;
-  static constexpr std::size_t U_MIN_SIZE = U_Min_Type::COLS;
-  static constexpr std::size_t U_MAX_SIZE = U_Max_Type::COLS;
-  static constexpr std::size_t Y_MIN_SIZE = Y_Min_Type::COLS;
-  static constexpr std::size_t Y_MAX_SIZE = Y_Max_Type::COLS;
-
   static constexpr std::size_t DELTA_U_MIN_CONSTRAINTS =
       SolverUtilityOperation::CountTrue2D<Delta_U_Min_Flags,
                                           Delta_U_Min_Type::COLS,
@@ -374,14 +388,21 @@ public:
 public:
   /* Function */
   template <std::size_t N = NUMBER_OF_ALL_CONSTRAINTS>
-  typename std::enable_if<(N > 0), inline void>::type
+  inline typename std::enable_if<(N > 0), void>::type
   update_constraints(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
                      const Phi_Type &Phi_in, const F_Type &F_in) {
-    // a
+
+    std::size_t total_index = static_cast<std::size_t>(0);
+
+    this->_calculate_M_gamma_delta_U(total_index);
+
+    // this->_calculate_M_gamma_U(total_index, U_in);
+
+    // this->_calculate_M_gamma_Y(total_index, X_augmented_in, Phi_in, F_in);
   }
 
   template <std::size_t N = NUMBER_OF_ALL_CONSTRAINTS>
-  typename std::enable_if<(N == 0), inline void>::type
+  inline typename std::enable_if<(N == 0), void>::type
   update_constraints(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
                      const Phi_Type &Phi_in, const F_Type &F_in) {
 
@@ -400,6 +421,38 @@ public:
   inline auto set_number_of_Y_constraints_prediction_offset(
       const std::size_t &Y_constraints_prediction_offset_in) -> void {
     this->_Y_constraints_prediction_offset = Y_constraints_prediction_offset_in;
+  }
+
+protected:
+  /* Function */
+  inline void _calculate_M_gamma_delta_U(std::size_t &total_index) {
+    std::size_t initial_position = total_index;
+
+    // delta_U_min constraints
+    for (std::size_t i = 0; i < Limits_Type::DELTA_U_MIN_SIZE; ++i) {
+      std::size_t set_count = static_cast<std::size_t>(0);
+
+      if (this->limits.is_delta_U_min_active(i)) {
+        this->M(initial_position + i, i) = static_cast<Value_Type>(-1.0);
+        this->gamma(initial_position + i, 0) = -this->limits.delta_U_min(i, 0);
+        set_count += 1;
+      }
+      total_index += set_count;
+    }
+
+    initial_position = total_index;
+
+    // delta_U_max constraints
+    // for (std::size_t i = 0; i < Limits_Type::DELTA_U_MAX_SIZE; ++i) {
+    //   std::size_t set_count = static_cast<std::size_t>(0);
+
+    //   if (this->limits.is_delta_U_max_active(i)) {
+    //     this->M(initial_position + i, i) = static_cast<Value_Type>(1.0);
+    //     this->gamma(initial_position + i, 0) = this->limits.delta_U_max(i,
+    //     0); set_count += 1;
+    //   }
+    //   total_index += set_count;
+    // }
   }
 
 public:

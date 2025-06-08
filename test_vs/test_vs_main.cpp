@@ -503,7 +503,7 @@ void check_LTI_MPC_QP_Solver(void) {
 
     MCAPTester<T> tester;
 
-    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    //constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
