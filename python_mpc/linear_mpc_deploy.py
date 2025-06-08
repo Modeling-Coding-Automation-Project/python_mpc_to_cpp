@@ -146,7 +146,7 @@ class LinearMPC_Deploy:
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
             "  Ref_Type, NP>;\n\n"
 
-        code_text += f"using type = LTI_MPC_NoConstraints<\n" + \
+        code_text += f"using type = LTI_MPC_NoConstraints_Type<\n" + \
             "  LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
             "  SolverFactor_Type>;\n\n"
 
@@ -355,6 +355,79 @@ class LinearMPC_Deploy:
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
+        # limits
+        if delta_U_min is not None and np.linalg.norm(delta_U_min_active_set) > TOL:
+            code_text += f"using Delta_U_Min_Type = SparseAvailable<\n"
+            for i in range(len(delta_U_min)):
+                code_text += \
+                    f"  ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(delta_U_min_active_set[i])}>"
+                if i < len(delta_U_min) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+
+        else:
+            code_text += f"using Delta_U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
+
+        if delta_U_max is not None and np.linalg.norm(delta_U_max_active_set) > TOL:
+            code_text += f"using Delta_U_Max_Type = SparseAvailable<\n"
+            for i in range(len(delta_U_max)):
+                code_text += \
+                    f"  ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(delta_U_max_active_set[i])}>"
+                if i < len(delta_U_max) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+
+        else:
+            code_text += f"  using Delta_U_Max_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
+
+        if U_min is not None and np.linalg.norm(U_min_active_set) > TOL:
+            code_text += f"using U_Min_Type = SparseAvailable<\n"
+            for i in range(len(U_min)):
+                code_text += \
+                    f"  ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(U_min_active_set[i])}>"
+                if i < len(U_min) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+
+        else:
+            code_text += f"using U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
+
+        if U_max is not None and np.linalg.norm(U_max_active_set) > TOL:
+            code_text += f"  using U_Max_Type = SparseAvailable<\n"
+            for i in range(len(U_max)):
+                code_text += \
+                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(U_max_active_set[i])}>"
+                if i < len(U_max) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+
+        else:
+            code_text += f"using U_Max_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
+
+        if Y_min is not None and np.linalg.norm(Y_min_active_set) > TOL:
+            code_text += f"using Y_Min_Type = SparseAvailable<\n"
+            for i in range(len(Y_min)):
+                code_text += \
+                    f"  ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(Y_min_active_set[i])}>"
+                if i < len(Y_min) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+
+        else:
+            code_text += f"using Y_Min_Type = SparseAvailableEmpty<OUTPUT_SIZE, 1>;\n\n"
+
+        if Y_max is not None and np.linalg.norm(Y_max_active_set) > TOL:
+            code_text += f"using Y_Max_Type = SparseAvailable<\n"
+            for i in range(len(Y_max)):
+                code_text += \
+                    f"  ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(Y_max_active_set[i])}>"
+                if i < len(Y_max) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+
+        else:
+            code_text += f"using Y_Max_Type = SparseAvailableEmpty<OUTPUT_SIZE, 1>;\n\n"
+
         code_text += f"using PredictionMatrices_Type = MPC_PredictionMatrices_Type<\n" + \
             "  F_Type, Phi_Type, NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;\n\n"
 
@@ -368,7 +441,7 @@ class LinearMPC_Deploy:
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
             "  Ref_Type, NP>;\n\n"
 
-        code_text += f"using type = LTI_MPC_NoConstraints<\n" + \
+        code_text += f"using type = LTI_MPC_Type<\n" + \
             "  LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
             "  SolverFactor_Type>;\n\n"
 
@@ -386,14 +459,6 @@ class LinearMPC_Deploy:
 
         # limits
         if delta_U_min is not None and np.linalg.norm(delta_U_min_active_set) > TOL:
-            code_text += f"  using Delta_U_Min_Type = SparseAvailable<\n"
-            for i in range(len(delta_U_min)):
-                code_text += \
-                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(delta_U_min_active_set[i])}>"
-                if i < len(delta_U_min) - 1:
-                    code_text += ",\n"
-            code_text += ">;\n\n"
-
             code_text += f"  auto delta_U_min = make_SparseMatrix<Delta_U_Min_Type, {type_name}>(\n"
             for i in range(len(delta_U_min)):
                 if delta_U_min_active_set[i]:
@@ -402,17 +467,9 @@ class LinearMPC_Deploy:
                         code_text += ",\n"
             code_text += ");\n\n"
         else:
-            code_text += f"  using Delta_U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
             code_text += f"  auto delta_U_min = make_SparseMatrixEmpty<{type_name}, OUTPUT_SIZE, 1>();\n\n"
 
         if delta_U_max is not None and np.linalg.norm(delta_U_max_active_set) > TOL:
-            code_text += f"  using Delta_U_Max_Type = SparseAvailable<\n"
-            for i in range(len(delta_U_max)):
-                code_text += \
-                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(delta_U_max_active_set[i])}>"
-                if i < len(delta_U_max) - 1:
-                    code_text += ",\n"
-            code_text += ">;\n\n"
 
             code_text += f"  auto delta_U_max = make_SparseMatrix<Delta_U_Max_Type, {type_name}>(\n"
             for i in range(len(delta_U_max)):
@@ -422,17 +479,9 @@ class LinearMPC_Deploy:
                         code_text += ",\n"
             code_text += ");\n\n"
         else:
-            code_text += f"  using Delta_U_Max_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
             code_text += f"  auto delta_U_max = make_SparseMatrixEmpty<{type_name}, OUTPUT_SIZE, 1>();\n\n"
 
         if U_min is not None and np.linalg.norm(U_min_active_set) > TOL:
-            code_text += f"  using U_Min_Type = SparseAvailable<\n"
-            for i in range(len(U_min)):
-                code_text += \
-                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(U_min_active_set[i])}>"
-                if i < len(U_min) - 1:
-                    code_text += ",\n"
-            code_text += ">;\n\n"
 
             code_text += f"  auto U_min = make_SparseMatrix<U_Min_Type, {type_name}>(\n"
             for i in range(len(U_min)):
@@ -442,17 +491,9 @@ class LinearMPC_Deploy:
                         code_text += ",\n"
             code_text += ");\n\n"
         else:
-            code_text += f"  using U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
             code_text += f"  auto U_min = make_SparseMatrixEmpty<{type_name}, OUTPUT_SIZE, 1>();\n\n"
 
         if U_max is not None and np.linalg.norm(U_max_active_set) > TOL:
-            code_text += f"  using U_Max_Type = SparseAvailable<\n"
-            for i in range(len(U_max)):
-                code_text += \
-                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(U_max_active_set[i])}>"
-                if i < len(U_max) - 1:
-                    code_text += ",\n"
-            code_text += ">;\n\n"
 
             code_text += f"  auto U_max = make_SparseMatrix<U_Max_Type, {type_name}>(\n"
             for i in range(len(U_max)):
@@ -462,17 +503,9 @@ class LinearMPC_Deploy:
                         code_text += ",\n"
             code_text += ");\n\n"
         else:
-            code_text += f"  using U_Max_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
             code_text += f"  auto U_max = make_SparseMatrixEmpty<{type_name}, OUTPUT_SIZE, 1>();\n\n"
 
         if Y_min is not None and np.linalg.norm(Y_min_active_set) > TOL:
-            code_text += f"  using Y_Min_Type = SparseAvailable<\n"
-            for i in range(len(Y_min)):
-                code_text += \
-                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(Y_min_active_set[i])}>"
-                if i < len(Y_min) - 1:
-                    code_text += ",\n"
-            code_text += ">;\n\n"
 
             code_text += f"  auto Y_min = make_SparseMatrix<Y_Min_Type, {type_name}>(\n"
             for i in range(len(Y_min)):
@@ -482,17 +515,9 @@ class LinearMPC_Deploy:
                         code_text += ",\n"
             code_text += ");\n\n"
         else:
-            code_text += f"  using Y_Min_Type = SparseAvailableEmpty<OUTPUT_SIZE, 1>;\n\n"
             code_text += f"  auto Y_min = make_SparseMatrixEmpty<{type_name}, OUTPUT_SIZE, 1>();\n\n"
 
         if Y_max is not None and np.linalg.norm(Y_max_active_set) > TOL:
-            code_text += f"  using Y_Max_Type = SparseAvailable<\n"
-            for i in range(len(Y_max)):
-                code_text += \
-                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(Y_max_active_set[i])}>"
-                if i < len(Y_max) - 1:
-                    code_text += ",\n"
-            code_text += ">;\n\n"
 
             code_text += f"  auto Y_max = make_SparseMatrix<Y_Max_Type, {type_name}>(\n"
             for i in range(len(Y_max)):
@@ -502,7 +527,6 @@ class LinearMPC_Deploy:
                         code_text += ",\n"
             code_text += ");\n\n"
         else:
-            code_text += f"  using Y_Max_Type = SparseAvailableEmpty<OUTPUT_SIZE, 1>;\n\n"
             code_text += f"  auto Y_max = make_SparseMatrixEmpty<{type_name}, OUTPUT_SIZE, 1>();\n\n"
 
         # prediction matrices
@@ -511,7 +535,8 @@ class LinearMPC_Deploy:
         code_text += f"  ReferenceTrajectory_Type reference_trajectory;\n\n"
 
         code_text += f"  auto lti_mpc = make_LTI_MPC(\n" + \
-            "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor);\n\n"
+            "    kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,\n" + \
+            "    delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max, solver_factor);\n\n"
 
         code_text += "  return lti_mpc;\n\n"
 
