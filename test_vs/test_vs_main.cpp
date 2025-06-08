@@ -465,25 +465,25 @@ void check_DU_U_Y_Limits(void) {
     decltype(limits) limits_move = std::move(limits_copy);
     limits = limits_move;
 
-    auto number_of_delta_U_constraints = limits.get_number_of_delta_U_constraints();
+    std::size_t number_of_delta_U_constraints = decltype(limits)::NUMBER_OF_DELTA_U_CONSTRAINTS;
 
     tester.expect_near(static_cast<T>(number_of_delta_U_constraints), static_cast<T>(3),
         NEAR_LIMIT_STRICT,
         "check number of delta U constraints.");
 
-    auto number_of_U_constraints = limits.get_number_of_U_constraints();
+    std::size_t number_of_U_constraints = decltype(limits)::NUMBER_OF_U_CONSTRAINTS;
 
     tester.expect_near(static_cast<T>(number_of_U_constraints), static_cast<T>(2),
         NEAR_LIMIT_STRICT,
         "check number of U constraints.");
 
-    auto number_of_Y_constraints = limits.get_number_of_Y_constraints();
+    std::size_t number_of_Y_constraints = decltype(limits)::NUMBER_OF_Y_CONSTRAINTS;
 
     tester.expect_near(static_cast<T>(number_of_Y_constraints), static_cast<T>(1),
         NEAR_LIMIT_STRICT,
         "check number of Y constraints.");
 
-    auto number_of_all_constraints = limits.get_number_of_all_constraints();
+    std::size_t number_of_all_constraints = decltype(limits)::NUMBER_OF_ALL_CONSTRAINTS;
 
     tester.expect_near(static_cast<T>(number_of_all_constraints), static_cast<T>(6),
         NEAR_LIMIT_STRICT,
