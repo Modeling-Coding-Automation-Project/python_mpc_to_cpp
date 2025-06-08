@@ -401,11 +401,67 @@ void check_LTI_MPC_QP_Solver(void) {
 
     MCAPTester<T> tester;
 
-    //constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
+    //constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
+    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
 
+    constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
+    //constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = PythonMPC_ServoMotorData::OUTPUT_SIZE;
+
+    constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_ServoMotorData::AUGMENTED_STATE_SIZE;
+
+    constexpr std::size_t NUMBER_OF_VARIABLES = INPUT_SIZE * Nc;
+
+    using U_Type = DenseMatrix_Type<T, INPUT_SIZE, 1>;
+
+    U_Type U;
+
+    using X_augmented_Type = DenseMatrix_Type<T, AUGMENTED_STATE_SIZE, 1>;
+
+    X_augmented_Type X_augmented;
+
+    auto F = PythonMPC_ServoMotorData::get_F<T>();
+
+    auto Phi = PythonMPC_ServoMotorData::get_Phi<T>();
+
+    using F_Type = decltype(F);
+
+    using Phi_Type = decltype(Phi);
+
+    auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(-100));
+    auto delta_U_max = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(100));
+
+    auto U_min = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(-180));
+    auto U_max = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(180));
+
+    auto Y_min = make_DenseMatrix<OUTPUT_SIZE, 1>(
+        static_cast<T>(-10), static_cast<T>(-100));
+    auto Y_max = make_DenseMatrix<OUTPUT_SIZE, 1>(
+        static_cast<T>(10), static_cast<T>(100));
+
+    using Delta_U_min_Type = decltype(delta_U_min);
+    using Delta_U_max_Type = decltype(delta_U_max);
+    using U_min_Type = decltype(U_min);
+    using U_max_Type = decltype(U_max);
+    using Y_min_Type = decltype(Y_min);
+    using Y_max_Type = decltype(Y_max);
+
+    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+        U_Type, X_augmented_Type, Phi_Type, F_Type,
+        Delta_U_min_Type, Delta_U_max_Type,
+        U_min_Type, U_max_Type,
+        Y_min_Type, Y_max_Type> lti_mpc_qp_solver =
+        make_LTI_MPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
+            U, X_augmented, Phi, F,
+            delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max);
 
 
     tester.throw_error_if_test_failed();
