@@ -132,7 +132,7 @@
     <ClCompile Include="test_vs_main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\mpc_utility\mpc_solver_utility.hpp" />
+    <ClInclude Include="..\mpc_utility\mpc_linear_solver_utility.hpp" />
     <ClInclude Include="..\mpc_utility\mpc_state_space_utility.hpp" />
     <ClInclude Include="..\mpc_utility\mpc_utility.hpp" />
     <ClInclude Include="..\python_mpc\python_linear_mpc.hpp" />

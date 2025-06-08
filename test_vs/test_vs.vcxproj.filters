@@ -35,7 +35,7 @@
     <ClInclude Include="..\mpc_utility\mpc_utility.hpp">
       <Filter>リソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\mpc_utility\mpc_solver_utility.hpp">
+    <ClInclude Include="..\mpc_utility\mpc_linear_solver_utility.hpp">
       <Filter>リソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>

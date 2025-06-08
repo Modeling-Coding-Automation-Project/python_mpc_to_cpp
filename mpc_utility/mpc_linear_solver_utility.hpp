@@ -299,6 +299,43 @@ public:
       PythonNumpy::DenseMatrix_Type<Value_Type, NUMBER_OF_ALL_CONSTRAINTS, 1>;
 
   /* Check Compatibility */
+  static_assert(
+      std::is_same<typename X_augmented_Type::Value_Type, Value_Type>::value,
+      "X_augmented_Type::Value_Type must be equal to Value_Type");
+  static_assert(std::is_same<typename Phi_Type::Value_Type, Value_Type>::value,
+                "Phi_Type::Value_Type must be equal to Value_Type");
+  static_assert(std::is_same<typename F_Type::Value_Type, Value_Type>::value,
+                "F_Type::Value_Type must be equal to Value_Type");
+
+  static_assert(
+      std::is_same<typename Delta_U_Min_Type::Value_Type, Value_Type>::value,
+      "Delta_U_Min_Type::Value_Type must be equal to Value_Type");
+  static_assert(
+      std::is_same<typename Delta_U_Max_Type::Value_Type, Value_Type>::value,
+      "Delta_U_Max_Type::Value_Type must be equal to Value_Type");
+  static_assert(
+      std::is_same<typename U_Min_Type::Value_Type, Value_Type>::value,
+      "U_Min_Type::Value_Type must be equal to Value_Type");
+  static_assert(
+      std::is_same<typename U_Max_Type::Value_Type, Value_Type>::value,
+      "U_Max_Type::Value_Type must be equal to Value_Type");
+  static_assert(
+      std::is_same<typename Y_Min_Type::Value_Type, Value_Type>::value,
+      "Y_Min_Type::Value_Type must be equal to Value_Type");
+  static_assert(
+      std::is_same<typename Y_Max_Type::Value_Type, Value_Type>::value,
+      "Y_Max_Type::Value_Type must be equal to Value_Type");
+
+  static_assert(U_Type::ROWS == static_cast<std::size_t>(1),
+                "U_Type must be a row vector");
+
+  static_assert(X_augmented_Type::COLS == F_Type::ROWS &&
+                    X_augmented_Type::ROWS == static_cast<std::size_t>(1),
+                "X_augmented_Type size doesn't match F_Type size");
+
+  static_assert(Phi_Type::COLS == F_Type::COLS &&
+                    Phi_Type::ROWS == Number_Of_Variables,
+                "Phi_Type size doesn't match F_Type size");
 
 protected:
   /* Type */
@@ -311,9 +348,59 @@ public:
   /* Constructor */
   LTI_MPC_QP_Solver()
       : max_iteration(SolverUtility::MAX_ITERATION_DEFAULT),
-        tol(static_cast<_T>(SolverUtility::TOL_DEFAULT)), M(), gamma(),
-        _solver(),
+        tol(static_cast<_T>(SolverUtility::TOL_DEFAULT)), limits(), M(),
+        gamma(), _solver(),
         _Y_constraints_prediction_offset(static_cast<std::size_t>(0)) {}
+
+  LTI_MPC_QP_Solver(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
+                    const Phi_Type &Phi_in, const F_Type &F_in,
+                    const Delta_U_Min_Type &delta_U_Min_in,
+                    const Delta_U_Max_Type &delta_U_Max_in,
+                    const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
+                    const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
+      : max_iteration(SolverUtility::MAX_ITERATION_DEFAULT),
+        tol(static_cast<_T>(SolverUtility::TOL_DEFAULT)), limits(), M(),
+        gamma(), _solver(),
+        _Y_constraints_prediction_offset(static_cast<std::size_t>(0)) {
+
+    this->limits = make_DU_U_Y_Limits(delta_U_Min_in, delta_U_Max_in, U_min_in,
+                                      U_max_in, Y_min_in, Y_max_in);
+  }
+
+  /* Copy Constructor */
+
+  /* Move Constructor */
+
+public:
+  /* Function */
+  template <std::size_t N = NUMBER_OF_ALL_CONSTRAINTS>
+  typename std::enable_if<(N > 0), inline void>::type
+  update_constraints(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
+                     const Phi_Type &Phi_in, const F_Type &F_in) {
+    // a
+  }
+
+  template <std::size_t N = NUMBER_OF_ALL_CONSTRAINTS>
+  typename std::enable_if<(N == 0), inline void>::type
+  update_constraints(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
+                     const Phi_Type &Phi_in, const F_Type &F_in) {
+
+    // Do Nothing.
+    static_cast<void>(U_in);
+    static_cast<void>(X_augmented_in);
+    static_cast<void>(Phi_in);
+    static_cast<void>(F_in);
+  }
+
+  inline auto get_number_of_Y_constraints_prediction_offset(void) const
+      -> std::size_t {
+    return this->_Y_constraints_prediction_offset;
+  }
+
+  inline auto set_number_of_Y_constraints_prediction_offset(
+      const std::size_t &Y_constraints_prediction_offset_in) -> void {
+    this->_Y_constraints_prediction_offset = Y_constraints_prediction_offset_in;
+  }
 
 public:
   /* Constant */
@@ -325,6 +412,8 @@ public:
   /* Variable */
   std::size_t max_iteration;
   Value_Type tol;
+
+  Limits_Type limits;
 
   M_Type M;
   Gamma_Type gamma;
