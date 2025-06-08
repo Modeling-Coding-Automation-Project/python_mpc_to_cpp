@@ -196,6 +196,81 @@ public:
     return Delta_U_Min_Flags::lists[index_wrapped][0];
   }
 
+  inline auto is_delta_U_max_active(const std::size_t &index) const -> bool {
+
+    std::size_t index_wrapped;
+
+    if (index < 0) {
+      index_wrapped = 0;
+    } else if (index >= DELTA_U_MAX_SIZE) {
+      index_wrapped = DELTA_U_MAX_SIZE - 1;
+    } else {
+      index_wrapped = index;
+    }
+
+    return Delta_U_Max_Flags::lists[index_wrapped][0];
+  }
+
+  inline auto is_U_min_active(const std::size_t &index) const -> bool {
+
+    std::size_t index_wrapped;
+
+    if (index < 0) {
+      index_wrapped = 0;
+    } else if (index >= U_MIN_SIZE) {
+      index_wrapped = U_MIN_SIZE - 1;
+    } else {
+      index_wrapped = index;
+    }
+
+    return U_Min_Flags::lists[index_wrapped][0];
+  }
+
+  inline auto is_U_max_active(const std::size_t &index) const -> bool {
+
+    std::size_t index_wrapped;
+
+    if (index < 0) {
+      index_wrapped = 0;
+    } else if (index >= U_MAX_SIZE) {
+      index_wrapped = U_MAX_SIZE - 1;
+    } else {
+      index_wrapped = index;
+    }
+
+    return U_Max_Flags::lists[index_wrapped][0];
+  }
+
+  inline auto is_Y_min_active(const std::size_t &index) const -> bool {
+
+    std::size_t index_wrapped;
+
+    if (index < 0) {
+      index_wrapped = 0;
+    } else if (index >= Y_MIN_SIZE) {
+      index_wrapped = Y_MIN_SIZE - 1;
+    } else {
+      index_wrapped = index;
+    }
+
+    return Y_Min_Flags::lists[index_wrapped][0];
+  }
+
+  inline auto is_Y_max_active(const std::size_t &index) const -> bool {
+
+    std::size_t index_wrapped;
+
+    if (index < 0) {
+      index_wrapped = 0;
+    } else if (index >= Y_MAX_SIZE) {
+      index_wrapped = Y_MAX_SIZE - 1;
+    } else {
+      index_wrapped = index;
+    }
+
+    return Y_Max_Flags::lists[index_wrapped][0];
+  }
+
   inline auto get_number_of_all_constraints(void) const -> std::size_t {
 
     return this->_number_of_delta_U_constraints +
@@ -447,16 +522,16 @@ protected:
     initial_position = total_index;
 
     // delta_U_max constraints
-    // for (std::size_t i = 0; i < Limits_Type::DELTA_U_MAX_SIZE; ++i) {
-    //   std::size_t set_count = static_cast<std::size_t>(0);
+    for (std::size_t i = 0; i < Limits_Type::DELTA_U_MAX_SIZE; ++i) {
+      std::size_t set_count = static_cast<std::size_t>(0);
 
-    //   if (this->limits.is_delta_U_max_active(i)) {
-    //     this->M(initial_position + i, i) = static_cast<Value_Type>(1.0);
-    //     this->gamma(initial_position + i, 0) = this->limits.delta_U_max(i,
-    //     0); set_count += 1;
-    //   }
-    //   total_index += set_count;
-    // }
+      if (this->limits.is_delta_U_max_active(i)) {
+        this->M(initial_position + i, i) = static_cast<Value_Type>(1.0);
+        this->gamma(initial_position + i, 0) = this->limits.delta_U_max(i, 0);
+        set_count += 1;
+      }
+      total_index += set_count;
+    }
   }
 
 public:
