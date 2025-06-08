@@ -6,6 +6,7 @@ sys.path.append(os.path.join(
 
 import inspect
 import numpy as np
+import copy
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.python_control_to_cpp.python_control.control_deploy import ControlDeploy
@@ -268,48 +269,95 @@ class LinearMPC_Deploy:
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
             0]
 
-        # create Limits code
-        delta_U_min = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
-        if delta_U_min is not None:
-            delta_U_min_active_set = np.zeros(np.size(delta_U_min), dtype=bool)
-            for i in range(len(delta_U_min)):
+        # Limits code
+        delta_U_min_values = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
+        if delta_U_min_values is not None:
+            delta_U_min_active_set = np.zeros(
+                np.size(delta_U_min_values), dtype=bool)
+            for i in range(len(delta_U_min_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
                     delta_U_min_active_set[i] = True
 
-        delta_U_max = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
-        if delta_U_max is not None:
-            delta_U_max_active_set = np.zeros(np.size(delta_U_max), dtype=bool)
-            for i in range(len(delta_U_max)):
+        delta_U_max_values = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
+        if delta_U_max_values is not None:
+            delta_U_max_active_set = np.zeros(
+                np.size(delta_U_max_values), dtype=bool)
+            for i in range(len(delta_U_max_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active(i):
                     delta_U_max_active_set[i] = True
 
-        U_min = lti_mpc.qp_solver.DU_U_Y_Limits.U_min
-        if U_min is not None:
-            U_min_active_set = np.zeros(np.size(U_min), dtype=bool)
-            for i in range(len(U_min)):
+        U_min_values = lti_mpc.qp_solver.DU_U_Y_Limits.U_min
+        if U_min_values is not None:
+            U_min_active_set = np.zeros(np.size(U_min_values), dtype=bool)
+            for i in range(len(U_min_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active(i):
                     U_min_active_set[i] = True
 
-        U_max = lti_mpc.qp_solver.DU_U_Y_Limits.U_max
-        if U_max is not None:
-            U_max_active_set = np.zeros(np.size(U_max), dtype=bool)
-            for i in range(len(U_max)):
+        U_max_values = lti_mpc.qp_solver.DU_U_Y_Limits.U_max
+        if U_max_values is not None:
+            U_max_active_set = np.zeros(np.size(U_max_values), dtype=bool)
+            for i in range(len(U_max_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active(i):
                     U_max_active_set[i] = True
 
-        Y_min = lti_mpc.qp_solver.DU_U_Y_Limits.Y_min
-        if Y_min is not None:
-            Y_min_active_set = np.zeros(np.size(Y_min), dtype=bool)
-            for i in range(len(Y_min)):
+        Y_min_values = lti_mpc.qp_solver.DU_U_Y_Limits.Y_min
+        if Y_min_values is not None:
+            Y_min_active_set = np.zeros(np.size(Y_min_values), dtype=bool)
+            for i in range(len(Y_min_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active(i):
                     Y_min_active_set[i] = True
 
-        Y_max = lti_mpc.qp_solver.DU_U_Y_Limits.Y_max
-        if Y_max is not None:
-            Y_max_active_set = np.zeros(np.size(Y_max), dtype=bool)
-            for i in range(len(Y_max)):
+        Y_max_values = lti_mpc.qp_solver.DU_U_Y_Limits.Y_max
+        if Y_max_values is not None:
+            Y_max_active_set = np.zeros(np.size(Y_max_values), dtype=bool)
+            for i in range(len(Y_max_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active(i):
                     Y_max_active_set[i] = True
+
+        # create Limits code
+        delta_U_min = copy.deepcopy(delta_U_min_active_set)
+        delta_U_min = np.array(
+            delta_U_min, dtype=delta_U_max_values.dtype).reshape(-1, 1)
+        exec(f"{variable_name}_delta_U_min = delta_U_min")
+        delta_U_min_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_min, caller_file_name_without_ext)")
+        delta_U_min_no_extension = delta_U_min_file_name .split(".")[0]
+
+        delta_U_max = copy.deepcopy(delta_U_max_active_set)
+        delta_U_max = np.array(
+            delta_U_max, dtype=delta_U_max_values.dtype).reshape(-1, 1)
+        exec(f"{variable_name}_delta_U_max = delta_U_max")
+        delta_U_max_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_max, caller_file_name_without_ext)")
+        delta_U_max_no_extension = delta_U_max_file_name .split(".")[0]
+
+        U_min = copy.deepcopy(U_min_active_set)
+        U_min = np.array(U_min, dtype=U_min_values.dtype).reshape(-1, 1)
+        exec(f"{variable_name}_U_min = U_min")
+        U_min_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_min, caller_file_name_without_ext)")
+        U_min_no_extension = U_min_file_name .split(".")[0]
+
+        U_max = copy.deepcopy(U_max_active_set)
+        U_max = np.array(U_max, dtype=U_max_values.dtype).reshape(-1, 1)
+        exec(f"{variable_name}_U_max = U_max")
+        U_max_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_max, caller_file_name_without_ext)")
+        U_max_no_extension = U_max_file_name .split(".")[0]
+
+        Y_min = copy.deepcopy(Y_min_active_set)
+        Y_min = np.array(Y_min, dtype=Y_min_values.dtype).reshape(-1, 1)
+        exec(f"{variable_name}_Y_min = Y_min")
+        Y_min_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_min, caller_file_name_without_ext)")
+        Y_min_no_extension = Y_min_file_name .split(".")[0]
+
+        Y_max = copy.deepcopy(Y_max_active_set)
+        Y_max = np.array(Y_max, dtype=Y_max_values.dtype).reshape(-1, 1)
+        exec(f"{variable_name}_Y_max = Y_max")
+        Y_max_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_max, caller_file_name_without_ext)")
+        Y_max_no_extension = Y_max_file_name .split(".")[0]
 
         # create cpp code
         code_text = ""
@@ -357,7 +405,7 @@ class LinearMPC_Deploy:
 
         # limits
         if delta_U_min is not None and np.linalg.norm(delta_U_min_active_set) > TOL:
-            code_text += f"using Delta_U_Min_Type = SparseAvailable<\n"
+            code_text += f"using Delta_U_Min_SparseAvailable = SparseAvailable<\n"
             for i in range(len(delta_U_min)):
                 code_text += \
                     f"  ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(delta_U_min_active_set[i])}>"
@@ -365,8 +413,11 @@ class LinearMPC_Deploy:
                     code_text += ",\n"
             code_text += ">;\n\n"
 
+            code_text += f"using Delta_U_Min_Type = SparseMatrix_Type<\n" + \
+                f"  {type_name}, INPUT_SIZE, 1>;\n\n"
+
         else:
-            code_text += f"using Delta_U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
+            code_text += f"using Delta_U_Min_SparseAvailable = SparseAvailableEmpty<INPUT_SIZE, 1>;\n\n"
 
         if delta_U_max is not None and np.linalg.norm(delta_U_max_active_set) > TOL:
             code_text += f"using Delta_U_Max_Type = SparseAvailable<\n"
