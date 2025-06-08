@@ -181,6 +181,13 @@ class LinearMPC_Deploy:
         return deployed_file_names
 
     @staticmethod
+    def get_cpp_bool_text(flag: bool) -> str:
+        if flag:
+            return "true"
+        else:
+            return "false"
+
+    @staticmethod
     def generate_LTI_MPC_cpp_code(
             lti_mpc: LTI_MPC, file_name=None, number_of_delay=0):
         deployed_file_names = []
@@ -261,40 +268,46 @@ class LinearMPC_Deploy:
 
         # create Limits code
         delta_U_min = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
-        delta_U_min_active_set = np.zeros(np.size(delta_U_min), dtype=bool)
-        for i in range(len(delta_U_min)):
-            if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
-                delta_U_min_active_set[i] = True
+        if delta_U_min is not None:
+            delta_U_min_active_set = np.zeros(np.size(delta_U_min), dtype=bool)
+            for i in range(len(delta_U_min)):
+                if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
+                    delta_U_min_active_set[i] = True
 
         delta_U_max = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
-        delta_U_max_active_set = np.zeros(np.size(delta_U_max), dtype=bool)
-        for i in range(len(delta_U_max)):
-            if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active(i):
-                delta_U_max_active_set[i] = True
+        if delta_U_max is not None:
+            delta_U_max_active_set = np.zeros(np.size(delta_U_max), dtype=bool)
+            for i in range(len(delta_U_max)):
+                if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active(i):
+                    delta_U_max_active_set[i] = True
 
         U_min = lti_mpc.qp_solver.DU_U_Y_Limits.U_min
-        U_min_active_set = np.zeros(np.size(U_min), dtype=bool)
-        for i in range(len(U_min)):
-            if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active(i):
-                U_min_active_set[i] = True
+        if U_min is not None:
+            U_min_active_set = np.zeros(np.size(U_min), dtype=bool)
+            for i in range(len(U_min)):
+                if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active(i):
+                    U_min_active_set[i] = True
 
         U_max = lti_mpc.qp_solver.DU_U_Y_Limits.U_max
-        U_max_active_set = np.zeros(np.size(U_max), dtype=bool)
-        for i in range(len(U_max)):
-            if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active(i):
-                U_max_active_set[i] = True
+        if U_max is not None:
+            U_max_active_set = np.zeros(np.size(U_max), dtype=bool)
+            for i in range(len(U_max)):
+                if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active(i):
+                    U_max_active_set[i] = True
 
         Y_min = lti_mpc.qp_solver.DU_U_Y_Limits.Y_min
-        Y_min_active_set = np.zeros(np.size(Y_min), dtype=bool)
-        for i in range(len(Y_min)):
-            if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active(i):
-                Y_min_active_set[i] = True
+        if Y_min is not None:
+            Y_min_active_set = np.zeros(np.size(Y_min), dtype=bool)
+            for i in range(len(Y_min)):
+                if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active(i):
+                    Y_min_active_set[i] = True
 
         Y_max = lti_mpc.qp_solver.DU_U_Y_Limits.Y_max
-        Y_max_active_set = np.zeros(np.size(Y_max), dtype=bool)
-        for i in range(len(Y_max)):
-            if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active(i):
-                Y_max_active_set[i] = True
+        if Y_max is not None:
+            Y_max_active_set = np.zeros(np.size(Y_max), dtype=bool)
+            for i in range(len(Y_max)):
+                if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active(i):
+                    Y_max_active_set[i] = True
 
         # create cpp code
         code_text = ""
@@ -368,6 +381,17 @@ class LinearMPC_Deploy:
         code_text += f"  auto solver_factor = {solver_factor_file_name_no_extension}::make();\n\n"
 
         code_text += f"  auto weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
+
+        if delta_U_min is not None:
+            code_text += f"  using Delta_U_Min_Type = SparseAvailable<\n"
+            for i in range(len(delta_U_min)):
+                code_text += \
+                    f"    ColumnAvailable<{LinearMPC_Deploy.get_cpp_bool_text(delta_U_min_active_set[i])}>"
+                if i < len(delta_U_min) - 1:
+                    code_text += ",\n"
+            code_text += ">;\n\n"
+        else:
+            code_text += f"  using Delta_U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>\n\n"
 
         code_text += f"  PredictionMatrices_Type prediction_matrices(F, Phi);\n\n"
 
