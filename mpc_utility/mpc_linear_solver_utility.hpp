@@ -367,14 +367,14 @@ namespace LTI_MPC_QP_SolverOperation {
 /* calculate M gamma for delta U min  */
 template <typename M_Type, typename Gamma_Type,
           typename Delta_U_min_Matrix_Type, std::size_t I, bool Flag>
-struct Calculate_M_Gamma_Delta_U_min_Condition {};
+struct Calculate_M_Gamma_Delta_U_Min_Condition {};
 
 template <typename M_Type, typename Gamma_Type,
           typename Delta_U_min_Matrix_Type, std::size_t I>
-struct Calculate_M_Gamma_Delta_U_min_Condition<
+struct Calculate_M_Gamma_Delta_U_Min_Condition<
     M_Type, Gamma_Type, Delta_U_min_Matrix_Type, I, true> {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_min_Matrix_Type &delta_U_matrix,
+                    const Delta_U_min_Matrix_Type &delta_U_matrix,
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
@@ -387,10 +387,10 @@ struct Calculate_M_Gamma_Delta_U_min_Condition<
 
 template <typename M_Type, typename Gamma_Type,
           typename Delta_U_min_Matrix_Type, std::size_t I>
-struct Calculate_M_Gamma_Delta_U_min_Condition<
+struct Calculate_M_Gamma_Delta_U_Min_Condition<
     M_Type, Gamma_Type, Delta_U_min_Matrix_Type, I, false> {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_min_Matrix_Type &delta_U_matrix,
+                    const Delta_U_min_Matrix_Type &delta_U_matrix,
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
@@ -405,21 +405,21 @@ struct Calculate_M_Gamma_Delta_U_min_Condition<
 
 template <typename Flags_Type, typename M_Type, typename Gamma_Type,
           typename Delta_U_min_Matrix_Type, std::size_t I, std::size_t I_Dif>
-struct Calculate_M_Gamma_Delta_U_min_Loop {
+struct Calculate_M_Gamma_Delta_U_Min_Loop {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_min_Matrix_Type &delta_U_matrix,
+                    const Delta_U_min_Matrix_Type &delta_U_matrix,
                     std::size_t &total_index,
                     const std::size_t &initial_position) {
 
     std::size_t set_count = static_cast<std::size_t>(0);
 
-    Calculate_M_Gamma_Delta_U_min_Condition<
+    Calculate_M_Gamma_Delta_U_Min_Condition<
         M_Type, Gamma_Type, Delta_U_min_Matrix_Type, I,
         Flags_Type::lists[I][0]>::apply(M, gamma, delta_U_matrix, set_count,
                                         initial_position);
 
     total_index += set_count;
-    Calculate_M_Gamma_Delta_U_min_Loop<Flags_Type, M_Type, Gamma_Type,
+    Calculate_M_Gamma_Delta_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
                                        Delta_U_min_Matrix_Type, (I + 1),
                                        (I_Dif - 1)>::apply(M, gamma,
                                                            delta_U_matrix,
@@ -430,10 +430,10 @@ struct Calculate_M_Gamma_Delta_U_min_Loop {
 
 template <typename Flags_Type, typename M_Type, typename Gamma_Type,
           typename Delta_U_min_Matrix_Type, std::size_t I>
-struct Calculate_M_Gamma_Delta_U_min_Loop<Flags_Type, M_Type, Gamma_Type,
+struct Calculate_M_Gamma_Delta_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
                                           Delta_U_min_Matrix_Type, I, 0> {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_min_Matrix_Type &delta_U_matrix,
+                    const Delta_U_min_Matrix_Type &delta_U_matrix,
                     std::size_t &total_index,
                     const std::size_t &initial_position) {
 
@@ -446,20 +446,20 @@ struct Calculate_M_Gamma_Delta_U_min_Loop<Flags_Type, M_Type, Gamma_Type,
 
 template <typename Flags_Type, typename M_Type, typename Gamma_Type,
           typename Delta_U_min_Matrix_Type, std::size_t Delta_U_Size>
-using Calculate_M_Gamma_Delta_U_min = Calculate_M_Gamma_Delta_U_min_Loop<
+using Calculate_M_Gamma_Delta_U_Min = Calculate_M_Gamma_Delta_U_Min_Loop<
     Flags_Type, M_Type, Gamma_Type, Delta_U_min_Matrix_Type, 0, Delta_U_Size>;
 
 /* calculate M gamma for delta U max  */
 template <typename M_Type, typename Gamma_Type,
           typename Delta_U_max_Matrix_Type, std::size_t I, bool Flag>
-struct Calculate_M_Gamma_Delta_U_max_Condition {};
+struct Calculate_M_Gamma_Delta_U_Max_Condition {};
 
 template <typename M_Type, typename Gamma_Type,
           typename Delta_U_max_Matrix_Type, std::size_t I>
-struct Calculate_M_Gamma_Delta_U_max_Condition<
+struct Calculate_M_Gamma_Delta_U_Max_Condition<
     M_Type, Gamma_Type, Delta_U_max_Matrix_Type, I, true> {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_max_Matrix_Type &delta_U_matrix,
+                    const Delta_U_max_Matrix_Type &delta_U_matrix,
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
@@ -471,10 +471,10 @@ struct Calculate_M_Gamma_Delta_U_max_Condition<
 
 template <typename M_Type, typename Gamma_Type,
           typename Delta_U_max_Matrix_Type, std::size_t I>
-struct Calculate_M_Gamma_Delta_U_max_Condition<
+struct Calculate_M_Gamma_Delta_U_Max_Condition<
     M_Type, Gamma_Type, Delta_U_max_Matrix_Type, I, false> {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_max_Matrix_Type &delta_U_matrix,
+                    const Delta_U_max_Matrix_Type &delta_U_matrix,
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
@@ -489,21 +489,21 @@ struct Calculate_M_Gamma_Delta_U_max_Condition<
 
 template <typename Flags_Type, typename M_Type, typename Gamma_Type,
           typename Delta_U_max_Matrix_Type, std::size_t I, std::size_t I_Dif>
-struct Calculate_M_Gamma_Delta_U_max_Loop {
+struct Calculate_M_Gamma_Delta_U_Max_Loop {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_max_Matrix_Type &delta_U_matrix,
+                    const Delta_U_max_Matrix_Type &delta_U_matrix,
                     std::size_t &total_index,
                     const std::size_t &initial_position) {
 
     std::size_t set_count = static_cast<std::size_t>(0);
 
-    Calculate_M_Gamma_Delta_U_max_Condition<
+    Calculate_M_Gamma_Delta_U_Max_Condition<
         M_Type, Gamma_Type, Delta_U_max_Matrix_Type, I,
         Flags_Type::lists[I][0]>::apply(M, gamma, delta_U_matrix, set_count,
                                         initial_position);
 
     total_index += set_count;
-    Calculate_M_Gamma_Delta_U_max_Loop<Flags_Type, M_Type, Gamma_Type,
+    Calculate_M_Gamma_Delta_U_Max_Loop<Flags_Type, M_Type, Gamma_Type,
                                        Delta_U_max_Matrix_Type, (I + 1),
                                        (I_Dif - 1)>::apply(M, gamma,
                                                            delta_U_matrix,
@@ -514,10 +514,10 @@ struct Calculate_M_Gamma_Delta_U_max_Loop {
 
 template <typename Flags_Type, typename M_Type, typename Gamma_Type,
           typename Delta_U_max_Matrix_Type, std::size_t I>
-struct Calculate_M_Gamma_Delta_U_max_Loop<Flags_Type, M_Type, Gamma_Type,
+struct Calculate_M_Gamma_Delta_U_Max_Loop<Flags_Type, M_Type, Gamma_Type,
                                           Delta_U_max_Matrix_Type, I, 0> {
   static void apply(M_Type &M, Gamma_Type &gamma,
-                    Delta_U_max_Matrix_Type &delta_U_matrix,
+                    const Delta_U_max_Matrix_Type &delta_U_matrix,
                     std::size_t &total_index,
                     const std::size_t &initial_position) {
 
@@ -530,8 +530,96 @@ struct Calculate_M_Gamma_Delta_U_max_Loop<Flags_Type, M_Type, Gamma_Type,
 
 template <typename Flags_Type, typename M_Type, typename Gamma_Type,
           typename Delta_U_max_Matrix_Type, std::size_t Delta_U_Size>
-using Calculate_M_Gamma_Delta_U_max = Calculate_M_Gamma_Delta_U_max_Loop<
+using Calculate_M_Gamma_Delta_U_Max = Calculate_M_Gamma_Delta_U_Max_Loop<
     Flags_Type, M_Type, Gamma_Type, Delta_U_max_Matrix_Type, 0, Delta_U_Size>;
+
+/* calculate M gamma for U min */
+template <typename M_Type, typename Gamma_Type, typename U_min_Matrix_Type,
+          typename U_Type, std::size_t I, bool Flag>
+struct Calculate_M_Gamma_U_Min_Condition {};
+
+template <typename M_Type, typename Gamma_Type, typename U_min_Matrix_Type,
+          typename U_Type, std::size_t I>
+struct Calculate_M_Gamma_U_Min_Condition<M_Type, Gamma_Type, U_min_Matrix_Type,
+                                         U_Type, I, true> {
+  static void apply(M_Type &M, Gamma_Type &gamma,
+                    const U_min_Matrix_Type &U_matrix, const U_Type &U,
+                    std::size_t &set_count,
+                    const std::size_t &initial_position) {
+
+    M.access(initial_position + I, I) =
+        static_cast<typename M_Type::Value_Type>(-1.0);
+    gamma.access(initial_position + I, 0) =
+        -U_matrix.template get<I, 0>() + U.template get<0, I>();
+    set_count += 1;
+  }
+};
+
+template <typename M_Type, typename Gamma_Type, typename U_min_Matrix_Type,
+          typename U_Type, std::size_t I>
+struct Calculate_M_Gamma_U_Min_Condition<M_Type, Gamma_Type, U_min_Matrix_Type,
+                                         U_Type, I, false> {
+  static void apply(M_Type &M, Gamma_Type &gamma,
+                    const U_min_Matrix_Type &U_matrix, const U_Type &U,
+                    std::size_t &set_count,
+                    const std::size_t &initial_position) {
+    // Do Nothing.
+    static_cast<void>(M);
+    static_cast<void>(gamma);
+    static_cast<void>(U_matrix);
+    static_cast<void>(U);
+    static_cast<void>(set_count);
+    static_cast<void>(initial_position);
+  }
+};
+
+template <typename Flags_Type, typename M_Type, typename Gamma_Type,
+          typename U_min_Matrix_Type, typename U_Type, std::size_t I,
+          std::size_t I_Dif>
+struct Calculate_M_Gamma_U_Min_Loop {
+  static void apply(M_Type &M, Gamma_Type &gamma,
+                    const U_min_Matrix_Type &U_matrix, const U_Type &U,
+                    std::size_t &total_index,
+                    const std::size_t &initial_position) {
+
+    std::size_t set_count = static_cast<std::size_t>(0);
+
+    Calculate_M_Gamma_U_Min_Condition<
+        M_Type, Gamma_Type, U_min_Matrix_Type, U_Type, I,
+        Flags_Type::lists[I][0]>::apply(M, gamma, U_matrix, U, set_count,
+                                        initial_position);
+
+    total_index += set_count;
+    Calculate_M_Gamma_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
+                                 U_min_Matrix_Type, U_Type, (I + 1),
+                                 (I_Dif - 1)>::apply(M, gamma, U_matrix, U,
+                                                     total_index,
+                                                     initial_position);
+  }
+};
+
+template <typename Flags_Type, typename M_Type, typename Gamma_Type,
+          typename U_min_Matrix_Type, typename U_Type, std::size_t I>
+struct Calculate_M_Gamma_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
+                                    U_min_Matrix_Type, U_Type, I, 0> {
+  static void apply(M_Type &M, Gamma_Type &gamma, U_min_Matrix_Type &U_matrix,
+                    const U_Type &U, std::size_t &total_index,
+                    const std::size_t &initial_position) {
+    // Do Nothing.
+    static_cast<void>(M);
+    static_cast<void>(gamma);
+    static_cast<void>(U_matrix);
+    static_cast<void>(U);
+    static_cast<void>(total_index);
+    static_cast<void>(initial_position);
+  }
+};
+
+template <typename Flags_Type, typename M_Type, typename Gamma_Type,
+          typename U_min_Matrix_Type, typename U_Type, std::size_t U_Min_Size>
+using Calculate_M_Gamma_U_Min =
+    Calculate_M_Gamma_U_Min_Loop<Flags_Type, M_Type, Gamma_Type,
+                                 U_min_Matrix_Type, U_Type, 0, U_Min_Size>;
 
 } // namespace LTI_MPC_QP_SolverOperation
 
@@ -681,7 +769,7 @@ protected:
     std::size_t initial_position = total_index;
 
     // delta_U_min constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_min<
+    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_Min<
         Limits_Type::Delta_U_Min_Flags, M_Type, Gamma_Type,
         decltype(this->limits.delta_U_min),
         Limits_Type::DELTA_U_MIN_SIZE>::apply(this->M, this->gamma,
@@ -691,7 +779,7 @@ protected:
     initial_position = total_index;
 
     // delta_U_max constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_max<
+    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_Max<
         Limits_Type::Delta_U_Max_Flags, M_Type, Gamma_Type,
         decltype(this->limits.delta_U_max),
         Limits_Type::DELTA_U_MAX_SIZE>::apply(this->M, this->gamma,
@@ -703,17 +791,12 @@ protected:
     std::size_t initial_position = total_index;
 
     // U_min constraints
-    for (std::size_t i = 0; i < Limits_Type::U_MIN_SIZE; ++i) {
-      std::size_t set_count = static_cast<std::size_t>(0);
-
-      if (this->limits.is_U_min_active(i)) {
-        this->M.access(initial_position + i, i) = static_cast<_T>(-1.0);
-        this->gamma.access(initial_position + i, 0) =
-            -this->limits.U_min(i, 0) + U(0, i);
-        set_count += 1;
-      }
-      total_index += set_count;
-    }
+    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Min<
+        Limits_Type::U_Min_Flags, M_Type, Gamma_Type,
+        decltype(this->limits.U_min), U_Type,
+        Limits_Type::U_MIN_SIZE>::apply(this->M, this->gamma,
+                                        this->limits.U_min, U, total_index,
+                                        initial_position);
 
     initial_position = total_index;
 
