@@ -512,8 +512,9 @@ protected:
       std::size_t set_count = static_cast<std::size_t>(0);
 
       if (this->limits.is_delta_U_min_active(i)) {
-        this->M(initial_position + i, i) = static_cast<Value_Type>(-1.0);
-        this->gamma(initial_position + i, 0) = -this->limits.delta_U_min(i, 0);
+        this->M.access(initial_position + i, i) = static_cast<_T>(-1.0);
+        this->gamma.access(initial_position + i, 0) =
+            -this->limits.delta_U_min(i, 0);
         set_count += 1;
       }
       total_index += set_count;
@@ -526,8 +527,9 @@ protected:
       std::size_t set_count = static_cast<std::size_t>(0);
 
       if (this->limits.is_delta_U_max_active(i)) {
-        this->M(initial_position + i, i) = static_cast<Value_Type>(1.0);
-        this->gamma(initial_position + i, 0) = this->limits.delta_U_max(i, 0);
+        this->M.access(initial_position + i, i) = static_cast<_T>(1.0);
+        this->gamma.access(initial_position + i, 0) =
+            this->limits.delta_U_max(i, 0);
         set_count += 1;
       }
       total_index += set_count;
