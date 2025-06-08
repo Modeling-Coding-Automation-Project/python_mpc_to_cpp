@@ -391,6 +391,13 @@ class LinearMPC_Deploy:
                 if i < len(delta_U_min) - 1:
                     code_text += ",\n"
             code_text += ">;\n\n"
+
+            code_text += f"  auto delta_U_min = make_SparseMatrix<Delta_U_Min_Type, {type_name}>(\n"
+            for i in range(len(delta_U_min)):
+                code_text += f"    static_cast<{type_name}>({delta_U_min[i, 0]})"
+                if i < len(delta_U_min) - 1:
+                    code_text += ",\n"
+            code_text += ");\n\n"
         else:
             code_text += f"  using Delta_U_Min_Type = SparseAvailableEmpty<INPUT_SIZE, 1>\n\n"
 
