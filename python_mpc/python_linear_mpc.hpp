@@ -328,10 +328,12 @@ protected:
 
   using _U_Horizon_Type = typename _LTI_MPC_NoConstraints_Type::U_Horizon_Type;
 
+  using _X_Augmented_Type =
+      typename _LTI_MPC_NoConstraints_Type::X_Augmented_Type;
+
   using _Solver_Type = LTI_MPC_QP_Solver_Type<
       _U_Horizon_Type::COLS, _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE,
-      typename _LTI_MPC_NoConstraints_Type::U_Type,
-      typename _LTI_MPC_NoConstraints_Type::X_Augmented_Type,
+      typename _LTI_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
       typename PredictionMatrices_Type::Phi_Type,
       typename PredictionMatrices_Type::F_Type, Weight_U_Nc_Type,
       Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
@@ -399,6 +401,23 @@ public:
       this->_solver = std::move(other._solver);
     }
     return *this;
+  }
+
+public:
+  /* Function */
+  template <typename ReferenceTrajectory_Type>
+  inline auto solve(const ReferenceTrajectory_Type &reference_trajectory,
+                    const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type {
+
+    this->_solver.update_constraints(this->_U_latest, X_augmented,
+                                     this->_prediction_matrices.Phi,
+                                     this->_prediction_matrices.F);
+
+    auto delta_U = this->_solver.solve(this->_prediction_matrices.Phi,
+                                       this->_prediction_matrices.F,
+                                       reference_trajectory, X_augmented);
+
+    return delta_U;
   }
 
 protected:

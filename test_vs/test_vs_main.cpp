@@ -661,6 +661,32 @@ void check_LTI_MPC(void) {
         delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max,
         solver_factor);
 
+    LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
+        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(delta_U_min),
+        decltype(delta_U_max),
+        decltype(U_min), decltype(U_max),
+        decltype(Y_min), decltype(Y_max),
+        decltype(solver_factor)
+    > lti_mpc_copy(lti_mpc);
+
+    LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
+        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(delta_U_min),
+        decltype(delta_U_max),
+        decltype(U_min), decltype(U_max),
+        decltype(Y_min), decltype(Y_max),
+        decltype(solver_factor)
+    > lti_mpc_move = lti_mpc_copy;
+
+    lti_mpc = std::move(lti_mpc_move);
+
+    /* 計算 */
+    auto Y = make_StateSpaceOutput<OUTPUT_SIZE>(static_cast<T>(0.0), static_cast<T>(0.0));
+
+    auto U = lti_mpc.update(ref, Y);
+
+
 
 
     tester.throw_error_if_test_failed();
