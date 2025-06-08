@@ -321,6 +321,8 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_delta_U_min = delta_U_min")
         delta_U_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_min, caller_file_name_without_ext)")
+
+        deployed_file_names.append(delta_U_min_file_name)
         delta_U_min_file_name_no_extension = delta_U_min_file_name .split(".")[
             0]
 
@@ -330,6 +332,8 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_delta_U_max = delta_U_max")
         delta_U_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_max, caller_file_name_without_ext)")
+
+        deployed_file_names.append(delta_U_max_file_name)
         delta_U_max_file_name_no_extension = delta_U_max_file_name .split(".")[
             0]
 
@@ -338,6 +342,8 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_U_min = U_min")
         U_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_min, caller_file_name_without_ext)")
+
+        deployed_file_names.append(U_min_file_name)
         U_min_file_name_no_extension = U_min_file_name .split(".")[0]
 
         U_max = copy.deepcopy(U_max_active_set)
@@ -345,6 +351,8 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_U_max = U_max")
         U_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_max, caller_file_name_without_ext)")
+
+        deployed_file_names.append(U_max_file_name)
         U_max_file_name_no_extension = U_max_file_name .split(".")[0]
 
         Y_min = copy.deepcopy(Y_min_active_set)
@@ -352,6 +360,8 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_Y_min = Y_min")
         Y_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_min, caller_file_name_without_ext)")
+
+        deployed_file_names.append(Y_min_file_name)
         Y_min_file_name_no_extension = Y_min_file_name .split(".")[0]
 
         Y_max = copy.deepcopy(Y_max_active_set)
@@ -359,6 +369,8 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_Y_max = Y_max")
         Y_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_max, caller_file_name_without_ext)")
+
+        deployed_file_names.append(Y_max_file_name)
         Y_max_file_name_no_extension = Y_max_file_name .split(".")[0]
 
         # create cpp code
