@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\external_libraries\python_numpy_to_cpp\base_matrix;..\external_libraries\python_numpy_to_cpp\python_numpy;..\external_libraries\python_math_to_cpp\python_math;..\external_libraries\python_math_to_cpp\base_math;..\external_libraries\base_utility_cpp\base_utility;..\external_libraries\python_control_to_cpp\python_control;..\mpc_utility;..\python_mpc;.\MCAP_tester\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\external_libraries\python_numpy_to_cpp\base_matrix;..\external_libraries\python_numpy_to_cpp\python_numpy;..\external_libraries\python_math_to_cpp\python_math;..\external_libraries\python_math_to_cpp\base_math;..\external_libraries\base_utility_cpp\base_utility;..\external_libraries\python_control_to_cpp\python_control;..\external_libraries\python_optimization_to_cpp\python_optimization;..\mpc_utility;..\python_mpc;.\MCAP_tester\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -132,11 +132,13 @@
     <ClCompile Include="test_vs_main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\mpc_utility\mpc_linear_solver_utility.hpp" />
     <ClInclude Include="..\mpc_utility\mpc_state_space_utility.hpp" />
     <ClInclude Include="..\mpc_utility\mpc_utility.hpp" />
     <ClInclude Include="..\python_mpc\python_linear_mpc.hpp" />
     <ClInclude Include="..\python_mpc\python_mpc.hpp" />
     <ClInclude Include="MCAP_tester\include\MCAP_tester.hpp" />
+    <ClInclude Include="test_mpc_servo_motor_data.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

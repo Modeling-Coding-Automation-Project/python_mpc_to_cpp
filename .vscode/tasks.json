@@ -13,6 +13,7 @@
         "-I${workspaceFolder}",
         "-I${workspaceFolder}/mpc_utility",
         "-I${workspaceFolder}/python_mpc",
+        "-I${workspaceFolder}/external_libraries/python_optimization_to_cpp/python_optimization",
         "-I${workspaceFolder}/external_libraries/python_control_to_cpp/python_control",
         "-I${workspaceFolder}/external_libraries/python_numpy_to_cpp/python_numpy",
         "-I${workspaceFolder}/external_libraries/python_numpy_to_cpp/base_matrix",

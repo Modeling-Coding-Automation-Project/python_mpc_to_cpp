@@ -33,6 +33,7 @@ class CmakeGenerator:
         code_text += f"target_include_directories({SIL_lib_file_name} PRIVATE\n"
         code_text += "    ${CMAKE_SOURCE_DIR}/../../mpc_utility\n"
         code_text += "    ${CMAKE_SOURCE_DIR}/../../python_mpc\n"
+        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_optimization_to_cpp/python_optimization\n"
         code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_control_to_cpp/python_control\n"
         code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_numpy_to_cpp/python_numpy\n"
         code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_numpy_to_cpp/base_matrix\n"

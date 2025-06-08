@@ -16,3 +16,6 @@
 [submodule "test_vs/MCAP_tester"]
 	path = test_vs/MCAP_tester
 	url = https://github.com/Modeling-Coding-Automation-Project/MCAP_tester.git
+[submodule "external_libraries/python_optimization_to_cpp"]
+	path = external_libraries/python_optimization_to_cpp
+	url = https://github.com/Modeling-Coding-Automation-Project/python_optimization_to_cpp.git
