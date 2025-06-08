@@ -434,9 +434,7 @@ void check_LTI_MPC_QP_Solver(void) {
 
     using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE * Nc>;
 
-    Weight_U_Nc_Type weight_U_Nc = make_DiagMatrix<INPUT_SIZE * Nc>(
-        static_cast<T>(1.0), static_cast<T>(1.0)
-    );
+    Weight_U_Nc_Type weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE * Nc>();
 
     auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
         static_cast<T>(-101));
@@ -526,7 +524,29 @@ void check_LTI_MPC_QP_Solver(void) {
         static_cast<T>(1), static_cast<T>(0));
     MPC_ReferenceTrajectory<decltype(ref_vector), Np> reference_trajectory(ref_vector);
 
-    auto delta_U = lti_mpc_qp_solver.solve(Phi, F, reference_trajectory, X_augmented);
+    auto Y_min_Empty = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
+    auto Y_max_Empty = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
+
+    weight_U_Nc = make_DiagMatrix<INPUT_SIZE* Nc>(
+        static_cast<T>(0.001), static_cast<T>(0.001)
+    );
+
+    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+        U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
+        Delta_U_min_Type, Delta_U_max_Type,
+        U_min_Type, U_max_Type,
+        decltype(Y_min_Empty), decltype(Y_max_Empty)> qp_solver =
+        make_LTI_MPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
+            U, X_augmented, Phi, F, weight_U_Nc,
+            delta_U_min, delta_U_max, U_min, U_max, Y_min_Empty, Y_max_Empty);
+
+    auto delta_U = qp_solver.solve(Phi, F, reference_trajectory, X_augmented);
+
+    auto delta_U_answer = make_DenseMatrix<NUMBER_OF_VARIABLES, 1>(
+        static_cast<T>(23.53521535), static_cast<T>(19.90670428));
+
+    tester.expect_near(delta_U.matrix.data, delta_U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTI MPC QP Solver, solve, delta U.");
 
 
     tester.throw_error_if_test_failed();
