@@ -401,7 +401,7 @@ void check_LTI_MPC_QP_Solver(void) {
 
     MCAPTester<T> tester;
 
-    //constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
@@ -470,6 +470,38 @@ void check_LTI_MPC_QP_Solver(void) {
             delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max);
 
 
+    auto M_answer = make_DenseMatrix<
+        decltype(lti_mpc_qp_solver)::NUMBER_OF_ALL_CONSTRAINTS,
+        NUMBER_OF_VARIABLES>(
+            static_cast<T>(-1.0), static_cast<T>(0.0),
+            static_cast<T>(1.0), static_cast<T>(0.0),
+            static_cast<T>(-1.0), static_cast<T>(0.0),
+            static_cast<T>(1.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0),
+            static_cast<T>(0.0), static_cast<T>(0.0)
+        );
+
+    tester.expect_near(lti_mpc_qp_solver.M.matrix.data,
+        M_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTI MPC QP Solver, M matrix.");
+
+    auto gamma_answer = make_DenseMatrix<
+        decltype(lti_mpc_qp_solver)::NUMBER_OF_ALL_CONSTRAINTS, 1>(
+            static_cast<T>(101.0),
+            static_cast<T>(102.0),
+            static_cast<T>(181.0),
+            static_cast<T>(182.0),
+            static_cast<T>(0.0),
+            static_cast<T>(0.0),
+            static_cast<T>(0.0),
+            static_cast<T>(0.0)
+        );
+
+    tester.expect_near(lti_mpc_qp_solver.gamma.matrix.data,
+        gamma_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTI MPC QP Solver, gamma vector.");
 
 
     tester.throw_error_if_test_failed();
