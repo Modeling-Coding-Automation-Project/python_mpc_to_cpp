@@ -1129,6 +1129,35 @@ public:
     return this->_Y_constraints_prediction_offset;
   }
 
+  template <typename ReferenceTrajectoryType>
+  inline auto solve(const Phi_Type &Phi, const F_Type &F,
+                    const ReferenceTrajectoryType &reference_trajectory,
+                    const X_augmented_Type &X_augmented) -> U_Type {
+
+    auto L = PythonNumpy::ATranspose_mul_B(
+        Phi, reference_trajectory.calculate_dif(F * X_augmented));
+
+    auto x_opt = this->_solver.solve(L, this->M, this->gamma);
+
+    return x_opt;
+  }
+
+  template <typename ReferenceTrajectoryType>
+  inline auto solve(const Phi_Type &Phi, const F_Type &F,
+                    const ReferenceTrajectoryType &reference_trajectory,
+                    const X_augmented_Type &X_augmented,
+                    const Weight_U_Nc_Type &Weight_U_Nc) -> U_Type {
+
+    auto L = PythonNumpy::ATranspose_mul_B(
+        Phi, reference_trajectory.calculate_dif(F * X_augmented));
+
+    this->update_E(Phi, Weight_U_Nc);
+
+    auto x_opt = this->_solver.solve(L, this->M, this->gamma);
+
+    return x_opt;
+  }
+
 protected:
   /* Function */
   inline void _calculate_M_gamma_delta_U(std::size_t &total_index) {
