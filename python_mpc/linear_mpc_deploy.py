@@ -466,8 +466,6 @@ class LinearMPC_Deploy:
 
         code_text += f"  auto solver_factor = {solver_factor_file_name_no_extension}::make();\n\n"
 
-        code_text += f"  auto Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
-
         code_text += f"  auto weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
         # limits
