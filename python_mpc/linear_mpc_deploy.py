@@ -151,7 +151,7 @@ class LinearMPC_Deploy:
             "  LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
             "  SolverFactor_Type>;\n\n"
 
-        code_text += "auto make() -> type {\n\n"
+        code_text += "inline auto make() -> type {\n\n"
 
         code_text += f"  auto kalman_filter = {lkf_file_name_no_extension}::make();\n\n"
 
@@ -456,7 +456,7 @@ class LinearMPC_Deploy:
             "  U_Min_Type, U_Max_Type, Y_Min_Type, Y_Max_Type,\n" + \
             "  SolverFactor_Type>;\n\n"
 
-        code_text += "auto make() -> type {\n\n"
+        code_text += "inline auto make() -> type {\n\n"
 
         code_text += f"  auto kalman_filter = {lkf_file_name_no_extension}::make();\n\n"
 
@@ -467,8 +467,6 @@ class LinearMPC_Deploy:
         code_text += f"  auto solver_factor = {solver_factor_file_name_no_extension}::make();\n\n"
 
         code_text += f"  auto Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
-
-        code_text += f"  auto weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
         # limits
         code_text += f"  auto delta_U_min = {delta_U_min_file_name_no_extension}::make();\n\n"
