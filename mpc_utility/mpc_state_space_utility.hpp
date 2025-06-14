@@ -1,3 +1,14 @@
+/**
+ * @file mpc_state_space_utility.hpp
+ * @brief Utility classes and functions for Model Predictive Control (MPC)
+ * state-space prediction and reference trajectory operations.
+ *
+ * This header provides a set of template classes and utility functions to
+ * support the construction and manipulation of prediction matrices and
+ * reference trajectories for Model Predictive Control (MPC) applications. The
+ * utilities are designed to be generic and type-safe, supporting compile-time
+ * checks for matrix dimensions and value types.
+ */
 #ifndef __MPC_STATE_SPACE_UTILITY_HPP__
 #define __MPC_STATE_SPACE_UTILITY_HPP__
 
@@ -10,6 +21,23 @@
 namespace PythonMPC {
 
 /* MPC Prediction Matrices */
+
+/**
+ * @brief Class template for MPC Prediction Matrices.
+ *
+ * This class template encapsulates the prediction matrices used in Model
+ * Predictive Control (MPC) for state-space systems. It includes the system
+ * dynamics matrix F and the prediction matrix Phi, which are essential for
+ * predicting future states and outputs based on current inputs and states.
+ *
+ * @tparam F_Type_In Type of the system dynamics matrix F.
+ * @tparam Phi_Type_In Type of the prediction matrix Phi.
+ * @tparam Np Number of prediction steps.
+ * @tparam Nc Number of control steps.
+ * @tparam Number_Of_Input Number of inputs to the system.
+ * @tparam Number_Of_State Number of states in the system.
+ * @tparam Number_Of_Output Number of outputs from the system.
+ */
 template <typename F_Type_In, typename Phi_Type_In, std::size_t Np,
           std::size_t Nc, std::size_t Number_Of_Input,
           std::size_t Number_Of_State, std::size_t Number_Of_Output>
@@ -98,6 +126,23 @@ public:
 };
 
 /* make MPC Prediction Matrices */
+
+/**
+ * @brief Factory function to create an instance of MPC_PredictionMatrices.
+ *
+ * This function initializes and returns an instance of MPC_PredictionMatrices
+ * with the provided template parameters.
+ *
+ * @tparam F_Type Type of the system dynamics matrix F.
+ * @tparam Phi_Type Type of the prediction matrix Phi.
+ * @tparam Np Number of prediction steps.
+ * @tparam Nc Number of control steps.
+ * @tparam Number_Of_Input Number of inputs to the system.
+ * @tparam Number_Of_State Number of states in the system.
+ * @tparam Number_Of_Output Number of outputs from the system.
+ * @return An instance of MPC_PredictionMatrices initialized with default
+ * values.
+ */
 template <typename F_Type, typename Phi_Type, std::size_t Np, std::size_t Nc,
           std::size_t Number_Of_Input, std::size_t Number_Of_State,
           std::size_t Number_Of_Output>
@@ -119,6 +164,28 @@ using MPC_PredictionMatrices_Type =
 
 namespace MPC_ReferenceTrajectoryOperation {
 
+/**
+ * @brief Calculates the difference between a reference value and a predicted
+ * value for a specific index, and stores the result in the provided difference
+ * container.
+ *
+ * This function is enabled only when ROWS > 1, and asserts at compile time that
+ * ROWS == Np. It computes the difference between the reference value at
+ * position (J, I) and the predicted value at the corresponding flattened index,
+ * then sets this value in the 'dif' container.
+ *
+ * @tparam ROWS Number of rows in the reference and prediction matrices (must be
+ * > 1).
+ * @tparam Np Prediction horizon length (must be equal to ROWS).
+ * @tparam I Row index for the operation.
+ * @tparam J Column index for the operation.
+ * @tparam Ref_Type Type of the reference matrix.
+ * @tparam Fx_Type Type of the predicted matrix.
+ * @tparam Dif_Type Type of the difference container.
+ * @param ref Reference matrix.
+ * @param Fx Predicted matrix.
+ * @param dif Container to store the computed difference.
+ */
 template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
           typename Ref_Type, typename Fx_Type, typename Dif_Type>
 inline typename std::enable_if<(ROWS > 1), void>::type
@@ -130,6 +197,26 @@ calculate_each_dif(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
       Fx.template get<(I * Ref_Type::COLS) + J, 0>());
 }
 
+/**
+ * @brief Calculates the difference between a reference value and a predicted
+ * value for a specific index, and stores the result in the provided difference
+ * container.
+ *
+ * This function is enabled only when ROWS == 1. It computes the difference
+ * between the reference value at position (J, 0) and the predicted value at the
+ * corresponding flattened index, then sets this value in the 'dif' container.
+ *
+ * @tparam ROWS Number of rows in the reference matrix (must be equal to 1).
+ * @tparam Np Prediction horizon length (must be equal to 1).
+ * @tparam I Row index for the operation.
+ * @tparam J Column index for the operation.
+ * @tparam Ref_Type Type of the reference matrix.
+ * @tparam Fx_Type Type of the predicted matrix.
+ * @tparam Dif_Type Type of the difference container.
+ * @param ref Reference matrix.
+ * @param Fx Predicted matrix.
+ * @param dif Container to store the computed difference.
+ */
 template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
           typename Ref_Type, typename Fx_Type, typename Dif_Type>
 inline typename std::enable_if<(ROWS == 1), void>::type
@@ -145,6 +232,24 @@ calculate_each_dif(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
 template <typename Ref_Type, typename Fx_Type, typename Dif_Type,
           std::size_t Np, std::size_t I, std::size_t J_idx>
 struct DifColumn {
+  /**
+   * @brief Calculates the difference for a specific column index and calls the
+   * next column recursively.
+   *
+   * This function calculates the difference for the specified column index
+   * J_idx and then recursively calls itself to calculate differences for the
+   * next column index (J_idx - 1).
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Fx_Type Type of the predicted matrix.
+   * @tparam Dif_Type Type of the difference container.
+   * @tparam Np Prediction horizon length.
+   * @tparam I Row index for the operation.
+   * @tparam J_idx Current column index for the operation.
+   * @param ref Reference matrix.
+   * @param Fx Predicted matrix.
+   * @param dif Container to store the computed differences.
+   */
   static void calculate(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
 
     calculate_each_dif<Ref_Type::ROWS, Np, I, J_idx>(ref, Fx, dif);
@@ -158,6 +263,20 @@ struct DifColumn {
 template <typename Ref_Type, typename Fx_Type, typename Dif_Type,
           std::size_t Np, std::size_t I>
 struct DifColumn<Ref_Type, Fx_Type, Dif_Type, Np, I, 0> {
+  /**
+   * @brief Calculates the difference for the first column index (0).
+   *
+   * This function calculates the difference for the first column index (0) and
+   * does not call itself recursively.
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Fx_Type Type of the predicted matrix.
+   * @tparam Dif_Type Type of the difference container.
+   * @tparam Np Prediction horizon length.
+   * @param ref Reference matrix.
+   * @param Fx Predicted matrix.
+   * @param dif Container to store the computed differences.
+   */
   static void calculate(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
 
     calculate_each_dif<Ref_Type::ROWS, Np, I, 0>(ref, Fx, dif);
@@ -168,6 +287,25 @@ struct DifColumn<Ref_Type, Fx_Type, Dif_Type, Np, I, 0> {
 template <typename Ref_Type, typename Fx_Type, typename Dif_Type,
           std::size_t Np, std::size_t M, std::size_t N, std::size_t I_idx>
 struct DifRow {
+  /**
+   * @brief Calculates the difference for a specific row index and calls the
+   * next row recursively.
+   *
+   * This function calculates the difference for the specified row index I_idx
+   * and then recursively calls itself to calculate differences for the next row
+   * index (I_idx - 1).
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Fx_Type Type of the predicted matrix.
+   * @tparam Dif_Type Type of the difference container.
+   * @tparam Np Prediction horizon length.
+   * @tparam M Number of rows in the reference matrix.
+   * @tparam N Number of columns in the reference matrix.
+   * @tparam I_idx Current row index for the operation.
+   * @param ref Reference matrix.
+   * @param Fx Predicted matrix.
+   * @param dif Container to store the computed differences.
+   */
   static void calculate(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
     DifColumn<Ref_Type, Fx_Type, Dif_Type, Np, I_idx, N - 1>::calculate(ref, Fx,
                                                                         dif);
@@ -180,12 +318,44 @@ struct DifRow {
 template <typename Ref_Type, typename Fx_Type, typename Dif_Type,
           std::size_t Np, std::size_t M, std::size_t N>
 struct DifRow<Ref_Type, Fx_Type, Dif_Type, Np, M, N, 0> {
+  /**
+   * @brief Calculates the difference for the first row index (0).
+   *
+   * This function calculates the difference for the first row index (0) and
+   * does not call itself recursively.
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Fx_Type Type of the predicted matrix.
+   * @tparam Dif_Type Type of the difference container.
+   * @tparam Np Prediction horizon length.
+   * @param ref Reference matrix.
+   * @param Fx Predicted matrix.
+   * @param dif Container to store the computed differences.
+   */
   static void calculate(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
     DifColumn<Ref_Type, Fx_Type, Dif_Type, Np, 0, N - 1>::calculate(ref, Fx,
                                                                     dif);
   }
 };
 
+/**
+ * @brief Calculates the difference between a reference trajectory and a
+ * predicted trajectory.
+ *
+ * This function computes the difference for each element in the reference
+ * trajectory and the predicted trajectory, storing the results in the provided
+ * difference container. It uses the DifRow class to handle the row-wise
+ * calculations.
+ *
+ * @tparam Np Number of prediction steps.
+ * @tparam Number_Of_Output Number of outputs in the reference trajectory.
+ * @tparam Ref_Type Type of the reference matrix.
+ * @tparam Fx_Type Type of the predicted matrix.
+ * @tparam Dif_Type Type of the difference container.
+ * @param ref Reference matrix.
+ * @param Fx Predicted matrix.
+ * @param dif Container to store the computed differences.
+ */
 template <std::size_t Np, std::size_t Number_Of_Output, typename Ref_Type,
           typename Fx_Type, typename Dif_Type>
 inline void calculate_dif(const Ref_Type &ref, const Fx_Type &Fx,
@@ -246,6 +416,25 @@ public:
 
 public:
   /* Function */
+
+  /**
+   * @brief Calculates the difference (dif) between the reference trajectory and
+   * the provided function Fx.
+   *
+   * This function computes the difference using the static method
+   * MPC_ReferenceTrajectoryOperation::calculate_dif, which compares the current
+   * reference trajectory with the given Fx object and stores the result in a
+   * Dif_Type object.
+   *
+   * @tparam Fx_Type The type of the function or object to compare against the
+   * reference trajectory. Must have a nested type Value_Type equal to _T.
+   * @param Fx The function or object to compare with the reference trajectory.
+   * @return Dif_Type The computed difference between the reference trajectory
+   * and Fx.
+   *
+   * @note A static assertion ensures that Fx_Type::Value_Type matches the
+   * expected Value_Type (_T).
+   */
   template <typename Fx_Type>
   inline auto calculate_dif(const Fx_Type &Fx) -> Dif_Type {
 
@@ -271,6 +460,18 @@ public:
 };
 
 /* make MPC Reference Trajectory */
+
+/**
+ * @brief Factory function to create an instance of MPC_ReferenceTrajectory.
+ *
+ * This function initializes and returns an instance of MPC_ReferenceTrajectory
+ * with the provided template parameters.
+ *
+ * @tparam Ref_Type Type of the reference matrix.
+ * @tparam Np Number of prediction steps.
+ * @return An instance of MPC_ReferenceTrajectory initialized with default
+ * values.
+ */
 template <typename Ref_Type, std::size_t Np>
 inline auto make_MPC_ReferenceTrajectory(void)
     -> MPC_ReferenceTrajectory<Ref_Type, Np> {
