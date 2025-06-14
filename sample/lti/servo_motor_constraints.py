@@ -1,5 +1,7 @@
 """
-DC Servo Motor control with MPC
+File: servo_motor_constraints.py
+
+This script demonstrates the setup, simulation, and deployment of a constrained Linear Time-Invariant Model Predictive Controller (LTI-MPC) for a servo motor system. The code constructs a discrete-time state-space model of the plant, defines MPC weights and constraints, generates deployable C++ code for the controller, and simulates the closed-loop response of the system under the designed MPC. The simulation results, including reference tracking, control input, and state trajectories, are visualized using a plotting utility.
 
 References:
 A. Bemporad and E. Mosca, "Fulfilling hard constraints in uncertain linear systems

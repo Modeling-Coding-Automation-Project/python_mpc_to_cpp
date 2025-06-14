@@ -1,3 +1,14 @@
+/**
+ * @file servo_motor_constraints.cpp
+ * @brief Example of discrete-time state-space simulation and MPC control for a
+ * servo motor system with constraints.
+ *
+ * This file demonstrates how to set up and simulate a discrete-time state-space
+ * model of a servo motor, and apply a Model Predictive Controller (MPC) with
+ * constraints. The code initializes the system matrices, constructs the
+ * state-space system, and runs a closed-loop simulation where the MPC computes
+ * the control input at each time step to track a reference signal.
+ */
 #include <iostream>
 
 /* CAUTION */
