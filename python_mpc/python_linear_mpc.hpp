@@ -1,3 +1,15 @@
+/**
+ * @file python_linear_mpc.hpp
+ * @brief Linear Model Predictive Control (MPC) implementation for Python/C++
+ * integration.
+ *
+ * This header provides a set of template classes and utilities for implementing
+ * Linear Model Predictive Control (MPC) algorithms, with and without
+ * constraints, in C++. The code is designed to be flexible and extensible,
+ * supporting various types of Kalman filters, prediction matrices, and solver
+ * factors, and is intended for use in projects that bridge Python and C++ for
+ * control system applications.
+ */
 #ifndef __PYTHON_LINEAR_MPC_HPP__
 #define __PYTHON_LINEAR_MPC_HPP__
 
@@ -15,6 +27,20 @@ class SolverFactor_Empty {};
 
 namespace LMPC_Operation {
 
+/**
+ * @brief Compensates the delay in the state and output vectors for the
+ * Linear Model Predictive Control (LMPC) operation.
+ *
+ * This function adjusts the state and output vectors to account for delays
+ * in the system, ensuring that the control inputs are correctly aligned with
+ * the measured outputs.
+ *
+ * @tparam Number_Of_Delay The number of delays to compensate for.
+ * @tparam X_Type Type of the state vector.
+ * @tparam Y_Type Type of the output vector.
+ * @tparam Y_Store_Type Type of the delayed output storage.
+ * @tparam LKF_Type Type of the Kalman filter used in LMPC.
+ */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename LKF_Type>
 inline typename std::enable_if<(Number_Of_Delay > 0), void>::type
@@ -35,6 +61,20 @@ compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
   Y_out = Y + Y_diff;
 }
 
+/**
+ * @brief Specialization of the compensate_X_Y_delay function for the case
+ * where there are no delays.
+ *
+ * This specialization simply copies the input state and output vectors to
+ * the output vectors without any delay compensation.
+ *
+ * @tparam Number_Of_Delay The number of delays (should be 0 for this
+ * specialization).
+ * @tparam X_Type Type of the state vector.
+ * @tparam Y_Type Type of the output vector.
+ * @tparam Y_Store_Type Type of the delayed output storage (not used here).
+ * @tparam LKF_Type Type of the Kalman filter (not used here).
+ */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename LKF_Type>
 inline typename std::enable_if<(Number_Of_Delay == 0), void>::type
@@ -51,6 +91,15 @@ compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
 
 template <typename U_Type, typename U_Horizon_Type, std::size_t Index>
 struct Integrate_U {
+  /**
+   * @brief Recursively integrates the control input over the horizon.
+   *
+   * This function updates the control input U by adding the corresponding
+   * delta_U_Horizon value for the given index.
+   *
+   * @param U The current control input to be updated.
+   * @param delta_U_Horizon The delta control input for the horizon.
+   */
   static void calculate(U_Type &U, const U_Horizon_Type &delta_U_Horizon) {
 
     U.template set<Index, 0>(U.template get<Index, 0>() +
@@ -62,6 +111,15 @@ struct Integrate_U {
 
 template <typename U_Type, typename U_Horizon_Type>
 struct Integrate_U<U_Type, U_Horizon_Type, 0> {
+  /**
+   * @brief Base case for the recursive integration of control input.
+   *
+   * This function updates the first element of the control input U by adding
+   * the corresponding delta_U_Horizon value.
+   *
+   * @param U The current control input to be updated.
+   * @param delta_U_Horizon The delta control input for the horizon.
+   */
   static void calculate(U_Type &U, const U_Horizon_Type &delta_U_Horizon) {
 
     U.template set<0, 0>(U.template get<0, 0>() +
@@ -71,6 +129,21 @@ struct Integrate_U<U_Type, U_Horizon_Type, 0> {
 
 } // namespace LMPC_Operation
 
+/**
+ * @brief Linear Model Predictive Control (MPC) class without constraints.
+ *
+ * This class implements a basic linear MPC algorithm that does not enforce
+ * constraints on the control inputs or outputs. It uses a Kalman filter for
+ * state estimation and prediction matrices for system dynamics.
+ *
+ * @tparam LKF_Type_In Type of the Kalman filter used in the MPC.
+ * @tparam PredictionMatrices_Type_In Type of the prediction matrices used in
+ * the MPC.
+ * @tparam ReferenceTrajectory_Type_In Type of the reference trajectory used in
+ * the MPC.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in the MPC (can
+ * be empty).
+ */
 template <typename LKF_Type_In, typename PredictionMatrices_Type_In,
           typename ReferenceTrajectory_Type_In,
           typename SolverFactor_Type_In = SolverFactor_Empty>
@@ -210,6 +283,16 @@ public:
 
 public:
   /* Function */
+
+  /**
+   * @brief Sets the reference trajectory for the MPC.
+   *
+   * This function updates the reference trajectory used by the MPC to
+   * calculate control inputs based on the provided reference vector.
+   *
+   * @tparam Ref_Type Type of the reference vector.
+   * @param ref The reference vector to be set.
+   */
   template <typename Ref_Type>
   inline void set_reference_trajectory(const Ref_Type &ref) {
 
@@ -219,6 +302,19 @@ public:
     this->_reference_trajectory.reference_vector = ref;
   }
 
+  /**
+   * @brief Updates the control input based on the current state and reference.
+   *
+   * This function performs a prediction step using the Kalman filter,
+   * compensates for delays in the state and output vectors, and calculates the
+   * new control input based on the reference trajectory and the current state.
+   *
+   * @tparam Ref_Type Type of the reference vector.
+   * @param reference The reference vector to be used for updating control
+   * input.
+   * @param Y The measured output vector.
+   * @return The updated control input vector.
+   */
   template <typename Ref_Type>
   inline auto update(const Ref_Type &reference, const Y_Type &Y) -> U_Type {
 
@@ -249,6 +345,19 @@ public:
 
 protected:
   /* Function */
+
+  /**
+   * @brief Compensates for delays in the state and output vectors.
+   *
+   * This function adjusts the state and output vectors to account for delays
+   * in the system, ensuring that the control inputs are correctly aligned with
+   * the measured outputs.
+   *
+   * @param X_in The input state vector.
+   * @param Y_in The input output vector.
+   * @param X_out The compensated output state vector.
+   * @param Y_out The compensated output vector.
+   */
   inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
                                     X_Type &X_out, Y_Type &Y_out) {
 
@@ -256,6 +365,16 @@ protected:
         X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
   }
 
+  /**
+   * @brief Solves the MPC optimization problem to calculate the control input.
+   *
+   * This function computes the change in control input (delta_U) based on the
+   * augmented state vector (X_augmented) and the reference trajectory.
+   *
+   * @param X_augmented The augmented state vector containing the current state
+   * and output.
+   * @return The calculated change in control input (delta_U).
+   */
   virtual inline auto _solve(const X_Augmented_Type &X_augmented)
       -> U_Horizon_Type {
 
@@ -266,6 +385,16 @@ protected:
     return delta_U;
   }
 
+  /**
+   * @brief Calculates the new control input based on the latest control input
+   * and the change in control input (delta_U).
+   *
+   * This function updates the control input by adding the change in control
+   * input to the latest control input.
+   *
+   * @param delta_U The change in control input to be applied.
+   * @return The updated control input.
+   */
   inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
 
     auto U = this->_U_latest + delta_U;
@@ -287,6 +416,24 @@ protected:
 };
 
 /* make LTI MPC No Constraints */
+
+/**
+ * @brief Factory function to create an instance of LTI_MPC_NoConstraints.
+ *
+ * This function initializes the LTI_MPC_NoConstraints class with the provided
+ * Kalman filter, prediction matrices, reference trajectory, and solver factor.
+ *
+ * @tparam LKF_Type Type of the Kalman filter.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam SolverFactor_Type Type of the solver factor (optional).
+ * @param kalman_filter The Kalman filter to be used in the MPC.
+ * @param prediction_matrices The prediction matrices for the MPC.
+ * @param reference_trajectory The reference trajectory for the MPC.
+ * @param solver_factor The solver factor for the MPC (optional).
+ * @return An instance of LTI_MPC_NoConstraints initialized with the provided
+ * parameters.
+ */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename SolverFactor_Type>
 inline auto
@@ -311,6 +458,30 @@ using LTI_MPC_NoConstraints_Type =
                           ReferenceTrajectory_Type, SolverFactor_Type>;
 
 /* LTI MPC */
+
+/**
+ * @brief Linear Model Predictive Control (MPC) class with constraints.
+ *
+ * This class extends the LTI_MPC_NoConstraints class to include constraints on
+ * the control inputs and outputs, using a quadratic programming solver to
+ * compute the optimal control inputs while respecting these constraints.
+ *
+ * @tparam LKF_Type Type of the Kalman filter used in the MPC.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices used in the
+ * MPC.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory used in
+ * the MPC.
+ * @tparam Weight_U_Nc_Type Type for the weight matrix for control input
+ * changes.
+ * @tparam Delta_U_Min_Type Type for the minimum change in control input.
+ * @tparam Delta_U_Max_Type Type for the maximum change in control input.
+ * @tparam U_Min_Type Type for the minimum control input.
+ * @tparam U_Max_Type Type for the maximum control input.
+ * @tparam Y_Min_Type Type for the minimum output constraint.
+ * @tparam Y_Max_Type Type for the maximum output constraint.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in the MPC (can
+ * be empty).
+ */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Weight_U_Nc_Type,
           typename Delta_U_Min_Type, typename Delta_U_Max_Type,
@@ -388,7 +559,8 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other) noexcept
+  LTI_MPC(LTI_MPC &&other)
+  noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
@@ -406,6 +578,19 @@ public:
 
 protected:
   /* Function */
+
+  /**
+   * @brief Solves the MPC optimization problem to calculate the control input
+   * with constraints.
+   *
+   * This function computes the change in control input (delta_U) based on the
+   * augmented state vector (X_augmented) and the reference trajectory, while
+   * considering constraints on the control inputs and outputs.
+   *
+   * @param X_augmented The augmented state vector containing the current state
+   * and output.
+   * @return The calculated change in control input (delta_U).
+   */
   inline auto _solve(const _X_Augmented_Type &X_augmented)
       -> _U_Horizon_Type override {
 
@@ -426,6 +611,29 @@ protected:
 };
 
 /* make LTI MPC */
+
+/**
+ * @brief Factory function to create an instance of LTI_MPC.
+ *
+ * This function initializes the LTI_MPC class with the provided Kalman filter,
+ * prediction matrices, reference trajectory, and various constraints and
+ * solver factors.
+ *
+ * @tparam LKF_Type Type of the Kalman filter.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam Weight_U_Nc_Type Type for the weight matrix for control input
+ * changes.
+ * @tparam Delta_U_Min_Type Type for the minimum change in control input.
+ * @tparam Delta_U_Max_Type Type for the maximum change in control input.
+ * @tparam U_Min_Type Type for the minimum control input.
+ * @tparam U_Max_Type Type for the maximum control input.
+ * @tparam Y_Min_Type Type for the minimum output constraint.
+ * @tparam Y_Max_Type Type for the maximum output constraint.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in the MPC (can
+ * be empty).
+ * @return An instance of LTI_MPC initialized with the provided parameters.
+ */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Weight_U_Nc_Type,
           typename Delta_U_Min_Type, typename Delta_U_Max_Type,

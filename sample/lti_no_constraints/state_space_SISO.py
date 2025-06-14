@@ -1,3 +1,8 @@
+"""
+File: state_space_SISO.py
+
+This script demonstrates the simulation and deployment of a discrete-time state-space SISO (Single Input Single Output) system using Model Predictive Control (MPC) without constraints. The code defines a plant model, sets up an MPC controller, generates input and reference signals, simulates the closed-loop system with delay, and visualizes the results. It also provides functionality to export the MPC controller as C++ code for deployment.
+"""
 import os
 import sys
 sys.path.append(os.getcwd())

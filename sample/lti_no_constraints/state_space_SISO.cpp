@@ -1,3 +1,15 @@
+/**
+ * @file state_space_SISO.cpp
+ * @brief Example of discrete-time state-space simulation and SISO LTI MPC
+ * control in C++.
+ *
+ * This file demonstrates how to simulate a discrete-time state-space system and
+ * control it using a Model Predictive Controller (MPC) for a Single-Input
+ * Single-Output (SISO) Linear Time-Invariant (LTI) system. The code initializes
+ * the state-space matrices, constructs the system, and runs a simulation loop
+ * where the controller computes the control input at each step to track a
+ * reference signal.
+ */
 #include <iostream>
 
 /* CAUTION */

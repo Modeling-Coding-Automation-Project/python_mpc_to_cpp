@@ -1,3 +1,15 @@
+/**
+ * @file servo_motor.cpp
+ * @brief Example of discrete-time state-space simulation and LTI MPC control
+ * for a servo motor system.
+ *
+ * This file demonstrates how to set up and simulate a discrete-time state-space
+ * model of a servo motor, and how to apply a Linear Time-Invariant Model
+ * Predictive Controller (LTI MPC) to control the system. The code initializes
+ * the state-space matrices (A, B, C, D), constructs the system, and runs a
+ * closed-loop simulation where the controller computes the control input at
+ * each time step to track a reference signal.
+ */
 #include <iostream>
 
 /* CAUTION */

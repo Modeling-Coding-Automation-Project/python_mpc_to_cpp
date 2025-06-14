@@ -1,8 +1,20 @@
+"""
+File: state_space_utility.py
+
+This module provides utility classes and functions for symbolic and numeric manipulation of state-space models, particularly for Model Predictive Control (MPC) applications. It leverages sympy for symbolic computation and numpy for numerical operations, enabling the construction, augmentation, and conversion of state-space representations, as well as the generation of prediction matrices for MPC.
+"""
 import numpy as np
 import sympy as sp
 
 
 def symbolic_to_numeric_matrix(symbolic_matrix: sp.Matrix) -> np.ndarray:
+    """
+    Convert a symbolic sympy matrix to a numeric numpy matrix.
+    Args:
+        symbolic_matrix (sp.Matrix): A sympy matrix containing symbolic expressions.
+    Returns:
+        np.ndarray: A numpy array with numeric values converted from the symbolic matrix.
+    """
     numeric_matrix = np.zeros(
         (symbolic_matrix.shape[0], symbolic_matrix.shape[1]), dtype=float)
 
@@ -14,6 +26,17 @@ def symbolic_to_numeric_matrix(symbolic_matrix: sp.Matrix) -> np.ndarray:
 
 
 class SymbolicStateSpace:
+    """
+    A class representing a symbolic state-space model.
+    Attributes:
+        A (sp.Matrix): State matrix.
+        B (sp.Matrix): Input matrix.
+        C (sp.Matrix): Output matrix.
+        D (sp.Matrix, optional): Feedthrough matrix.
+        delta_time (float): Time step for discrete systems.
+        Number_of_Delay (int): Number of delays in the system.
+    """
+
     def __init__(self, A: sp.Matrix, B: sp.Matrix, C: sp.Matrix,
                  D: sp.Matrix = None, delta_time=0.0, Number_of_Delay=0):
         self.delta_time = delta_time
@@ -46,6 +69,21 @@ class SymbolicStateSpace:
 
 
 class StateSpaceEmbeddedIntegrator:
+    """
+    A class that augments a state-space model with an embedded integrator.
+    This class takes a symbolic state-space model and constructs an augmented model
+    that includes the state, input, and output matrices, along with the necessary
+    transformations to handle the output as an integral of the state.
+    Attributes:
+        delta_time (float): Time step for discrete systems.
+        INPUT_SIZE (int): Number of inputs in the system.
+        STATE_SIZE (int): Number of states in the system.
+        OUTPUT_SIZE (int): Number of outputs in the system.
+        A (sp.Matrix): Augmented state matrix.
+        B (sp.Matrix): Augmented input matrix.
+        C (sp.Matrix): Augmented output matrix.
+    """
+
     def __init__(self, state_space: SymbolicStateSpace):
         if not isinstance(state_space.A, sp.Matrix):
             raise ValueError(
@@ -78,6 +116,13 @@ class StateSpaceEmbeddedIntegrator:
 
     def construct_augmented_model(self, A_original: sp.Matrix,
                                   B_original: sp.Matrix, C_original: sp.Matrix):
+        """
+        Constructs the augmented state-space model with an embedded integrator.
+        Args:
+            A_original (sp.Matrix): Original state matrix.
+            B_original (sp.Matrix): Original input matrix.
+            C_original (sp.Matrix): Original output matrix.
+        """
 
         o_xy_T = sp.Matrix(self.STATE_SIZE,
                            self.OUTPUT_SIZE, lambda i, j: 0.0)
@@ -97,6 +142,19 @@ class StateSpaceEmbeddedIntegrator:
 
 
 class MPC_PredictionMatrices:
+    """
+    A class to generate prediction matrices for Model Predictive Control (MPC).
+    This class constructs the F and Phi matrices based on the state-space model
+    and the specified prediction horizon (Np) and control horizon (Nc).
+
+    Attributes:
+        Np (int): Prediction horizon.
+        Nc (int): Control horizon.
+        INPUT_SIZE (int): Number of inputs in the system.
+        STATE_SIZE (int): Number of states in the system.
+        OUTPUT_SIZE (int): Number of outputs in the system.
+    """
+
     def __init__(self, Np, Nc, INPUT_SIZE, STATE_SIZE, OUTPUT_SIZE):
         self.INPUT_SIZE = INPUT_SIZE
         self.STATE_SIZE = STATE_SIZE
@@ -124,6 +182,11 @@ class MPC_PredictionMatrices:
         self.ABC_values = {}
 
     def initialize_ABC(self):
+        """
+        Initializes symbolic matrices A, B, and C with symbolic variables.
+        This method creates symbolic matrices for the state, input, and output
+        matrices, which will be used for symbolic manipulation and substitution.
+        """
         self.A_symbolic = sp.Matrix(self.STATE_SIZE, self.STATE_SIZE,
                                     lambda i, j: sp.symbols(f'a{i+1}{j+1}'))
         self.B_symbolic = sp.Matrix(self.STATE_SIZE, self.INPUT_SIZE,
@@ -139,6 +202,14 @@ class MPC_PredictionMatrices:
                                    lambda i, j: 0.0)
 
     def generate_symbolic_substitution(self, A: np.ndarray, B: np.ndarray, C: np.ndarray):
+        """
+        Generates symbolic variables for the elements of matrices A, B, and C,
+        and maps them to their corresponding numeric values.
+        Args:
+            A (np.ndarray): State matrix.
+            B (np.ndarray): Input matrix.
+            C (np.ndarray): Output matrix.
+        """
         # Generate symbolic variables and map them to A's elements
         for i in range(A.shape[0]):
             for j in range(A.shape[1]):
@@ -158,6 +229,14 @@ class MPC_PredictionMatrices:
                 self.ABC_values[symbol] = C[i, j]
 
     def substitute_ABC_symbolic(self, A: sp.Matrix, B: sp.Matrix, C: sp.Matrix):
+        """
+        Substitutes symbolic variables in the state-space matrices A, B, and C
+        with their corresponding numeric values.
+        Args:
+            A (sp.Matrix): State matrix.
+            B (sp.Matrix): Input matrix.
+            C (sp.Matrix): Output matrix.
+        """
         self.A_symbolic = sp.Matrix(self.STATE_SIZE, self.STATE_SIZE,
                                     lambda i, j: sp.symbols(f'a{i+1}{j+1}'))
         for i in range(A.shape[0]):
@@ -179,6 +258,13 @@ class MPC_PredictionMatrices:
         self._generate_exponential_A_list(self.A_symbolic)
 
     def substitute_ABC_numeric(self, A: np.ndarray, B: np.ndarray, C: np.ndarray):
+        """
+        Substitutes numeric values into the symbolic matrices A, B, and C.
+        Args:
+            A (np.ndarray): State matrix.
+            B (np.ndarray): Input matrix.
+            C (np.ndarray): Output matrix.
+        """
         self.A_symbolic = sp.Matrix(self.STATE_SIZE, self.STATE_SIZE,
                                     lambda i, j: sp.symbols(f'a{i+1}{j+1}'))
         for i in range(A.shape[0]):
@@ -204,6 +290,14 @@ class MPC_PredictionMatrices:
             self.A_numeric)
 
     def substitute_numeric(self, A: np.ndarray, B: np.ndarray, C: np.ndarray) -> tuple:
+        """
+        Substitutes numeric values into the symbolic matrices A, B, and C,
+        and builds the F and Phi matrices.
+        Args:
+            A (np.ndarray): State matrix.
+            B (np.ndarray): Input matrix.
+            C (np.ndarray): Output matrix.
+        """
         if not isinstance(A, np.ndarray):
             A = symbolic_to_numeric_matrix(A)
         if not isinstance(B, np.ndarray):
@@ -222,10 +316,24 @@ class MPC_PredictionMatrices:
             self.Phi_symbolic)
 
     def build_matrices(self, B: sp.Matrix, C: sp.Matrix) -> tuple:
+        """
+        Builds the F and Phi matrices based on the symbolic state-space model.
+        Args:
+            B (sp.Matrix): Input matrix.
+            C (sp.Matrix): Output matrix.
+        """
         self.F_symbolic = self._build_F(C)
         self.Phi_symbolic = self._build_Phi(B, C)
 
     def _generate_exponential_A_list(self, A: sp.Matrix):
+        """
+        Generates a list of matrices representing the exponential of the state matrix A
+        for each step in the prediction horizon.
+        Args:
+            A (sp.Matrix): State matrix.
+        Returns:
+            list: A list of matrices representing the exponential of A for each step.
+        """
         exponential_A_list = []
 
         for i in range(self.Np):
@@ -238,7 +346,14 @@ class MPC_PredictionMatrices:
         return exponential_A_list
 
     def _build_F(self, C: sp.Matrix) -> sp.Matrix:
-
+        """
+        Builds the F matrix, which is used in the MPC prediction step.
+        Args:
+            C (sp.Matrix): Output matrix.
+        Returns:
+            sp.Matrix: The F matrix, which is a block matrix containing the outputs
+            of the system at each step in the prediction horizon.
+        """
         F = sp.zeros(self.OUTPUT_SIZE * self.Np, self.STATE_SIZE)
         for i in range(self.Np):
             # C A^{i+1}
@@ -247,7 +362,15 @@ class MPC_PredictionMatrices:
         return F
 
     def _build_Phi(self, B: sp.Matrix, C: sp.Matrix) -> sp.Matrix:
-
+        """
+        Builds the Phi matrix, which is used in the MPC control step.
+        Args:
+            B (sp.Matrix): Input matrix.
+            C (sp.Matrix): Output matrix.
+        Returns:
+            sp.Matrix: The Phi matrix, which is a block matrix containing the
+            contributions of the inputs to the outputs at each step in the prediction horizon.
+        """
         Phi = sp.zeros(self.OUTPUT_SIZE * self.Np,
                        self.INPUT_SIZE * self.Nc)
 
@@ -266,6 +389,18 @@ class MPC_PredictionMatrices:
 
 
 class MPC_ReferenceTrajectory:
+    """
+    A class to handle the reference trajectory for Model Predictive Control (MPC).
+    This class manages the reference vector, which can either be a single row vector
+    or multiple row vectors, and provides a method to calculate the difference
+    between the reference vector and the predicted state.
+    Attributes:
+        reference_vector (np.ndarray): The reference trajectory vector.
+        Np (int): Prediction horizon.
+        OUTPUT_SIZE (int): Number of outputs in the system.
+        follow_flag (bool): Indicates whether the reference vector has multiple rows.
+    """
+
     def __init__(self, reference_vector: np.ndarray, Np: int):
         if reference_vector.shape[1] == Np:
             self.follow_flag = True
@@ -281,6 +416,13 @@ class MPC_ReferenceTrajectory:
         self.OUTPUT_SIZE = reference_vector.shape[0]
 
     def calculate_dif(self, Fx: np.ndarray) -> np.ndarray:
+        """
+        Calculates the difference between the reference vector and the predicted state.
+        Args:
+            Fx (np.ndarray): The predicted state vector.
+        Returns:
+            np.ndarray: The difference vector, which is the reference vector minus the predicted state.
+        """
         dif = np.zeros((self.Np * self.OUTPUT_SIZE, 1))
 
         if self.follow_flag:
