@@ -1,3 +1,11 @@
+"""
+File: /c:/work/ModelingCodingAutomationProject/python_mpc_to_cpp/python_mpc/linear_mpc_deploy.py
+
+This module provides functionality for deploying Linear Model Predictive Control (MPC) objects to C++ code.
+It contains utilities to generate C++ header files from Python-based MPC models, including both constrained
+and unconstrained LTI MPCs. The generated code includes all necessary matrices, parameters, and type definitions
+to instantiate and use the MPC controller in a C++ environment.
+"""
 import os
 import sys
 sys.path.append(os.getcwd())
@@ -20,12 +28,36 @@ TOL = 1e-30
 
 
 class LinearMPC_Deploy:
+    """
+    A class for deploying Linear Model Predictive Control (MPC) objects to C++ code.
+    This class provides static methods to generate C++ header files from Python-based MPC models,
+    including both constrained and unconstrained LTI MPCs.
+    The generated code includes all necessary matrices, parameters, and type definitions
+    to instantiate and use the MPC controller in a C++ environment.
+    Attributes:
+        None
+    Methods:
+        generate_LTI_MPC_NC_cpp_code(lti_mpc_nc, file_name=None, number_of_delay=0):
+            Generates C++ code for an LTI MPC without constraints.
+        generate_LTI_MPC_cpp_code(lti_mpc, file_name=None, number_of_delay=0):
+            Generates C++ code for an LTI MPC with constraints.
+    """
+
     def __init__(self):
         pass
 
     @staticmethod
     def generate_LTI_MPC_NC_cpp_code(
             lti_mpc_nc: LTI_MPC_NoConstraints, file_name=None, number_of_delay=0):
+        """
+        Generates C++ code for an LTI MPC without constraints.
+        Args:
+            lti_mpc_nc (LTI_MPC_NoConstraints): The LTI MPC without constraints object to deploy.
+            file_name (str, optional): The name of the file to save the generated C++ code. If None, uses the caller's file name.
+            number_of_delay (int, optional): The number of delays in the MPC. Defaults to 0.
+        Returns:
+            list: A list of file names of the generated C++ code files.
+        """
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(lti_mpc_nc.kalman_filter.A.dtype.name)
@@ -185,6 +217,13 @@ class LinearMPC_Deploy:
 
     @staticmethod
     def get_cpp_bool_text(flag: bool) -> str:
+        """
+        Converts a Python boolean to a C++ boolean string representation.
+        Args:
+            flag (bool): The boolean value to convert.
+        Returns:
+            str: "true" if flag is True, "false" if flag is False.
+        """
         if flag:
             return "true"
         else:
@@ -193,6 +232,15 @@ class LinearMPC_Deploy:
     @staticmethod
     def generate_LTI_MPC_cpp_code(
             lti_mpc: LTI_MPC, file_name=None, number_of_delay=0):
+        """
+        Generates C++ code for an LTI MPC with constraints.
+        Args:
+            lti_mpc (LTI_MPC): The LTI MPC object to deploy.
+            file_name (str, optional): The name of the file to save the generated C++ code. If None, uses the caller's file name.
+            number_of_delay (int, optional): The number of delays in the MPC. Defaults to 0.
+        Returns:
+            list: A list of file names of the generated C++ code files.
+        """
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(lti_mpc.kalman_filter.A.dtype.name)
