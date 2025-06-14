@@ -1,5 +1,9 @@
 """
-DC Servo Motor control with MPC
+File: servo_motor.py
+
+This script demonstrates Model Predictive Control (MPC) for a DC servo motor system without constraints. 
+It models the servo motor as a linear time-invariant (LTI) system, discretizes the plant, sets up an MPC controller, 
+and simulates the closed-loop response to a pulse reference input. The simulation results are visualized using a plotting utility.
 
 References:
 A. Bemporad and E. Mosca, "Fulfilling hard constraints in uncertain linear systems
