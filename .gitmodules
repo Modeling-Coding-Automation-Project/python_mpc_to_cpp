@@ -19,3 +19,12 @@
 [submodule "external_libraries/python_optimization_to_cpp"]
 	path = external_libraries/python_optimization_to_cpp
 	url = https://github.com/Modeling-Coding-Automation-Project/python_optimization_to_cpp.git
+[submodule "external_libraries/MCAP_python_control"]
+	path = external_libraries/MCAP_python_control
+	url = https://github.com/Modeling-Coding-Automation-Project/MCAP_python_control.git
+[submodule "external_libraries/MCAP_python_optimization"]
+	path = external_libraries/MCAP_python_optimization
+	url = https://github.com/Modeling-Coding-Automation-Project/MCAP_python_optimization.git
+[submodule "external_libraries/MCAP_python_mpc"]
+	path = external_libraries/MCAP_python_mpc
+	url = https://github.com/Modeling-Coding-Automation-Project/MCAP_python_mpc.git

@@ -13,13 +13,14 @@ A. Bemporad and E. Mosca, "Fulfilling hard constraints in uncertain linear syste
 import os
 import sys
 sys.path.append(os.getcwd())
+sys.path.append(os.path.join(os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
 
 import math
 import numpy as np
 import control
 
-from mpc_utility.state_space_utility import SymbolicStateSpace
-from python_mpc.linear_mpc import LTI_MPC_NoConstraints
+from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility import SymbolicStateSpace
+from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
 from python_mpc.linear_mpc_deploy import LinearMPC_Deploy
 
 from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter

@@ -1,7 +1,17 @@
 """
 File: servo_motor_constraints.py
 
-This script demonstrates the setup, simulation, and deployment of a constrained Linear Time-Invariant Model Predictive Controller (LTI-MPC) for a servo motor system. The code constructs a discrete-time state-space model of the plant, defines MPC weights and constraints, generates deployable C++ code for the controller, and simulates the closed-loop response of the system under the designed MPC. The simulation results, including reference tracking, control input, and state trajectories, are visualized using a plotting utility.
+This script demonstrates the setup,
+simulation, and deployment of a constrained
+Linear Time-Invariant Model Predictive Controller (LTI-MPC)
+for a servo motor system.
+The code constructs a discrete-time state-space model of the plant,
+defines MPC weights and constraints,
+generates deployable C++ code for the controller,
+and simulates the closed-loop response of the system under the designed MPC.
+The simulation results,
+including reference tracking, control input,
+and state trajectories, are visualized using a plotting utility.
 
 References:
 A. Bemporad and E. Mosca, "Fulfilling hard constraints in uncertain linear systems
@@ -11,13 +21,14 @@ A. Bemporad and E. Mosca, "Fulfilling hard constraints in uncertain linear syste
 import os
 import sys
 sys.path.append(os.getcwd())
+sys.path.append(os.path.join(os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
 
 import math
 import numpy as np
 import control
 
-from mpc_utility.state_space_utility import SymbolicStateSpace
-from python_mpc.linear_mpc import LTI_MPC
+from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility import SymbolicStateSpace
+from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC
 from python_mpc.linear_mpc_deploy import LinearMPC_Deploy
 
 from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
