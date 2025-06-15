@@ -21,8 +21,8 @@ from external_libraries.python_control_to_cpp.python_control.control_deploy impo
 
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
 
-from mpc_utility.linear_solver_utility import DU_U_Y_Limits
-from python_mpc.linear_mpc import LTI_MPC_NoConstraints, LTI_MPC
+from external_libraries.MCAP_python_mpc.mpc_utility.linear_solver_utility import DU_U_Y_Limits
+from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints, LTI_MPC
 
 TOL = 1e-30
 
