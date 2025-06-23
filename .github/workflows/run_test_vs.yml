@@ -2,7 +2,7 @@ name: Run test VS
 
 on:
   push:
-    branches: [ develop, update_repo ]
+    branches: [ develop ]
 
 jobs:
   test_vs:
