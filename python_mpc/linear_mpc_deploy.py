@@ -18,11 +18,13 @@ import copy
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
-
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
+from python_mpc.ltv_matrices_deploy import LTVMatricesDeploy
 
 from external_libraries.MCAP_python_mpc.mpc_utility.linear_solver_utility import DU_U_Y_Limits
-from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints, LTI_MPC
+from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
+from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC
+from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTV_MPC_NoConstraints
 
 TOL = 1e-30
 
@@ -595,3 +597,50 @@ class LinearMPC_Deploy:
         deployed_file_names.append(code_file_name_ext)
 
         return deployed_file_names
+
+    @staticmethod
+    def generate_LTV_MPC_NC_cpp_code(ltv_mpc_nc: LTV_MPC_NoConstraints,
+                                     parameters,
+                                     file_name=None,
+                                     number_of_delay=0):
+        deployed_file_names = []
+
+        ControlDeploy.restrict_data_type(ltv_mpc_nc.kalman_filter.A.dtype.name)
+
+        type_name = NumpyDeploy.check_dtype(ltv_mpc_nc.kalman_filter.A)
+
+        # %% inspect arguments
+        # Get the caller's frame
+        frame = inspect.currentframe().f_back
+        # Get the caller's local variables
+        caller_locals = frame.f_locals
+        # Find the variable name that matches the matrix_in value
+        variable_name = None
+        for name, value in caller_locals.items():
+            if value is ltv_mpc_nc:
+                variable_name = name
+                break
+        # Get the caller's file name
+        if file_name is None:
+            caller_file_full_path = frame.f_code.co_filename
+            caller_file_name = os.path.basename(caller_file_full_path)
+            caller_file_name_without_ext = os.path.splitext(caller_file_name)[
+                0]
+        else:
+            caller_file_name_without_ext = file_name
+
+        number_of_delay = ltv_mpc_nc.Number_of_Delay
+
+        # %% generate parameter class code
+        parameter_code_file_name = caller_file_name_without_ext + "_parameters.hpp"
+        parameter_code_file_name_no_extension = parameter_code_file_name.split(".")[
+            0]
+
+        parameter_code = LTVMatricesDeploy.generate_parameter_cpp_code(
+            parameters, type_name, parameter_code_file_name_no_extension)
+
+        parameter_code_file_name_ext = ControlDeploy.write_to_file(
+            parameter_code, parameter_code_file_name)
+
+        # %% main code generation
+        code_text = ""
