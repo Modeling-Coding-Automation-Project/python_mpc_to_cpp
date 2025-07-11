@@ -1,5 +1,5 @@
 """
-File: /c:/work/ModelingCodingAutomationProject/python_mpc_to_cpp/python_mpc/linear_mpc_deploy.py
+File: linear_mpc_deploy.py
 
 This module provides functionality for deploying Linear Model Predictive Control (MPC) objects to C++ code.
 It contains utilities to generate C++ header files from Python-based MPC models, including both constrained
