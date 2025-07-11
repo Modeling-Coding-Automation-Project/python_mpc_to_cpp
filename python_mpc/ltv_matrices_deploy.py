@@ -83,11 +83,29 @@ class LTVMatricesDeploy:
 
         code_text += f"namespace {file_name_no_extension} {{\n\n"
 
-        for class_name, methods in class_methods.items():
-            code_text += f"class {class_name} {{\npublic:\n"
+        output_type_names = []
 
-            for method_name, method_source in methods.items():
-                pass
+        for i, (class_name, methods) in enumerate(class_methods.items()):
+            if i < len(class_methods) - 1:
+                output_type_name = f"{class_name}_Output_Type"
+                output_type_names.append(output_type_name)
+
+                code_text += f"template <typename " + output_type_name + ">\n"
+                code_text += f"class {class_name} {{\npublic:\n"
+
+                for method_name, method_source in methods.items():
+                    pass
+
+            else:
+                code_text += f"template <"
+                for output_type_name in output_type_names:
+                    code_text += f"typename {output_type_name}, "
+                code_text = code_text[:-2]  # Remove the last comma and space
+                code_text += ">\n"
+                code_text += f"class {class_name} {{\npublic:\n"
+
+                for method_name, method_source in methods.items():
+                    pass
 
             code_text += "};\n\n"
 
