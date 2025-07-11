@@ -642,5 +642,17 @@ class LinearMPC_Deploy:
         parameter_code_file_name_ext = ControlDeploy.write_to_file(
             parameter_code, parameter_code_file_name)
 
+        # %% generate MPC State Space Updater code
+        mpc_state_space_updater_python_name = "mpc_state_space_updater.py"
+        mpc_state_space_updater_cpp_name = "mpc_state_space_updater.hpp"
+        mpc_state_space_updater_name_no_extension = mpc_state_space_updater_cpp_name.split(".")[
+            0]
+
+        mpc_state_space_updater_code = LTVMatricesDeploy.generate_mpc_state_space_updater_cpp_code(
+            mpc_state_space_updater_python_name, mpc_state_space_updater_name_no_extension)
+
+        mpc_state_space_updater_cpp_name_ext = ControlDeploy.write_to_file(
+            mpc_state_space_updater_code, mpc_state_space_updater_cpp_name)
+
         # %% main code generation
         code_text = ""
