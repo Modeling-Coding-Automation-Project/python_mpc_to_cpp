@@ -20,7 +20,6 @@ sys.path.append(os.path.join(
 import math
 import numpy as np
 import sympy as sp
-import control
 
 from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility import SymbolicStateSpace
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTV_MPC_NoConstraints
