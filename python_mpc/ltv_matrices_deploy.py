@@ -68,12 +68,12 @@ class MatrixUpdatorToCppVisitor(ast.NodeVisitor):
         self.indent = ""
 
     def visit_FunctionDef(self, node):
-        # static method判定
+        # static method check
         is_static = any(isinstance(dec, ast.Name) and dec.id == "staticmethod"
                         for dec in node.decorator_list)
         static_str = "static " if is_static else ""
 
-        # 引数と型
+        # arguments and type annotations
         args = [arg.arg for arg in node.args.args]
         annotations = {}
         for arg in node.args.args:
@@ -86,7 +86,7 @@ class MatrixUpdatorToCppVisitor(ast.NodeVisitor):
         else:
             annotations['return'] = None
 
-        # 引数リスト
+        # arguments list
         arg_strs = []
         for arg in args:
             Value_Type_name = self.Value_Type_name
@@ -100,16 +100,16 @@ class MatrixUpdatorToCppVisitor(ast.NodeVisitor):
             arg_strs.append(f"{Value_Type_name} {arg}")
         arg_list = ", ".join(arg_strs)
 
-        # 戻り値型
+        # return type
         ret_type = self.Output_Type_name
 
-        # 関数ヘッダ
+        # function header
         self.cpp_code += f"{self.indent}{static_str}inline auto {node.name}({arg_list}) -> {ret_type} {{\n"
 
         if node.name == "sympy_function":
             self.cpp_code += f"{self.indent}    {ret_type} result;\n\n"
 
-        # 関数本体
+        # function body
         self.indent += "    "
         for stmt in node.body:
             self.visit(stmt)
@@ -159,6 +159,66 @@ class MatrixUpdatorToCppVisitor(ast.NodeVisitor):
         return self.cpp_code
 
 
+class StateSpaceUpdatorToCppVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.cpp_code = ""
+        self.indent = "    "
+        self.param_names = []
+        self.has_D = False
+
+    def visit_FunctionDef(self, node):
+        # arguments names
+        args = [arg.arg for arg in node.args.args]
+        # assuming the first argument is 'parameters'
+        param_arg = args[0] if args else "parameters"
+
+        # Enumerate variables (those extracted from parameters)
+        for stmt in node.body:
+            if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Attribute):
+                # Example: Lshaft = parameters.Lshaft
+                var_name = stmt.targets[0].id
+                attr_name = stmt.value.attr
+                self.param_names.append((var_name, attr_name))
+            elif isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Call):
+                # Example: D = D_Updater.update(...)
+                if stmt.targets[0].id == "D":
+                    self.has_D = True
+
+        # Extracting variable
+        for var_name, attr_name in self.param_names:
+            self.cpp_code += f"{self.indent}double {var_name} = parameter.{attr_name};\n"
+
+        self.cpp_code += "\n"
+
+        # A, B, C
+        for updater in ["A", "B", "C"]:
+            self.cpp_code += (
+                f"{self.indent}auto {updater} = {updater}_Updater<MPC_StateSpace_Updater_Output_Type::{updater}_Type>::update("
+                + ", ".join([v[0] for v in self.param_names]) + ");\n\n"
+            )
+
+        # D
+        if self.has_D:
+            self.cpp_code += (
+                f"{self.indent}auto D = D_Updater<MPC_StateSpace_Updater_Output_Type::D_Type>::update("
+                + ", ".join([v[0] for v in self.param_names]) + ");\n\n"
+            )
+
+        # substitute the output
+        for updater in ["A", "B", "C"]:
+            self.cpp_code += f"{self.indent}output.{updater} = {updater};\n"
+        if self.has_D:
+            self.cpp_code += f"{self.indent}output.D = D;\n"
+
+    def convert(self, python_code):
+        tree = ast.parse(python_code)
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef):
+                self.visit(node)
+                break
+        return self.cpp_code
+
+
 class LTVMatricesDeploy:
 
     @staticmethod
@@ -205,34 +265,36 @@ class LTVMatricesDeploy:
 
         code_text += f"namespace {file_name_no_extension} {{\n\n"
 
-        output_type_names = []
-
         for i, (class_name, methods) in enumerate(class_methods.items()):
             if i < len(class_methods) - 1:
+                # A, B, C, D updater class
                 output_type_name = f"{class_name}_Output_Type"
-                output_type_names.append(output_type_name)
 
                 code_text += f"template <typename " + output_type_name + ">\n"
                 code_text += f"class {class_name} {{\npublic:\n"
 
-                converter = MatrixUpdatorToCppVisitor(output_type_name)
+                visitor = MatrixUpdatorToCppVisitor(output_type_name)
 
                 for _, method_source in methods.items():
-                    function_code = converter.convert(
+                    function_code = visitor.convert(
                         textwrap.dedent(method_source))
                 code_text += function_code
                 code_text += "\n"
 
             else:
-                code_text += f"template <"
-                for output_type_name in output_type_names:
-                    code_text += f"typename {output_type_name}, "
-                code_text = code_text[:-2]  # Remove the last comma and space
-                code_text += ">\n"
-                code_text += f"class {class_name} {{\npublic:\n"
+                # MPC StateSpace Updater class
+                output_type_name = f"{class_name}_Output_Type"
 
-                for method_name, method_source in methods.items():
-                    pass
+                code_text += f"class {class_name} {{\npublic:\n"
+                code_text += f"template <typename Parameter_Type, typename " + output_type_name + ">\n"
+                code_text += "static inline void update(const Parameter_Type& parameter, " + \
+                    output_type_name + "& output) {\n"
+
+                visitor = StateSpaceUpdatorToCppVisitor()
+                function_code = visitor.convert(
+                    textwrap.dedent(methods['update']))
+                code_text += function_code
+                code_text += "}\n"
 
             code_text += "};\n\n"
 
