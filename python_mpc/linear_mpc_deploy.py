@@ -101,7 +101,7 @@ class LinearMPC_Deploy:
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
         # create F code
-        exec(f"{variable_name}_F = lti_mpc_nc.prediction_matrices.F_numeric")
+        exec(f"{variable_name}_F = lti_mpc_nc.prediction_matrices.F_numeric_expression")
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
 
@@ -109,7 +109,8 @@ class LinearMPC_Deploy:
         F_file_name_no_extension = F_file_name.split(".")[0]
 
         # create Phi code
-        exec(f"{variable_name}_Phi = lti_mpc_nc.prediction_matrices.Phi_numeric")
+        exec(
+            f"{variable_name}_Phi = lti_mpc_nc.prediction_matrices.Phi_numeric_expression")
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
 
@@ -284,7 +285,7 @@ class LinearMPC_Deploy:
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
         # create F code
-        exec(f"{variable_name}_F = lti_mpc.prediction_matrices.F_numeric")
+        exec(f"{variable_name}_F = lti_mpc.prediction_matrices.F_numeric_expression")
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
 
@@ -292,7 +293,7 @@ class LinearMPC_Deploy:
         F_file_name_no_extension = F_file_name.split(".")[0]
 
         # create Phi code
-        exec(f"{variable_name}_Phi = lti_mpc.prediction_matrices.Phi_numeric")
+        exec(f"{variable_name}_Phi = lti_mpc.prediction_matrices.Phi_numeric_expression")
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
 
