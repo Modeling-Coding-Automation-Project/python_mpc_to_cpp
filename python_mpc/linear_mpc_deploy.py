@@ -655,5 +655,19 @@ class LinearMPC_Deploy:
         mpc_state_space_updater_cpp_name_ext = ControlDeploy.write_to_file(
             mpc_state_space_updater_code, mpc_state_space_updater_cpp_name)
 
+        # %% generate Embedded Integrator Updater code
+        embedded_integrator_updater_file_name = \
+            ltv_mpc_nc.state_space_initializer.embedded_integrator_updater_file_name
+        embedded_integrator_updater_name_no_extension = \
+            embedded_integrator_updater_file_name.split(".")[0]
+        embedded_integrator_updater_cpp_name = embedded_integrator_updater_name_no_extension + ".hpp"
+
+        # Embedded Integrator Updater is the same style as MPC State Space Updater
+        embedded_integrator_updater_code = LTVMatricesDeploy.generate_mpc_state_space_updater_cpp_code(
+            embedded_integrator_updater_file_name, embedded_integrator_updater_name_no_extension)
+
+        embedded_integrator_updater_cpp_name_ext = ControlDeploy.write_to_file(
+            embedded_integrator_updater_code, embedded_integrator_updater_cpp_name)
+
         # %% main code generation
         code_text = ""
