@@ -263,7 +263,7 @@ def main():
             controller_parameters.Mmotor = 250.0
 
             ltv_mpc.update_parameters(controller_parameters)
-            LinearLtvMpcSIL.update_parameters(controller_parameters)
+            LinearLtvMpcSIL.update_parameters(controller_parameters.Mmotor)
 
             MPC_updated = True
 

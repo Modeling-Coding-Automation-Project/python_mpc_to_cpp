@@ -1,6 +1,8 @@
 #include "linear_mpc_SIL_wrapper.hpp"
 #include "python_control.hpp"
 
+#include "servo_motor_LTV_SIL_parameters.hpp"
+
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
@@ -17,6 +19,14 @@ using Ref_Type = typename linear_mpc_SIL_wrapper::Ref_Type;
 linear_mpc_SIL_wrapper::type lmpc;
 
 void initialize(void) { lmpc = linear_mpc_SIL_wrapper::make(); }
+
+void update_parameters(FLOAT Mmotor) {
+
+  servo_motor_LTV_SIL_parameters::Parameter_Type controller_parameters;
+  controller_parameters.Mmotor = Mmotor;
+
+  lmpc.update_parameters(Mmotor);
+}
 
 py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
                                        py::array_t<FLOAT> Y_in) {
