@@ -173,6 +173,10 @@ class MatrixUpdaterToCppVisitor(ast.NodeVisitor):
         tree = ast.parse(python_code)
         if tree.body and isinstance(tree.body[0], ast.FunctionDef):
             self.visit(tree.body[0])
+
+        self.cpp_code = self.cpp_code.replace(
+            ".sympy_function(", "::sympy_function(")
+
         return self.cpp_code
 
 
@@ -182,6 +186,8 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
         self.indent = "    "
         self.param_names = []
         self.has_D = False
+
+        self.output_type_name = ""
 
     def visit_FunctionDef(self, node):
         # arguments names
@@ -210,14 +216,15 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
         # A, B, C
         for updater in ["A", "B", "C"]:
             self.cpp_code += (
-                f"{self.indent}auto {updater} = {updater}_Updater<MPC_StateSpace_Updater_Output_Type::{updater}_Type>::update("
+                f"{self.indent}auto {updater} = {updater}_Updater<" +
+                f"{self.output_type_name}::{updater}_Type>::update("
                 + ", ".join([v[0] for v in self.param_names]) + ");\n\n"
             )
 
         # D
         if self.has_D:
             self.cpp_code += (
-                f"{self.indent}auto D = D_Updater<MPC_StateSpace_Updater_Output_Type::D_Type>::update("
+                f"{self.indent}auto D = D_Updater<{self.output_type_name}::D_Type>::update("
                 + ", ".join([v[0] for v in self.param_names]) + ");\n\n"
             )
 
@@ -233,6 +240,7 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
             if isinstance(node, ast.FunctionDef):
                 self.visit(node)
                 break
+
         return self.cpp_code
 
 
@@ -427,6 +435,8 @@ class LTVMatricesDeploy:
                     output_type_name + "& output) {\n"
 
                 visitor = StateSpaceUpdaterToCppVisitor()
+                visitor.output_type_name = output_type_name
+
                 function_code = visitor.convert(
                     textwrap.dedent(methods['update']))
                 code_text += function_code

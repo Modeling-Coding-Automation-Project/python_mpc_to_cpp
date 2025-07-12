@@ -706,6 +706,9 @@ void check_LTV_MPC(void) {
     constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
+    /* 定義 */
+
+    using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type;
 
 
     tester.throw_error_if_test_failed();
