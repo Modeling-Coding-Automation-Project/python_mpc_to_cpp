@@ -772,13 +772,16 @@ void check_LTV_MPC(void) {
     auto Phi = PythonMPC_ServoMotorData::get_Phi<T>();
     using Phi_Type = decltype(Phi);
 
-    MPC_PredictionMatrices<decltype(F), decltype(Phi),
-        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
+    using PredictionMatrices_Type = MPC_PredictionMatrices<decltype(F), decltype(Phi),
+        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;
+
+    PredictionMatrices_Type prediction_matrices(F, Phi);
 
     auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
         static_cast<T>(1.0), static_cast<T>(0.0));
 
-    MPC_ReferenceTrajectory_Type<decltype(ref), Np> reference_trajectory(ref);
+    using ReferenceTrajectory_Type = MPC_ReferenceTrajectory<decltype(ref), Np>;
+    ReferenceTrajectory_Type reference_trajectory(ref);
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
 
@@ -798,6 +801,12 @@ void check_LTV_MPC(void) {
         LTV_MPC_Phi_F_Updater_Function =
         PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
             EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
+
+    LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, decltype(solver_factor)> ltv_mpc(
+            kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
+            MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
+
 
 
     tester.throw_error_if_test_failed();
