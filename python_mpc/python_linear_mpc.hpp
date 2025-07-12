@@ -985,8 +985,9 @@ public:
     this->_state_space_updater_function(parameter,
                                         this->_kalman_filter.state_space);
 
-    this->_phi_f_updater_function(parameter, this->_prediction_matrices.Phi,
-                                  this->_prediction_matrices.F);
+    this->_phi_f_updater_function<EmbeddedIntegratorSateSpace_Type>(
+        parameter, this->_prediction_matrices.Phi,
+        this->_prediction_matrices.F);
 
     this->_update_solver_factor(this->_prediction_matrices.Phi,
                                 this->_prediction_matrices.F,
@@ -1050,8 +1051,7 @@ protected:
    * @param F The prediction matrix F.
    * @param Weight_U_Nc The weight matrix for control input changes.
    */
-  inline void _update_solver_factor(const typename Phi_Type &Phi,
-                                    const typename F_Type &F,
+  inline void _update_solver_factor(const Phi_Type &Phi, const F_Type &F,
                                     const Weight_U_Nc_Type &Weight_U_Nc) {
 
     this->_solver_factor = this->_solver_factor_inv_solver.solve(
