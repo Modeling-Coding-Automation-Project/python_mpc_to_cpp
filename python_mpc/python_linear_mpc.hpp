@@ -962,6 +962,15 @@ inline auto make_LTV_MPC_NoConstraints(
       solver_factor_in, state_space_updater_function, phi_f_updater_function);
 }
 
+/* LTV MPC No Constraints Type */
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+using LTV_MPC_NoConstraints_Type =
+    LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                          ReferenceTrajectory_Type, Parameter_Type,
+                          SolverFactor_Type_In>;
+
 } // namespace PythonMPC
 
 #endif // __PYTHON_LINEAR_MPC_HPP__

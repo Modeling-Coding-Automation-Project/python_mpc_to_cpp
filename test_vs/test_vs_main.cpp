@@ -803,9 +803,19 @@ void check_LTV_MPC(void) {
             EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
 
     LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-        Parameter_Type, decltype(solver_factor)> ltv_mpc(
+        Parameter_Type, decltype(solver_factor)> ltv_mpc = make_LTV_MPC_NoConstraints(
             kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
             MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
+
+    LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, decltype(solver_factor)> ltv_mpc_copy(ltv_mpc);
+
+    LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, decltype(solver_factor)> ltv_mpc_move = ltv_mpc_copy;
+
+    ltv_mpc = std::move(ltv_mpc_move);
+
+    /* 計算 */
 
 
 
