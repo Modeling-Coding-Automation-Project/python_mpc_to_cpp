@@ -46,7 +46,7 @@ def extract_class_methods(file_path):
     return class_methods
 
 
-class MatrixUpdatorToCppVisitor(ast.NodeVisitor):
+class MatrixUpdaterToCppVisitor(ast.NodeVisitor):
     def __init__(self, Output_Type_name):
         self.cpp_code = ""
         self.Output_Type_name = Output_Type_name
@@ -176,7 +176,7 @@ class MatrixUpdatorToCppVisitor(ast.NodeVisitor):
         return self.cpp_code
 
 
-class StateSpaceUpdatorToCppVisitor(ast.NodeVisitor):
+class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
     def __init__(self):
         self.cpp_code = ""
         self.indent = "    "
@@ -226,6 +226,125 @@ class StateSpaceUpdatorToCppVisitor(ast.NodeVisitor):
             self.cpp_code += f"{self.indent}output.{updater} = {updater};\n"
         if self.has_D:
             self.cpp_code += f"{self.indent}output.D = D;\n"
+
+    def convert(self, python_code):
+        tree = ast.parse(python_code)
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef):
+                self.visit(node)
+                break
+        return self.cpp_code
+
+
+class PredictionMatricesPhiF_UpdaterToCppVisitor(ast.NodeVisitor):
+    """
+    Converts the body of update_Phi_F from Python to C++.
+    - Ignores np.zeros lines.
+    - Converts chained matrix multiplications (C @ A ...) to C++ auto lines.
+    - Converts assignments to Phi[...] and F[...] to C++ set/get calls.
+    """
+
+    def __init__(self):
+        self.cpp_code = ""
+        self.indent = "    "
+        self.defined_vars = set()
+
+    def visit_FunctionDef(self, node):
+        # Only process the body, skip arguments and decorators
+        for stmt in node.body:
+            self.visit(stmt)
+
+    def visit_Assign(self, node):
+        # Ignore np.zeros
+        if isinstance(node.value, ast.Call):
+            func = node.value.func
+            if isinstance(func, ast.Attribute) and func.attr == "zeros":
+                return
+
+        # Matrix multiplication chain: C_A_1 = C @ A
+        if isinstance(node.value, ast.BinOp) and isinstance(node.value.op, ast.MatMult):
+            target = astor.to_source(node.targets[0]).strip()
+            left = astor.to_source(node.value.left).strip()
+            right = astor.to_source(node.value.right).strip()
+            self.cpp_code += f"{self.indent}auto {target} = {left} * {right};\n"
+            self.defined_vars.add(target)
+            return
+
+        # Chained matrix multiplication: C_A_2 = C_A_1 @ A
+        if isinstance(node.value, ast.BinOp) and isinstance(node.value.op, ast.MatMult):
+            target = astor.to_source(node.targets[0]).strip()
+            left = astor.to_source(node.value.left).strip()
+            right = astor.to_source(node.value.right).strip()
+            self.cpp_code += f"{self.indent}auto {target} = {left} * {right};\n"
+            self.defined_vars.add(target)
+            return
+
+        # Assignment from matrix multiplication result: C_A_0_B = C @ B
+        if isinstance(node.value, ast.BinOp) and isinstance(node.value.op, ast.MatMult):
+            target = astor.to_source(node.targets[0]).strip()
+            left = astor.to_source(node.value.left).strip()
+            right = astor.to_source(node.value.right).strip()
+            self.cpp_code += f"{self.indent}auto {target} = {left} * {right};\n"
+            self.defined_vars.add(target)
+            return
+
+        # Assignment from variable: e.g. C_A_1_B = C_A_1 @ B
+        if isinstance(node.value, ast.BinOp) and isinstance(node.value.op, ast.MatMult):
+            target = astor.to_source(node.targets[0]).strip()
+            left = astor.to_source(node.value.left).strip()
+            right = astor.to_source(node.value.right).strip()
+            self.cpp_code += f"{self.indent}auto {target} = {left} * {right};\n"
+            self.defined_vars.add(target)
+            return
+
+        # Assignment to Phi[...] or F[...]
+        if isinstance(node.targets[0], ast.Subscript):
+            target = node.targets[0]
+            value = node.value
+            # Only handle simple assignments: Phi[xx, yy] = something
+            if isinstance(target.value, ast.Name):
+                arr_name = target.value.id
+                # Get indices
+                if isinstance(target.slice, ast.Index):
+                    idx = target.slice.value
+                    if isinstance(idx, ast.Tuple):
+                        i = astor.to_source(idx.elts[0]).strip()
+                        j = astor.to_source(idx.elts[1]).strip()
+                    else:
+                        i = astor.to_source(idx).strip()
+                        j = "0"
+                elif isinstance(target.slice, ast.Tuple):
+                    i = astor.to_source(target.slice.elts[0]).strip()
+                    j = astor.to_source(target.slice.elts[1]).strip()
+                else:
+                    # fallback
+                    i = j = "0"
+                # Value
+                val_code = astor.to_source(value).strip()
+                # If value is subscript, convert get<...>
+                if isinstance(value, ast.Subscript):
+                    v = value
+                    if isinstance(v.value, ast.Name):
+                        v_arr = v.value.id
+                        if isinstance(v.slice, ast.Index):
+                            v_idx = v.slice.value
+                            if isinstance(v_idx, ast.Tuple):
+                                vi = astor.to_source(v_idx.elts[0]).strip()
+                                vj = astor.to_source(v_idx.elts[1]).strip()
+                            else:
+                                vi = astor.to_source(v_idx).strip()
+                                vj = "0"
+                        elif isinstance(v.slice, ast.Tuple):
+                            vi = astor.to_source(v.slice.elts[0]).strip()
+                            vj = astor.to_source(v.slice.elts[1]).strip()
+                        else:
+                            vi = vj = "0"
+                        val_code = f"{v_arr}.template get<{vi}, {vj}>()"
+
+                i = i.strip("()")
+                j = j.strip("()")
+                self.cpp_code += f"{self.indent}{arr_name}.template set<{i}, {j}>({val_code});\n"
+                return
 
     def convert(self, python_code):
         tree = ast.parse(python_code)
@@ -290,7 +409,7 @@ class LTVMatricesDeploy:
                 code_text += f"template <typename " + output_type_name + ">\n"
                 code_text += f"class {class_name} {{\npublic:\n"
 
-                visitor = MatrixUpdatorToCppVisitor(output_type_name)
+                visitor = MatrixUpdaterToCppVisitor(output_type_name)
 
                 for _, method_source in methods.items():
                     function_code = visitor.convert(
@@ -307,7 +426,7 @@ class LTVMatricesDeploy:
                 code_text += "static inline void update(const Parameter_Type& parameter, " + \
                     output_type_name + "& output) {\n"
 
-                visitor = StateSpaceUpdatorToCppVisitor()
+                visitor = StateSpaceUpdaterToCppVisitor()
                 function_code = visitor.convert(
                     textwrap.dedent(methods['update']))
                 code_text += function_code
@@ -329,6 +448,9 @@ class LTVMatricesDeploy:
             input_python_file_name, os.getcwd())
 
         class_methods = extract_class_methods(function_file_path)
+        items = class_methods.items()
+        class_name = next(iter(items))[0] if items else None
+        methods = next(iter(items))[1] if items else {}
 
         if not class_methods:
             raise ValueError(f"No classes found in {input_python_file_name}.")
@@ -339,6 +461,20 @@ class LTVMatricesDeploy:
         code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
 
         code_text += f"namespace {file_name_no_extension} {{\n\n"
+
+        code_text += f"class {class_name} {{\npublic:\n"
+        code_text += f"template <typename A_Type, typename B_Type, typename C_Type,\n" + \
+            f"          typename D_Type, typename Phi_Type, typename F_Type >\n"
+        code_text += "static inline void update(const A_Type &A, const B_Type &B,\n" + \
+            f"          const C_Type &C, const D_Type &D, Phi_Type& Phi, F_Type& F) {{\n"
+
+        visitor = PredictionMatricesPhiF_UpdaterToCppVisitor()
+        function_code = visitor.convert(
+            textwrap.dedent(methods['update']))
+        code_text += function_code
+        code_text += "}\n"
+
+        code_text += "};\n\n"
 
         code_text += f"}} // namespace {file_name_no_extension}\n\n"
 
