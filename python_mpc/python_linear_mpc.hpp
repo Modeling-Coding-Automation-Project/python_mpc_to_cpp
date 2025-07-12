@@ -618,8 +618,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
