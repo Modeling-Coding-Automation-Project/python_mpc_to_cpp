@@ -466,12 +466,68 @@ class LTVMatricesDeploy:
         code_text += f"template <typename A_Type, typename B_Type, typename C_Type,\n" + \
             f"          typename D_Type, typename Phi_Type, typename F_Type >\n"
         code_text += "static inline void update(const A_Type &A, const B_Type &B,\n" + \
-            f"          const C_Type &C, const D_Type &D, Phi_Type& Phi, F_Type& F) {{\n"
+            f"          const C_Type &C, Phi_Type& Phi, F_Type& F) {{\n"
 
         visitor = PredictionMatricesPhiF_UpdaterToCppVisitor()
         function_code = visitor.convert(
             textwrap.dedent(methods['update']))
         code_text += function_code
+        code_text += "}\n"
+
+        code_text += "};\n\n"
+
+        code_text += f"}} // namespace {file_name_no_extension}\n\n"
+
+        code_text += f"#endif // __{file_name_no_extension.upper()}_HPP__\n"
+
+        return code_text
+
+    @staticmethod
+    def generate_ltv_mpc_phi_f_updater_cpp_code(input_python_file_name: str,
+                                                file_name_no_extension: str,
+                                                embedded_integrator_updater_cpp_name: str,
+                                                prediction_matrices_phi_f_updater_cpp_name: str):
+
+        function_file_path = ControlDeploy.find_file(
+            input_python_file_name, os.getcwd())
+
+        class_methods = extract_class_methods(function_file_path)
+        items = class_methods.items()
+        class_name = next(iter(items))[0] if items else None
+        methods = next(iter(items))[1] if items else {}
+
+        if not class_methods:
+            raise ValueError(f"No classes found in {input_python_file_name}.")
+
+        embedded_integrator_updater_cpp_name_no_extension = os.path.splitext(
+            embedded_integrator_updater_cpp_name)[0]
+        prediction_matrices_phi_f_updater_cpp_name_no_extension = os.path.splitext(
+            prediction_matrices_phi_f_updater_cpp_name)[0]
+
+        code_text = ""
+
+        code_text += f"#ifndef __{file_name_no_extension.upper()}_HPP__\n"
+        code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
+
+        code_text += f"#include \"{embedded_integrator_updater_cpp_name}\"\n"
+        code_text += f"#include \"{prediction_matrices_phi_f_updater_cpp_name}\"\n\n"
+
+        code_text += f"namespace {file_name_no_extension} {{\n\n"
+
+        code_text += f"using namespace {embedded_integrator_updater_cpp_name_no_extension};\n"
+        code_text += f"using namespace {prediction_matrices_phi_f_updater_cpp_name_no_extension};\n\n"
+
+        code_text += f"class {class_name} {{\npublic:\n"
+        code_text += f"template <typename StateSpace_Type, typename Parameter_Type,\n" + \
+            "  typename Phi_Type, typename F_Type>\n"
+        code_text += "static inline void update(const Parameter_Type &parameter, Phi_Type& Phi, F_Type& F) {\n\n"
+
+        code_text += "  StateSpace_Type state_space;\n"
+        code_text += "  EmbeddedIntegrator_Updater::update(parameter, state_space);\n\n"
+
+        code_text += "  PredictionMatricesPhiF_Updater::update(\n"
+        code_text += "      state_space.A, state_space.B, state_space.C, Phi, F);\n\n"
+
         code_text += "}\n"
 
         code_text += "};\n\n"
