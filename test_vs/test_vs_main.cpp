@@ -756,6 +756,10 @@ void check_LTV_MPC(void) {
         static_cast<T>(1.0)
     );
 
+    using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE* Nc>;
+
+    Weight_U_Nc_Type weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE* Nc>();
+
     auto kalman_filter = make_LinearKalmanFilter(sys, Q, R);
     using LKF_Type = decltype(kalman_filter);
 
@@ -801,7 +805,7 @@ void check_LTV_MPC(void) {
     LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
         Parameter_Type, SolverFactor_Type> ltv_mpc = make_LTV_MPC_NoConstraints(
             kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
-            MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
+            weight_U_Nc, MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
 
     LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
         Parameter_Type, SolverFactor_Type> ltv_mpc_copy(ltv_mpc);

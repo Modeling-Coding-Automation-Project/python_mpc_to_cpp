@@ -802,6 +802,8 @@ public:
   using Phi_Type = typename PredictionMatrices_Type::Phi_Type;
   using F_Type = typename PredictionMatrices_Type::F_Type;
 
+  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<_T, (INPUT_SIZE * NC)>;
+
 protected:
   /* Type */
   using _MPC_StateSpace_Updater_Function_Object =
@@ -816,8 +818,7 @@ protected:
   using SolverFactor_InvSolver_Left_Type =
       decltype(std::declval<PythonNumpy::Transpose_Type<Phi_Type>>() *
                    std::declval<Phi_Type>() +
-               std::declval<
-                   PythonNumpy::DiagMatrix_Type<_T, (INPUT_SIZE * NC)>>());
+               std::declval<Weight_U_Nc_Type>());
 
   using SolverFactor_InvSolver_Right_Type =
       PythonNumpy::Transpose_Type<Phi_Type>;
@@ -831,7 +832,7 @@ public:
   LTV_MPC_NoConstraints()
       : _kalman_filter(), _prediction_matrices(), _reference_trajectory(),
         _solver_factor(), _X_inner_model(), _U_latest(), _Y_store(),
-        _solver_factor_inv_solver() {}
+        _solver_factor_inv_solver(), _Weight_U_Nc() {}
 
   template <typename LKF_Type, typename PredictionMatrices_Type,
             typename ReferenceTrajectory_Type,
@@ -843,12 +844,14 @@ public:
       const PredictionMatrices_Type &prediction_matrices,
       const ReferenceTrajectory_Type &reference_trajectory,
       const SolverFactor_Type_In_Constructor &solver_factor_in,
+      const Weight_U_Nc_Type &Weight_U_Nc,
       _MPC_StateSpace_Updater_Function_Object &state_space_updater_function,
       _LTV_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function)
       : _kalman_filter(kalman_filter),
         _prediction_matrices(prediction_matrices),
         _reference_trajectory(reference_trajectory), _solver_factor(),
         _X_inner_model(), _U_latest(), _Y_store(), _solver_factor_inv_solver(),
+        _Weight_U_Nc(Weight_U_Nc),
         _state_space_updater_function(state_space_updater_function),
         _phi_f_updater_function(phi_f_updater_function) {
 
@@ -878,6 +881,7 @@ public:
         _X_inner_model(input._X_inner_model), _U_latest(input._U_latest),
         _Y_store(input._Y_store),
         _solver_factor_inv_solver(input._solver_factor_inv_solver),
+        _Weight_U_Nc(input._Weight_U_Nc),
         _state_space_updater_function(input._state_space_updater_function),
         _phi_f_updater_function(input._phi_f_updater_function) {}
 
@@ -895,6 +899,7 @@ public:
       this->_U_latest = input._U_latest;
       this->_Y_store = input._Y_store;
       this->_solver_factor_inv_solver = input._solver_factor_inv_solver;
+      this->_Weight_U_Nc = input._Weight_U_Nc;
       this->_state_space_updater_function = input._state_space_updater_function;
       this->_phi_f_updater_function = input._phi_f_updater_function;
     }
@@ -913,6 +918,7 @@ public:
         _U_latest(std::move(input._U_latest)),
         _Y_store(std::move(input._Y_store)),
         _solver_factor_inv_solver(std::move(input._solver_factor_inv_solver)),
+        _Weight_U_Nc(std::move(input._Weight_U_Nc)),
         _state_space_updater_function(
             std::move(input._state_space_updater_function)),
         _phi_f_updater_function(std::move(input._phi_f_updater_function)) {}
@@ -932,6 +938,7 @@ public:
       this->_Y_store = std::move(input._Y_store);
       this->_solver_factor_inv_solver =
           std::move(input._solver_factor_inv_solver);
+      this->_Weight_U_Nc = std::move(input._Weight_U_Nc);
       this->_state_space_updater_function =
           std::move(input._state_space_updater_function);
       this->_phi_f_updater_function = std::move(input._phi_f_updater_function);
@@ -980,6 +987,7 @@ public:
                                   this->_prediction_matrices.F);
 
     this->_update_solver_factor(this->_prediction_matrices.Phi,
+                                this->_prediction_matrices.F,
                                 this->_Weight_U_Nc);
   }
 
@@ -1028,10 +1036,24 @@ public:
 protected:
   /* Function */
 
+  /**
+   * @brief Updates the solver factor based on the current prediction matrices
+   * and weight matrix.
+   *
+   * This function computes the solver factor used in the MPC optimization
+   * problem, which is derived from the prediction matrices and the weight
+   * matrix for control input changes.
+   *
+   * @param Phi The prediction matrix Phi.
+   * @param F The prediction matrix F.
+   * @param Weight_U_Nc The weight matrix for control input changes.
+   */
   inline void _update_solver_factor(const typename Phi_Type &Phi,
-                                    const typename F_Type &F) {
+                                    const typename F_Type &F,
+                                    const Weight_U_Nc_Type &Weight_U_Nc) {
 
-    // solver_factor = np.linalg.solve(Phi.T @ Phi + Weight_U_Nc, Phi.T)
+    this->_solver_factor = this->_solver_factor_inv_solver.solve(
+        PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc, Phi.transpose());
   }
 
   /**
@@ -1105,6 +1127,7 @@ protected:
   Y_Store_Type _Y_store;
 
   SolverFactor_InvSolver_Type _solver_factor_inv_solver;
+  Weight_U_Nc_Type _Weight_U_Nc;
 
   _MPC_StateSpace_Updater_Function_Object _state_space_updater_function;
   _LTV_MPC_Phi_F_Updater_Function_Object _phi_f_updater_function;
@@ -1113,13 +1136,14 @@ protected:
 /* make LTV MPC No Constraints */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
-          typename SolverFactor_Type_In,
+          typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
           typename EmbeddedIntegratorSateSpace_Type>
 inline auto make_LTV_MPC_NoConstraints(
     const LKF_Type &kalman_filter,
     const PredictionMatrices_Type &prediction_matrices,
     const ReferenceTrajectory_Type &reference_trajectory,
     const SolverFactor_Type_In &solver_factor_in,
+    const Weight_U_Nc_Type &Weight_U_Nc,
     MPC_StateSpace_Updater_Function_Object<Parameter_Type,
                                            EmbeddedIntegratorSateSpace_Type>
         &state_space_updater_function,
@@ -1135,7 +1159,8 @@ inline auto make_LTV_MPC_NoConstraints(
                                ReferenceTrajectory_Type, Parameter_Type,
                                SolverFactor_Type_In>(
       kalman_filter, prediction_matrices, reference_trajectory,
-      solver_factor_in, state_space_updater_function, phi_f_updater_function);
+      solver_factor_in, Weight_U_Nc, state_space_updater_function,
+      phi_f_updater_function);
 }
 
 /* LTV MPC No Constraints Type */
