@@ -710,8 +710,7 @@ class LinearMPC_Deploy:
 
         deployed_file_names.append(LTV_MPC_Phi_F_updater_cpp_name_ext)
 
-        # %% create LKF, F, Phi, solver_factor code
-        # create LKF code
+        # %% create LKF, F, Phi, solver_factor, Weight_U_Nc code
         exec(f"{variable_name}_lkf = ltv_mpc_nc.kalman_filter")
         lkf_file_names = eval(
             f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_without_ext, number_of_delay={number_of_delay})")
@@ -721,7 +720,6 @@ class LinearMPC_Deploy:
 
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
-        # create F code
         exec(f"{variable_name}_F = ltv_mpc_nc.prediction_matrices.F_ndarray")
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
@@ -729,7 +727,6 @@ class LinearMPC_Deploy:
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
 
-        # create Phi code
         exec(
             f"{variable_name}_Phi = ltv_mpc_nc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
@@ -738,13 +735,20 @@ class LinearMPC_Deploy:
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
-        # create solver_factor code
         exec(f"{variable_name}_solver_factor = ltv_mpc_nc.solver_factor")
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_solver_factor, caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
+            0]
+
+        exec(f"{variable_name}_Weight_U_Nc = ltv_mpc_nc.Weight_U_Nc")
+        Weight_U_Nc_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Weight_U_Nc, caller_file_name_without_ext)")
+
+        deployed_file_names.append(Weight_U_Nc_file_name)
+        Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
             0]
 
         # %% main code generation
@@ -759,7 +763,10 @@ class LinearMPC_Deploy:
         code_text += f"#include \"{F_file_name}\"\n"
         code_text += f"#include \"{Phi_file_name}\"\n"
         code_text += f"#include \"{solver_factor_file_name}\"\n"
-        code_text += f"#include \"{caller_file_name_without_ext}_parameters.hpp\"\n\n"
+        code_text += f"#include \"{Weight_U_Nc_file_name}\"\n"
+        code_text += f"#include \"{caller_file_name_without_ext}_parameters.hpp\"\n"
+        code_text += f"#include \"{mpc_state_space_updater_cpp_name}\"\n"
+        code_text += f"#include \"{LTV_MPC_Phi_F_updater_cpp_name}\"\n\n"
 
         code_text += "#include \"python_mpc.hpp\"\n\n"
 
@@ -784,6 +791,12 @@ class LinearMPC_Deploy:
 
         code_text += f"using LKF_Type = {lkf_file_name_no_extension}::type;\n\n"
 
+        code_text += f"using A_Type = typename LKF_Type::DiscreteStateSpace_Type::A_Type;\n\n"
+
+        code_text += f"using B_Type = typename LKF_Type::DiscreteStateSpace_Type::B_Type;\n\n"
+
+        code_text += f"using C_Type = typename LKF_Type::DiscreteStateSpace_Type::C_Type;\n\n"
+
         code_text += f"using F_Type = {F_file_name_no_extension}::type;\n\n"
 
         code_text += f"using Phi_Type = {Phi_file_name_no_extension}::type;\n\n"
@@ -805,9 +818,51 @@ class LinearMPC_Deploy:
 
         code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter;\n\n"
 
+        code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
+
+        code_text += f"using EmbeddedIntegratorSateSpace_Type =\n" + \
+            f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
+
         code_text += f"using type = LTV_MPC_NoConstraints_Type<\n" + \
             "  LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
             "  Parameter_Type, SolverFactor_Type>;\n\n"
+
+        code_text += "inline auto make() -> type {\n\n"
+
+        code_text += f"  auto kalman_filter = {lkf_file_name_no_extension}::make();\n\n"
+
+        code_text += f"  auto F = {F_file_name_no_extension}::make();\n\n"
+
+        code_text += f"  auto Phi = {Phi_file_name_no_extension}::make();\n\n"
+
+        code_text += f"  auto solver_factor = {solver_factor_file_name_no_extension}::make();\n\n"
+
+        code_text += f"  PredictionMatrices_Type prediction_matrices(F, Phi);\n\n"
+
+        code_text += f"  ReferenceTrajectory_Type reference_trajectory;\n\n"
+
+        code_text += f"  Weight_U_Nc_Type Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
+
+        code_text += f"  MPC_StateSpace_Updater_Function_Object<\n" + \
+            f"    Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>\n" + \
+            f"    MPC_StateSpace_Updater_Function =\n" + \
+            f"    mpc_state_space_updater::MPC_StateSpace_Updater::update<\n" + \
+            f"      Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;\n\n"
+
+        code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
+            f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
+            f"    LTV_MPC_Phi_F_Updater_Function =\n" + \
+            f"    ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<\n" + \
+            f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
+
+        code_text += f"  auto ltv_mpc_nc = make_LTV_MPC_NoConstraints(\n" + \
+            "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
+            "    Weight_U_Nc, MPC_StateSpace_Updater_Function,\n" + \
+            "    LTV_MPC_Phi_F_Updater_Function);\n\n"
+
+        code_text += "  return ltv_mpc_nc;\n\n"
+
+        code_text += "}\n\n"
 
         code_text += "} // namespace " + namespace_name + "\n\n"
 
