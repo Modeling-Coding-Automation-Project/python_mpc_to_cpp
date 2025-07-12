@@ -787,14 +787,14 @@ void check_LTV_MPC(void) {
 
     using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
 
-    MPC_StateSpace_Updater_Function_Object<
-        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>
-        MPC_StateSpace_Updater_Function = 
-        PythonMPC_ServoMotorData::mpc_state_space_updater::MPC_StateSpace_Updater::update<
-        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
-
     using EmbeddedIntegratorSateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
+
+    MPC_StateSpace_Updater_Function_Object<
+        Parameter_Type, EmbeddedIntegratorSateSpace_Type>
+        MPC_StateSpace_Updater_Function = 
+        PythonMPC_ServoMotorData::mpc_state_space_updater::MPC_StateSpace_Updater::update<
+        Parameter_Type, EmbeddedIntegratorSateSpace_Type>;
 
     LTV_MPC_Phi_F_Updater_Function_Object<
         EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
@@ -840,7 +840,7 @@ int main(void) {
 
     check_LTV_MPC<double>();
 
-    //check_LTV_MPC<float>();
+    check_LTV_MPC<float>();
 
 
     return 0;

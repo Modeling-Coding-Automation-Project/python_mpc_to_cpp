@@ -794,13 +794,20 @@ public:
                 "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
                 "NP)");
 
+  using EmbeddedIntegratorSateSpace_Type = typename EmbeddedIntegratorTypes<
+      typename LKF_Type::DiscreteStateSpace_Type::A_Type,
+      typename LKF_Type::DiscreteStateSpace_Type::B_Type,
+      typename LKF_Type::DiscreteStateSpace_Type::C_Type>::StateSpace_Type;
+
+protected:
+  /* Type */
   using _MPC_StateSpace_Updater_Function_Object =
-      MPC_StateSpace_Updater_Function_Object<
-          Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
+      MPC_StateSpace_Updater_Function_Object<Parameter_Type,
+                                             EmbeddedIntegratorSateSpace_Type>;
 
   using _LTV_MPC_Phi_F_Updater_Function_Object =
       LTV_MPC_Phi_F_Updater_Function_Object<
-          typename LKF_Type::DiscreteStateSpace_Type, Parameter_Type,
+          EmbeddedIntegratorSateSpace_Type, Parameter_Type,
           typename PredictionMatrices_Type::Phi_Type,
           typename PredictionMatrices_Type::F_Type>;
 
@@ -926,6 +933,34 @@ protected:
   _MPC_StateSpace_Updater_Function_Object _state_space_updater_function;
   _LTV_MPC_Phi_F_Updater_Function_Object _phi_f_updater_function;
 };
+
+/* make LTV MPC No Constraints */
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename SolverFactor_Type_In,
+          typename EmbeddedIntegratorSateSpace_Type>
+inline auto make_LTV_MPC_NoConstraints(
+    const LKF_Type &kalman_filter,
+    const PredictionMatrices_Type &prediction_matrices,
+    const ReferenceTrajectory_Type &reference_trajectory,
+    const SolverFactor_Type_In &solver_factor_in,
+    MPC_StateSpace_Updater_Function_Object<Parameter_Type,
+                                           EmbeddedIntegratorSateSpace_Type>
+        &state_space_updater_function,
+    LTV_MPC_Phi_F_Updater_Function_Object<
+        EmbeddedIntegratorSateSpace_Type, Parameter_Type,
+        typename PredictionMatrices_Type::Phi_Type,
+        typename PredictionMatrices_Type::F_Type> &phi_f_updater_function)
+    -> LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                             ReferenceTrajectory_Type, Parameter_Type,
+                             SolverFactor_Type_In> {
+
+  return LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                               ReferenceTrajectory_Type, Parameter_Type,
+                               SolverFactor_Type_In>(
+      kalman_filter, prediction_matrices, reference_trajectory,
+      solver_factor_in, state_space_updater_function, phi_f_updater_function);
+}
 
 } // namespace PythonMPC
 
