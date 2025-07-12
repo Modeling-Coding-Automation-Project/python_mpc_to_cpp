@@ -618,7 +618,8 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other) noexcept
+  LTI_MPC(LTI_MPC &&other)
+  noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
@@ -730,6 +731,17 @@ using LTI_MPC_Type =
     LTI_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
             Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
             U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>;
+
+/* LTV MPC Function Object */
+
+template <typename Parameter_Type, typename MPC_StateSpace_Updater_Output_Type>
+using MPC_StateSpace_Updater_Function_Object = std::function<void(
+    const Parameter_Type &, MPC_StateSpace_Updater_Output_Type &)>;
+
+template <typename StateSpace_Type, typename Parameter_Type, typename Phi_Type,
+          typename F_Type>
+using LTV_MPC_Phi_F_Updater_Function_Object =
+    std::function<void(const Parameter_Type &, Phi_Type &, F_Type &)>;
 
 /* LTV MPC No Constraints */
 
