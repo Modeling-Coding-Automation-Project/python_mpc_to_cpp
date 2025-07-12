@@ -106,6 +106,23 @@ class MatrixUpdatorToCppVisitor(ast.NodeVisitor):
         # function header
         self.cpp_code += f"{self.indent}{static_str}inline auto {node.name}({arg_list}) -> {ret_type} {{\n"
 
+        if node.name == "update":
+            update_args = [arg.arg for arg in node.args.args]
+
+            sympy_func_args = []
+            for stmt in node.body:
+                if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Call):
+                    if hasattr(stmt.value.func, 'attr') and stmt.value.func.attr == "sympy_function":
+                        sympy_func_args = [astor.to_source(
+                            arg).strip() for arg in stmt.value.args]
+
+            unused_args = [
+                arg for arg in update_args if arg not in sympy_func_args]
+
+            for arg in unused_args:
+                self.cpp_code += f"{self.indent}static_cast<void>({arg});\n"
+            self.cpp_code += "\n"
+
         if node.name == "sympy_function":
             self.cpp_code += f"{self.indent}    {ret_type} result;\n\n"
 
