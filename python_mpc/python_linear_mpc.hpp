@@ -129,6 +129,43 @@ struct Integrate_U<U_Type, U_Horizon_Type, 0> {
 
 } // namespace LMPC_Operation
 
+namespace LMPC_CommonFunctions {
+/**
+ * @brief Solves the Linear Model Predictive Control (LMPC) problem without
+ * constraints.
+ *
+ * This function computes the control input delta_U by applying the solver
+ * factor to the reference trajectory, adjusted by the system dynamics matrix F
+ * and the augmented state vector X_augmented.
+ *
+ * @tparam SolverFactor_Type Type of the solver factor used in LMPC.
+ * @tparam F_Type Type of the system dynamics matrix.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam X_Augmented_Type Type of the augmented state vector.
+ * @tparam U_Horizon_Type Type of the control input horizon.
+ *
+ * @param solver_factor The solver factor used to scale the reference
+ * trajectory.
+ * @param F The system dynamics matrix.
+ * @param reference_trajectory The reference trajectory object that provides
+ * delta_U calculation.
+ * @param X_augmented The augmented state vector containing current state and
+ * output information.
+ * @param delta_U The output control input for the horizon, which will be
+ * modified in place.
+ */
+template <typename SolverFactor_Type, typename F_Type,
+          typename ReferenceTrajectory_Type, typename X_Augmented_Type,
+          typename U_Horizon_Type>
+inline void solve_LMPC_No_Constraints(
+    const SolverFactor_Type &solver_factor, const F_Type &F,
+    ReferenceTrajectory_Type &reference_trajectory,
+    const X_Augmented_Type &X_augmented, U_Horizon_Type &delta_U) {
+
+  delta_U = solver_factor * reference_trajectory.calculate_dif(F * X_augmented);
+}
+}; // namespace LMPC_CommonFunctions
+
 /**
  * @brief Linear Model Predictive Control (MPC) class without constraints.
  *
@@ -378,9 +415,11 @@ protected:
   virtual inline auto _solve(const X_Augmented_Type &X_augmented)
       -> U_Horizon_Type {
 
-    auto delta_U =
-        this->_solver_factor * this->_reference_trajectory.calculate_dif(
-                                   this->_prediction_matrices.F * X_augmented);
+    U_Horizon_Type delta_U;
+
+    LMPC_CommonFunctions::solve_LMPC_No_Constraints(
+        this->_solver_factor, this->_prediction_matrices.F,
+        this->_reference_trajectory, X_augmented, delta_U);
 
     return delta_U;
   }
@@ -559,8 +598,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
