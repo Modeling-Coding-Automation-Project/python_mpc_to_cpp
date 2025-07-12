@@ -807,7 +807,110 @@ public:
 
 public:
   /* Constructor */
-  LTV_MPC_NoConstraints() {}
+  LTV_MPC_NoConstraints()
+      : _kalman_filter(), _prediction_matrices(), _reference_trajectory(),
+        _solver_factor(), _X_inner_model(), _U_latest(), _Y_store() {}
+
+  template <typename LKF_Type, typename PredictionMatrices_Type,
+            typename ReferenceTrajectory_Type,
+            typename SolverFactor_Type_In_Constructor,
+            typename _MPC_StateSpace_Updater_Function_Object,
+            typename _LTV_MPC_Phi_F_Updater_Function_Object>
+  LTV_MPC_NoConstraints(
+      const LKF_Type &kalman_filter,
+      const PredictionMatrices_Type &prediction_matrices,
+      const ReferenceTrajectory_Type &reference_trajectory,
+      const SolverFactor_Type_In_Constructor &solver_factor_in,
+      _MPC_StateSpace_Updater_Function_Object &state_space_updater_function,
+      _LTV_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function)
+      : _kalman_filter(kalman_filter),
+        _prediction_matrices(prediction_matrices),
+        _reference_trajectory(reference_trajectory), _solver_factor(),
+        _X_inner_model(), _U_latest(), _Y_store(),
+        _state_space_updater_function(state_space_updater_function),
+        _phi_f_updater_function(phi_f_updater_function) {
+
+    static_assert(SolverFactor_Type::COLS ==
+                      SolverFactor_Type_In_Constructor::COLS,
+                  "SolverFactor_Type::COL must be equal to "
+                  "SolverFactor_Type_In_Constructor::COL");
+    static_assert(SolverFactor_Type::ROWS ==
+                      SolverFactor_Type_In_Constructor::ROWS,
+                  "SolverFactor_Type::ROW must be equal to "
+                  "SolverFactor_Type_In_Constructor::ROW");
+
+    // This is because the solver_factor_in can be different type from
+    // "SolverFactor_Type".
+    PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor_in);
+  }
+
+  /* Copy Constructor */
+  LTV_MPC_NoConstraints(
+      const LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                  ReferenceTrajectory_Type, Parameter_Type>
+          &input)
+      : _kalman_filter(input._kalman_filter),
+        _prediction_matrices(input._prediction_matrices),
+        _reference_trajectory(input._reference_trajectory),
+        _solver_factor(input._solver_factor),
+        _X_inner_model(input._X_inner_model), _U_latest(input._U_latest),
+        _Y_store(input._Y_store),
+        _state_space_updater_function(input._state_space_updater_function),
+        _phi_f_updater_function(input._phi_f_updater_function) {}
+
+  LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                        ReferenceTrajectory_Type, Parameter_Type> &
+  operator=(const LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                        ReferenceTrajectory_Type,
+                                        Parameter_Type> &input) {
+    if (this != &input) {
+      this->_kalman_filter = input._kalman_filter;
+      this->_prediction_matrices = input._prediction_matrices;
+      this->_reference_trajectory = input._reference_trajectory;
+      this->_solver_factor = input._solver_factor;
+      this->_X_inner_model = input._X_inner_model;
+      this->_U_latest = input._U_latest;
+      this->_Y_store = input._Y_store;
+      this->_state_space_updater_function = input._state_space_updater_function;
+      this->_phi_f_updater_function = input._phi_f_updater_function;
+    }
+    return *this;
+  }
+
+  /* Move Constructor */
+  LTV_MPC_NoConstraints(LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                              ReferenceTrajectory_Type,
+                                              Parameter_Type> &&input) noexcept
+      : _kalman_filter(std::move(input._kalman_filter)),
+        _prediction_matrices(std::move(input._prediction_matrices)),
+        _reference_trajectory(std::move(input._reference_trajectory)),
+        _solver_factor(std::move(input._solver_factor)),
+        _X_inner_model(std::move(input._X_inner_model)),
+        _U_latest(std::move(input._U_latest)),
+        _Y_store(std::move(input._Y_store)),
+        _state_space_updater_function(
+            std::move(input._state_space_updater_function)),
+        _phi_f_updater_function(std::move(input._phi_f_updater_function)) {}
+
+  LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                        ReferenceTrajectory_Type, Parameter_Type> &
+  operator=(LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                  ReferenceTrajectory_Type, Parameter_Type>
+                &&input) noexcept {
+    if (this != &input) {
+      this->_kalman_filter = std::move(input._kalman_filter);
+      this->_prediction_matrices = std::move(input._prediction_matrices);
+      this->_reference_trajectory = std::move(input._reference_trajectory);
+      this->_solver_factor = std::move(input._solver_factor);
+      this->_X_inner_model = std::move(input._X_inner_model);
+      this->_U_latest = std::move(input._U_latest);
+      this->_Y_store = std::move(input._Y_store);
+      this->_state_space_updater_function =
+          std::move(input._state_space_updater_function);
+      this->_phi_f_updater_function = std::move(input._phi_f_updater_function);
+    }
+    return *this;
+  }
 
 protected:
   /* Variables */
