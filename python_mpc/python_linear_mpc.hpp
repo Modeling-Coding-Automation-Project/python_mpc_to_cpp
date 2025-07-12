@@ -746,7 +746,7 @@ using LTV_MPC_Phi_F_Updater_Function_Object =
 /* LTV MPC No Constraints */
 
 template <typename LKF_Type_In, typename PredictionMatrices_Type_In,
-          typename ReferenceTrajectory_Type_In,
+          typename ReferenceTrajectory_Type_In, typename Parameter_Type_In,
           typename SolverFactor_Type_In = SolverFactor_Empty>
 class LTV_MPC_NoConstraints {
 public:
@@ -754,6 +754,7 @@ public:
   using LKF_Type = LKF_Type_In;
   using PredictionMatrices_Type = PredictionMatrices_Type_In;
   using ReferenceTrajectory_Type = ReferenceTrajectory_Type_In;
+  using Parameter_Type = Parameter_Type_In;
 
 protected:
   /* Type */
@@ -794,9 +795,34 @@ public:
                 "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
                 "NP)");
 
+  using _MPC_StateSpace_Updater_Function_Object =
+      MPC_StateSpace_Updater_Function_Object<
+          Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
+
+  using _LTV_MPC_Phi_F_Updater_Function_Object =
+      LTV_MPC_Phi_F_Updater_Function_Object<
+          typename LKF_Type::DiscreteStateSpace_Type, Parameter_Type,
+          typename PredictionMatrices_Type::Phi_Type,
+          typename PredictionMatrices_Type::F_Type>;
+
 public:
   /* Constructor */
   LTV_MPC_NoConstraints() {}
+
+protected:
+  /* Variables */
+  LKF_Type _kalman_filter;
+  PredictionMatrices_Type _prediction_matrices;
+  ReferenceTrajectory_Type _reference_trajectory;
+
+  SolverFactor_Type _solver_factor;
+
+  X_Type _X_inner_model;
+  U_Type _U_latest;
+  Y_Store_Type _Y_store;
+
+  _MPC_StateSpace_Updater_Function_Object _state_space_updater_function;
+  _LTV_MPC_Phi_F_Updater_Function_Object _phi_f_updater_function;
 };
 
 } // namespace PythonMPC
