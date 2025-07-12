@@ -17,8 +17,49 @@
 
 #include <functional>
 #include <type_traits>
+#include <utility>
 
 namespace PythonMPC {
+
+namespace EmbeddedIntegratorOperation {
+
+template <typename A_Type_In, typename B_Type_In, typename C_Type_In>
+struct EmbeddedIntegratorTypes {
+
+  using T = typename A_Type_In::Value_Type;
+
+  // constexpr std::size_t A_COLS = A_Type_In::COLS + C_Type_In::COLS;
+  // constexpr std::size_t A_ROWS = A_COLS;
+
+  // constexpr std::size_t B_COLS = B_Type_In::COLS + C_Type_In::COLS;
+  // constexpr std::size_t B_ROWS = B_Type_In::ROWS;
+
+  // constexpr std::size_t C_COLS = C_Type_In::COLS;
+  // constexpr std::size_t C_ROWS = C_Type_In::ROWS + C_Type_In::COLS;
+
+  using O_M_T_Type =
+      PythonNumpy::SparseMatrixEmpty_Type<T, A_Type_In::COLS, C_Type_In::COLS>;
+
+  using O_M_Type =
+      PythonNumpy::SparseMatrixEmpty_Type<T, C_Type_In::COLS, A_Type_In::COLS>;
+
+  using CC_Identity_Type = PythonNumpy::DiagMatrix_Type<T, C_Type_In::COLS>;
+
+  using C_A_Type =
+      decltype(std::declval<C_Type_In>() * std::declval<A_Type_In>());
+
+  using C_B_Type =
+      decltype(std::declval<C_Type_In>() * std::declval<B_Type_In>());
+
+  using A_Type = PythonNumpy::ConcatenateBlock_Type<
+      (A_Type_In::COLS + C_Type_In::COLS), (A_Type_In::COLS + C_Type_In::COLS)>(
+      A_Type_In, O_M_T_Type, C_A_Type, CC_Identity_Type);
+
+  // using B_Type = B_Type;
+  // using C_Type = C_Type;
+};
+
+} // namespace EmbeddedIntegratorOperation
 
 /* MPC Prediction Matrices */
 

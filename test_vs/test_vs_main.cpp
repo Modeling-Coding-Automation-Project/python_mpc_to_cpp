@@ -797,7 +797,7 @@ void check_LTV_MPC(void) {
 
 
     tester.throw_error_if_test_failed();
-}
+}   
 
 int main(void) {
 

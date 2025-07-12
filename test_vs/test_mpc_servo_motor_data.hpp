@@ -586,13 +586,13 @@ namespace mpc_embedded_integrator_state_space_updater {
             double Kt = parameter.Kt;
             double Bload = parameter.Bload;
 
-            auto A = A_Updater<EmbeddedIntegrator_Updater_Output_Type::A_Type>::update(
+            auto A = A_Updater<typename EmbeddedIntegrator_Updater_Output_Type::A_Type>::update(
                 Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
-            auto B = B_Updater<EmbeddedIntegrator_Updater_Output_Type::B_Type>::update(
+            auto B = B_Updater<typename EmbeddedIntegrator_Updater_Output_Type::B_Type>::update(
                 Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
-            auto C = C_Updater<EmbeddedIntegrator_Updater_Output_Type::C_Type>::update(
+            auto C = C_Updater<typename EmbeddedIntegrator_Updater_Output_Type::C_Type>::update(
                 Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
             output.A = A;
