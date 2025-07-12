@@ -216,7 +216,7 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
         # A, B, C
         for updater in ["A", "B", "C"]:
             self.cpp_code += (
-                f"{self.indent}auto {updater} = {updater}_Updater<" +
+                f"{self.indent}auto {updater} = {updater}_Updater<typename " +
                 f"{self.output_type_name}::{updater}_Type>::update("
                 + ", ".join([v[0] for v in self.param_names]) + ");\n\n"
             )
@@ -224,7 +224,7 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
         # D
         if self.has_D:
             self.cpp_code += (
-                f"{self.indent}auto D = D_Updater<{self.output_type_name}::D_Type>::update("
+                f"{self.indent}auto D = D_Updater<typename {self.output_type_name}::D_Type>::update("
                 + ", ".join([v[0] for v in self.param_names]) + ");\n\n"
             )
 
