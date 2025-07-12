@@ -247,16 +247,16 @@ class LTVMatricesDeploy:
         return code_text
 
     @staticmethod
-    def generate_mpc_state_space_updater_cpp_code(python_file_name: str,
+    def generate_mpc_state_space_updater_cpp_code(input_python_file_name: str,
                                                   file_name_no_extension: str):
 
         function_file_path = ControlDeploy.find_file(
-            python_file_name, os.getcwd())
+            input_python_file_name, os.getcwd())
 
         class_methods = extract_class_methods(function_file_path)
 
         if not class_methods:
-            raise ValueError(f"No classes found in {python_file_name}.")
+            raise ValueError(f"No classes found in {input_python_file_name}.")
 
         code_text = ""
 
@@ -297,6 +297,31 @@ class LTVMatricesDeploy:
                 code_text += "}\n"
 
             code_text += "};\n\n"
+
+        code_text += f"}} // namespace {file_name_no_extension}\n\n"
+
+        code_text += f"#endif // __{file_name_no_extension.upper()}_HPP__\n"
+
+        return code_text
+
+    @staticmethod
+    def generate_prediction_matrices_phi_f_updater_cpp_code(input_python_file_name: str,
+                                                            file_name_no_extension: str):
+
+        function_file_path = ControlDeploy.find_file(
+            input_python_file_name, os.getcwd())
+
+        class_methods = extract_class_methods(function_file_path)
+
+        if not class_methods:
+            raise ValueError(f"No classes found in {input_python_file_name}.")
+
+        code_text = ""
+
+        code_text += f"#ifndef __{file_name_no_extension.upper()}_HPP__\n"
+        code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
+
+        code_text += f"namespace {file_name_no_extension} {{\n\n"
 
         code_text += f"}} // namespace {file_name_no_extension}\n\n"
 

@@ -669,5 +669,19 @@ class LinearMPC_Deploy:
         embedded_integrator_updater_cpp_name_ext = ControlDeploy.write_to_file(
             embedded_integrator_updater_code, embedded_integrator_updater_cpp_name)
 
+        # %% generate Prediction Matrices Phi F updater code
+        prediction_matrices_updater_file_name = \
+            ltv_mpc_nc.state_space_initializer.prediction_matrices_phi_f_updater_file_name
+        prediction_matrices_updater_name_no_extension = \
+            prediction_matrices_updater_file_name.split(".")[0]
+        prediction_matrices_updater_cpp_name = prediction_matrices_updater_name_no_extension + ".hpp"
+
+        prediction_matrices_updater_code = \
+            LTVMatricesDeploy.generate_prediction_matrices_phi_f_updater_cpp_code(
+                prediction_matrices_updater_file_name, prediction_matrices_updater_name_no_extension)
+
+        prediction_matrices_updater_cpp_name_ext = ControlDeploy.write_to_file(
+            prediction_matrices_updater_code, prediction_matrices_updater_cpp_name)
+
         # %% main code generation
         code_text = ""
