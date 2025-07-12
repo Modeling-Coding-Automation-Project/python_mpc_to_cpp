@@ -731,6 +731,15 @@ using LTI_MPC_Type =
             Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
             U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>;
 
+/* LTV MPC No Constraints */
+
+template <typename LKF_Type_In, typename PredictionMatrices_Type_In,
+          typename ReferenceTrajectory_Type_In,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+class LTV_MPC_NoConstraints {
+public:
+};
+
 } // namespace PythonMPC
 
 #endif // __PYTHON_LINEAR_MPC_HPP__
