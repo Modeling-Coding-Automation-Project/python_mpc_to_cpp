@@ -127,6 +127,63 @@ struct Integrate_U<U_Type, U_Horizon_Type, 0> {
   }
 };
 
+/**
+ * @brief Solves the Linear Model Predictive Control (LMPC) problem without
+ * constraints.
+ *
+ * This function computes the control input delta_U by applying the solver
+ * factor to the reference trajectory, adjusted by the system dynamics matrix F
+ * and the augmented state vector X_augmented.
+ *
+ * @tparam SolverFactor_Type Type of the solver factor used in LMPC.
+ * @tparam F_Type Type of the system dynamics matrix.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam X_Augmented_Type Type of the augmented state vector.
+ * @tparam U_Horizon_Type Type of the control input horizon.
+ *
+ * @param solver_factor The solver factor used to scale the reference
+ * trajectory.
+ * @param F The system dynamics matrix.
+ * @param reference_trajectory The reference trajectory object that provides
+ * delta_U calculation.
+ * @param X_augmented The augmented state vector containing current state and
+ * output information.
+ * @param delta_U The output control input for the horizon, which will be
+ * modified in place.
+ */
+template <typename SolverFactor_Type, typename F_Type,
+          typename ReferenceTrajectory_Type, typename X_Augmented_Type,
+          typename U_Horizon_Type>
+inline void solve_LMPC_No_Constraints(
+    const SolverFactor_Type &solver_factor, const F_Type &F,
+    ReferenceTrajectory_Type &reference_trajectory,
+    const X_Augmented_Type &X_augmented, U_Horizon_Type &delta_U) {
+
+  delta_U = solver_factor * reference_trajectory.calculate_dif(F * X_augmented);
+}
+
+/**
+ * @brief Calculates the control input U based on the latest control input and
+ * the delta control input.
+ *
+ * This function computes the new control input U by adding the delta_U to the
+ * latest control input U_latest.
+ *
+ * @tparam U_Type Type of the control input.
+ *
+ * @param U_latest The latest control input.
+ * @param delta_U The change in control input to be applied.
+ * @return The updated control input U.
+ */
+template <typename U_Type>
+inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
+    -> U_Type {
+
+  auto U = U_latest + delta_U;
+
+  return U;
+}
+
 } // namespace LMPC_Operation
 
 /**
@@ -378,9 +435,11 @@ protected:
   virtual inline auto _solve(const X_Augmented_Type &X_augmented)
       -> U_Horizon_Type {
 
-    auto delta_U =
-        this->_solver_factor * this->_reference_trajectory.calculate_dif(
-                                   this->_prediction_matrices.F * X_augmented);
+    U_Horizon_Type delta_U;
+
+    LMPC_Operation::solve_LMPC_No_Constraints(
+        this->_solver_factor, this->_prediction_matrices.F,
+        this->_reference_trajectory, X_augmented, delta_U);
 
     return delta_U;
   }
@@ -397,9 +456,45 @@ protected:
    */
   inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
 
-    auto U = this->_U_latest + delta_U;
+    auto U = LMPC_Operation::calculate_this_U(this->_U_latest, delta_U);
 
     return U;
+  }
+
+  /**
+   * @brief Returns the Kalman filter used in the MPC.
+   *
+   * This function provides access to the Kalman filter instance, allowing
+   * external components to retrieve the current state estimate and other
+   * properties of the Kalman filter.
+   *
+   * @return A constant reference to the Kalman filter instance.
+   */
+  inline auto get_kalman_filter() const -> const LKF_Type & {
+    return this->_kalman_filter;
+  }
+
+  /**
+   * @brief Returns the prediction matrices used in the MPC.
+   *
+   * This function provides access to the prediction matrices, which are used
+   * to compute the control inputs based on the current state and reference
+   * trajectory.
+   *
+   * @return A constant reference to the prediction matrices.
+   */
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
+    return this->_prediction_matrices;
+  }
+
+  /**
+   * @brief Retrieves the solver factor used by the MPC solver.
+   *
+   * @return A constant reference to the internal SolverFactor_Type instance.
+   */
+  inline auto get_solver_factor() const -> const SolverFactor_Type & {
+    return this->_solver_factor;
   }
 
 protected:
@@ -483,10 +578,9 @@ using LTI_MPC_NoConstraints_Type =
  * be empty).
  */
 template <typename LKF_Type, typename PredictionMatrices_Type,
-          typename ReferenceTrajectory_Type, typename Weight_U_Nc_Type,
-          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
-          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
-          typename Y_Max_Type,
+          typename ReferenceTrajectory_Type, typename Delta_U_Min_Type,
+          typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
+          typename Y_Min_Type, typename Y_Max_Type,
           typename SolverFactor_Type_In = SolverFactor_Empty>
 class LTI_MPC : public LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                                              ReferenceTrajectory_Type,
@@ -503,11 +597,16 @@ protected:
   using _X_Augmented_Type =
       typename _LTI_MPC_NoConstraints_Type::X_Augmented_Type;
 
+  using _Weight_U_Nc_Type =
+      PythonNumpy::DiagMatrix_Type<typename _LTI_MPC_NoConstraints_Type::_T,
+                                   (_LTI_MPC_NoConstraints_Type::INPUT_SIZE *
+                                    _LTI_MPC_NoConstraints_Type::NC)>;
+
   using _Solver_Type = LTI_MPC_QP_Solver_Type<
       _U_Horizon_Type::COLS, _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE,
       typename _LTI_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
       typename PredictionMatrices_Type::Phi_Type,
-      typename PredictionMatrices_Type::F_Type, Weight_U_Nc_Type,
+      typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
       Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
       Y_Max_Type>;
 
@@ -519,7 +618,7 @@ public:
   LTI_MPC(const LKF_Type &kalman_filter,
           const PredictionMatrices_Type &prediction_matrices,
           const ReferenceTrajectory_Type &reference_trajectory,
-          const Weight_U_Nc_Type &Weight_U_Nc,
+          const _Weight_U_Nc_Type &Weight_U_Nc,
           const Delta_U_Min_Type &delta_U_min,
           const Delta_U_Max_Type &delta_U_max, const U_Min_Type &U_min,
           const U_Max_Type &U_max, const Y_Min_Type &Y_min,
@@ -559,8 +658,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
@@ -650,28 +748,540 @@ inline auto make_LTI_MPC(const LKF_Type &kalman_filter,
                          const Y_Min_Type &Y_min, const Y_Max_Type &Y_max,
                          const SolverFactor_Type_In &solver_factor_in)
     -> LTI_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-               Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
-               U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In> {
+               Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+               Y_Min_Type, Y_Max_Type, SolverFactor_Type_In> {
 
   return LTI_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-                 Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type,
-                 U_Min_Type, U_Max_Type, Y_Min_Type, Y_Max_Type,
-                 SolverFactor_Type_In>(
+                 Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+                 Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>(
       kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,
       delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max, solver_factor_in);
 }
 
 /* LTI MPC Type */
 template <typename LKF_Type, typename PredictionMatrices_Type,
-          typename ReferenceTrajectory_Type, typename Weight_U_Nc_Type,
-          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
-          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
-          typename Y_Max_Type,
+          typename ReferenceTrajectory_Type, typename Delta_U_Min_Type,
+          typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
+          typename Y_Min_Type, typename Y_Max_Type,
           typename SolverFactor_Type_In = SolverFactor_Empty>
 using LTI_MPC_Type =
     LTI_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-            Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
-            U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>;
+            Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
+            Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>;
+
+/* LTV MPC Function Object */
+
+template <typename Parameter_Type, typename MPC_StateSpace_Updater_Output_Type>
+using MPC_StateSpace_Updater_Function_Object = std::function<void(
+    const Parameter_Type &, MPC_StateSpace_Updater_Output_Type &)>;
+
+template <typename StateSpace_Type, typename Parameter_Type, typename Phi_Type,
+          typename F_Type>
+using LTV_MPC_Phi_F_Updater_Function_Object =
+    std::function<void(const Parameter_Type &, Phi_Type &, F_Type &)>;
+
+/* LTV MPC No Constraints */
+
+/**
+ * @brief Linear Time-Varying Model Predictive Control (MPC) class without
+ * constraints.
+ *
+ * This class implements a linear time-varying MPC algorithm that does not
+ * enforce constraints on the control inputs or outputs. It uses a Kalman filter
+ * for state estimation and prediction matrices for system dynamics.
+ *
+ * @tparam LKF_Type_In Type of the Kalman filter used in the MPC.
+ * @tparam PredictionMatrices_Type_In Type of the prediction matrices used in
+ * the MPC.
+ * @tparam ReferenceTrajectory_Type_In Type of the reference trajectory used in
+ * the MPC.
+ * @tparam Parameter_Type_In Type of the parameters used in the MPC.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in the MPC (can
+ * be empty).
+ */
+template <typename LKF_Type_In, typename PredictionMatrices_Type_In,
+          typename ReferenceTrajectory_Type_In, typename Parameter_Type_In,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+class LTV_MPC_NoConstraints {
+public:
+  /* Type */
+  using LKF_Type = LKF_Type_In;
+  using PredictionMatrices_Type = PredictionMatrices_Type_In;
+  using ReferenceTrajectory_Type = ReferenceTrajectory_Type_In;
+  using Parameter_Type = Parameter_Type_In;
+
+protected:
+  /* Type */
+  using _T = typename PredictionMatrices_Type::Value_Type;
+
+public:
+  /* Type */
+  using Value_Type = _T;
+
+  static constexpr std::size_t INPUT_SIZE = LKF_Type::INPUT_SIZE;
+  static constexpr std::size_t STATE_SIZE = LKF_Type::STATE_SIZE;
+  static constexpr std::size_t OUTPUT_SIZE = LKF_Type::OUTPUT_SIZE;
+
+  static constexpr std::size_t NP = PredictionMatrices_Type::NP;
+  static constexpr std::size_t NC = PredictionMatrices_Type::NC;
+
+  static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
+
+  using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
+  using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
+  using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
+
+  using U_Horizon_Type =
+      PythonControl::StateSpaceInput_Type<_T, (INPUT_SIZE * NC)>;
+  using X_Augmented_Type =
+      PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
+  using Y_Store_Type =
+      PythonControl::DelayedVectorObject<Y_Type, NUMBER_OF_DELAY>;
+
+  typedef typename std::conditional<
+      std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
+      PythonNumpy::DenseMatrix_Type<_T, (INPUT_SIZE * NC), (OUTPUT_SIZE * NP)>,
+      SolverFactor_Type_In>::type SolverFactor_Type;
+
+  static_assert(SolverFactor_Type::COLS == (INPUT_SIZE * NC),
+                "SolverFactor_Type::COLS must be equal to (INPUT_SIZE * NC)");
+  static_assert(SolverFactor_Type::ROWS == (OUTPUT_SIZE * NP),
+                "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
+                "NP)");
+
+  using EmbeddedIntegratorSateSpace_Type = typename EmbeddedIntegratorTypes<
+      typename LKF_Type::DiscreteStateSpace_Type::A_Type,
+      typename LKF_Type::DiscreteStateSpace_Type::B_Type,
+      typename LKF_Type::DiscreteStateSpace_Type::C_Type>::StateSpace_Type;
+
+  using Phi_Type = typename PredictionMatrices_Type::Phi_Type;
+  using F_Type = typename PredictionMatrices_Type::F_Type;
+
+  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<_T, (INPUT_SIZE * NC)>;
+
+protected:
+  /* Type */
+  using _MPC_StateSpace_Updater_Function_Object =
+      MPC_StateSpace_Updater_Function_Object<
+          Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
+
+  using _LTV_MPC_Phi_F_Updater_Function_Object =
+      LTV_MPC_Phi_F_Updater_Function_Object<EmbeddedIntegratorSateSpace_Type,
+                                            Parameter_Type, Phi_Type, F_Type>;
+
+  using SolverFactor_InvSolver_Left_Type =
+      decltype(std::declval<PythonNumpy::Transpose_Type<Phi_Type>>() *
+                   std::declval<Phi_Type>() +
+               std::declval<Weight_U_Nc_Type>());
+
+  using SolverFactor_InvSolver_Right_Type =
+      PythonNumpy::Transpose_Type<Phi_Type>;
+
+  using SolverFactor_InvSolver_Type =
+      PythonNumpy::LinalgSolver_Type<SolverFactor_InvSolver_Left_Type,
+                                     SolverFactor_InvSolver_Right_Type>;
+
+public:
+  /* Constructor */
+  LTV_MPC_NoConstraints()
+      : _kalman_filter(), _prediction_matrices(), _reference_trajectory(),
+        _solver_factor(), _X_inner_model(), _U_latest(), _Y_store(),
+        _solver_factor_inv_solver(), _Weight_U_Nc() {}
+
+  template <typename LKF_Type, typename PredictionMatrices_Type,
+            typename ReferenceTrajectory_Type,
+            typename SolverFactor_Type_In_Constructor,
+            typename _MPC_StateSpace_Updater_Function_Object,
+            typename _LTV_MPC_Phi_F_Updater_Function_Object>
+  LTV_MPC_NoConstraints(
+      const LKF_Type &kalman_filter,
+      const PredictionMatrices_Type &prediction_matrices,
+      const ReferenceTrajectory_Type &reference_trajectory,
+      const SolverFactor_Type_In_Constructor &solver_factor_in,
+      const Weight_U_Nc_Type &Weight_U_Nc,
+      _MPC_StateSpace_Updater_Function_Object &state_space_updater_function,
+      _LTV_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function)
+      : _kalman_filter(kalman_filter),
+        _prediction_matrices(prediction_matrices),
+        _reference_trajectory(reference_trajectory), _solver_factor(),
+        _X_inner_model(), _U_latest(), _Y_store(), _solver_factor_inv_solver(),
+        _Weight_U_Nc(Weight_U_Nc),
+        _state_space_updater_function(state_space_updater_function),
+        _phi_f_updater_function(phi_f_updater_function) {
+
+    static_assert(SolverFactor_Type::COLS ==
+                      SolverFactor_Type_In_Constructor::COLS,
+                  "SolverFactor_Type::COL must be equal to "
+                  "SolverFactor_Type_In_Constructor::COL");
+    static_assert(SolverFactor_Type::ROWS ==
+                      SolverFactor_Type_In_Constructor::ROWS,
+                  "SolverFactor_Type::ROW must be equal to "
+                  "SolverFactor_Type_In_Constructor::ROW");
+
+    // This is because the solver_factor_in can be different type from
+    // "SolverFactor_Type".
+    PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor_in);
+  }
+
+  /* Copy Constructor */
+  LTV_MPC_NoConstraints(
+      const LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                  ReferenceTrajectory_Type, Parameter_Type>
+          &input)
+      : _kalman_filter(input._kalman_filter),
+        _prediction_matrices(input._prediction_matrices),
+        _reference_trajectory(input._reference_trajectory),
+        _solver_factor(input._solver_factor),
+        _X_inner_model(input._X_inner_model), _U_latest(input._U_latest),
+        _Y_store(input._Y_store),
+        _solver_factor_inv_solver(input._solver_factor_inv_solver),
+        _Weight_U_Nc(input._Weight_U_Nc),
+        _state_space_updater_function(input._state_space_updater_function),
+        _phi_f_updater_function(input._phi_f_updater_function) {}
+
+  LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                        ReferenceTrajectory_Type, Parameter_Type> &
+  operator=(const LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                        ReferenceTrajectory_Type,
+                                        Parameter_Type> &input) {
+    if (this != &input) {
+      this->_kalman_filter = input._kalman_filter;
+      this->_prediction_matrices = input._prediction_matrices;
+      this->_reference_trajectory = input._reference_trajectory;
+      this->_solver_factor = input._solver_factor;
+      this->_X_inner_model = input._X_inner_model;
+      this->_U_latest = input._U_latest;
+      this->_Y_store = input._Y_store;
+      this->_solver_factor_inv_solver = input._solver_factor_inv_solver;
+      this->_Weight_U_Nc = input._Weight_U_Nc;
+      this->_state_space_updater_function = input._state_space_updater_function;
+      this->_phi_f_updater_function = input._phi_f_updater_function;
+    }
+    return *this;
+  }
+
+  /* Move Constructor */
+  LTV_MPC_NoConstraints(LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                              ReferenceTrajectory_Type,
+                                              Parameter_Type> &&input) noexcept
+      : _kalman_filter(std::move(input._kalman_filter)),
+        _prediction_matrices(std::move(input._prediction_matrices)),
+        _reference_trajectory(std::move(input._reference_trajectory)),
+        _solver_factor(std::move(input._solver_factor)),
+        _X_inner_model(std::move(input._X_inner_model)),
+        _U_latest(std::move(input._U_latest)),
+        _Y_store(std::move(input._Y_store)),
+        _solver_factor_inv_solver(std::move(input._solver_factor_inv_solver)),
+        _Weight_U_Nc(std::move(input._Weight_U_Nc)),
+        _state_space_updater_function(
+            std::move(input._state_space_updater_function)),
+        _phi_f_updater_function(std::move(input._phi_f_updater_function)) {}
+
+  LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                        ReferenceTrajectory_Type, Parameter_Type> &
+  operator=(LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                  ReferenceTrajectory_Type, Parameter_Type>
+                &&input) noexcept {
+    if (this != &input) {
+      this->_kalman_filter = std::move(input._kalman_filter);
+      this->_prediction_matrices = std::move(input._prediction_matrices);
+      this->_reference_trajectory = std::move(input._reference_trajectory);
+      this->_solver_factor = std::move(input._solver_factor);
+      this->_X_inner_model = std::move(input._X_inner_model);
+      this->_U_latest = std::move(input._U_latest);
+      this->_Y_store = std::move(input._Y_store);
+      this->_solver_factor_inv_solver =
+          std::move(input._solver_factor_inv_solver);
+      this->_Weight_U_Nc = std::move(input._Weight_U_Nc);
+      this->_state_space_updater_function =
+          std::move(input._state_space_updater_function);
+      this->_phi_f_updater_function = std::move(input._phi_f_updater_function);
+    }
+    return *this;
+  }
+
+public:
+  /* Function */
+
+  /**
+   * @brief Sets the reference trajectory for the MPC.
+   *
+   * This function updates the reference trajectory used by the MPC to
+   * calculate control inputs based on the provided reference vector.
+   *
+   * @tparam Ref_Type Type of the reference vector.
+   * @param ref The reference vector to be set.
+   */
+  template <typename Ref_Type>
+  inline void set_reference_trajectory(const Ref_Type &ref) {
+
+    static_assert(std::is_same<typename Ref_Type::Value_Type, _T>::value,
+                  "Ref_Type::Value_Type must be equal to Value_Type");
+
+    this->_reference_trajectory.reference_vector = ref;
+  }
+
+  /**
+   * @brief Updates the parameters of the MPC based on the provided parameter.
+   *
+   * This function updates the state space and prediction matrices of the MPC
+   * using the provided parameter, allowing for dynamic adjustment of the MPC
+   * configuration.
+   *
+   * @tparam Parameter_Type Type of the parameter used for updating.
+   * @param parameter The parameter to be used for updating the MPC.
+   */
+  template <typename Parameter_Type>
+  inline void update_parameters(const Parameter_Type &parameter) {
+
+    this->_state_space_updater_function(parameter,
+                                        this->_kalman_filter.state_space);
+
+    this->_phi_f_updater_function(parameter, this->_prediction_matrices.Phi,
+                                  this->_prediction_matrices.F);
+
+    this->_update_solver_factor(this->_prediction_matrices.Phi,
+                                this->_Weight_U_Nc);
+  }
+
+  /**
+   * @brief Updates the control input based on the current state and reference.
+   *
+   * This function performs a prediction step using the Kalman filter,
+   * compensates for delays in the state and output vectors, and calculates the
+   * new control input based on the reference trajectory and the current state.
+   *
+   * @tparam Ref_Type Type of the reference vector.
+   * @param reference The reference vector to be used for updating control
+   * input.
+   * @param Y The measured output vector.
+   * @return The updated control input vector.
+   */
+  template <typename Ref_Type>
+  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
+      -> U_Type {
+
+    this->_kalman_filter.predict_and_update(this->_U_latest, Y);
+
+    X_Type X = this->_kalman_filter.get_x_hat();
+
+    X_Type X_compensated;
+    Y_Type Y_compensated;
+    this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
+
+    auto delta_X = X_compensated - this->_X_inner_model;
+    auto X_augmented =
+        PythonNumpy::concatenate_vertically(delta_X, Y_compensated);
+
+    this->_reference_trajectory.reference = reference;
+
+    auto delta_U = this->_solve(X_augmented);
+
+    LMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
+                                (INPUT_SIZE - 1)>::calculate(this->_U_latest,
+                                                             delta_U);
+
+    this->_X_inner_model = X_compensated;
+
+    return this->_U_latest;
+  }
+
+  /**
+   * @brief Returns the Kalman filter used in the MPC.
+   *
+   * This function provides access to the Kalman filter instance, allowing
+   * external components to retrieve the current state estimate and other
+   * properties of the Kalman filter.
+   *
+   * @return A constant reference to the Kalman filter instance.
+   */
+  inline auto get_kalman_filter() const -> const LKF_Type & {
+    return this->_kalman_filter;
+  }
+
+  /**
+   * @brief Returns the prediction matrices used in the MPC.
+   *
+   * This function provides access to the prediction matrices, which are used
+   * to compute the control inputs based on the current state and reference
+   * trajectory.
+   *
+   * @return A constant reference to the prediction matrices.
+   */
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
+    return this->_prediction_matrices;
+  }
+
+  /**
+   * @brief Retrieves the solver factor used by the MPC solver.
+   *
+   * @return A constant reference to the internal SolverFactor_Type instance.
+   */
+  inline auto get_solver_factor() const -> const SolverFactor_Type & {
+    return this->_solver_factor;
+  }
+
+protected:
+  /* Function */
+
+  /**
+   * @brief Updates the solver factor based on the current prediction matrices
+   * and weight matrix.
+   *
+   * This function computes the solver factor used in the MPC optimization
+   * problem, which is derived from the prediction matrices and the weight
+   * matrix for control input changes.
+   *
+   * @param Phi The prediction matrix Phi.
+   * @param Weight_U_Nc The weight matrix for control input changes.
+   */
+  inline void _update_solver_factor(const Phi_Type &Phi,
+                                    const Weight_U_Nc_Type &Weight_U_Nc) {
+
+    auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
+
+    PythonNumpy::substitute_matrix(
+        this->_solver_factor,
+        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
+  }
+
+  /**
+   * @brief Compensates for delays in the state and output vectors.
+   *
+   * This function adjusts the state and output vectors to account for delays
+   * in the system, ensuring that the control inputs are correctly aligned with
+   * the measured outputs.
+   *
+   * @param X_in The input state vector.
+   * @param Y_in The input output vector.
+   * @param X_out The compensated output state vector.
+   * @param Y_out The compensated output vector.
+   */
+  inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
+                                    X_Type &X_out, Y_Type &Y_out) {
+
+    LMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
+        X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
+  }
+
+  /**
+   * @brief Solves the MPC optimization problem to calculate the control input.
+   *
+   * This function computes the change in control input (delta_U) based on the
+   * augmented state vector (X_augmented) and the reference trajectory.
+   *
+   * @param X_augmented The augmented state vector containing the current state
+   * and output.
+   * @return The calculated change in control input (delta_U).
+   */
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
+
+    U_Horizon_Type delta_U;
+
+    LMPC_Operation::solve_LMPC_No_Constraints(
+        this->_solver_factor, this->_prediction_matrices.F,
+        this->_reference_trajectory, X_augmented, delta_U);
+
+    return delta_U;
+  }
+
+  /**
+   * @brief Calculates the new control input based on the latest control input
+   * and the change in control input (delta_U).
+   *
+   * This function updates the control input by adding the change in control
+   * input to the latest control input.
+   *
+   * @param delta_U The change in control input to be applied.
+   * @return The updated control input.
+   */
+  inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
+
+    auto U = LMPC_Operation::calculate_this_U(this->_U_latest, delta_U);
+
+    return U;
+  }
+
+protected:
+  /* Variables */
+  LKF_Type _kalman_filter;
+  PredictionMatrices_Type _prediction_matrices;
+  ReferenceTrajectory_Type _reference_trajectory;
+
+  SolverFactor_Type _solver_factor;
+
+  X_Type _X_inner_model;
+  U_Type _U_latest;
+  Y_Store_Type _Y_store;
+
+  SolverFactor_InvSolver_Type _solver_factor_inv_solver;
+  Weight_U_Nc_Type _Weight_U_Nc;
+
+  _MPC_StateSpace_Updater_Function_Object _state_space_updater_function;
+  _LTV_MPC_Phi_F_Updater_Function_Object _phi_f_updater_function;
+};
+
+/* make LTV MPC No Constraints */
+
+/**
+ * @brief Factory function to create an instance of LTV_MPC_NoConstraints.
+ *
+ * This function initializes the LTV_MPC_NoConstraints class with the provided
+ * Kalman filter, prediction matrices, reference trajectory, solver factor,
+ * weight matrix for control input changes, state space updater function, and
+ * Phi/F updater function.
+ *
+ * @tparam LKF_Type Type of the Kalman filter.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam Parameter_Type Type of the parameter used for updating state space.
+ * @tparam SolverFactor_Type_In Type of the solver factor (optional).
+ * @tparam Weight_U_Nc_Type Type for the weight matrix for control input
+ * changes.
+ * @tparam EmbeddedIntegratorSateSpace_Type Type of the embedded integrator
+ * state space.
+ * @return An instance of LTV_MPC_NoConstraints initialized with the provided
+ * parameters.
+ */
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
+          typename EmbeddedIntegratorSateSpace_Type>
+inline auto make_LTV_MPC_NoConstraints(
+    const LKF_Type &kalman_filter,
+    const PredictionMatrices_Type &prediction_matrices,
+    const ReferenceTrajectory_Type &reference_trajectory,
+    const SolverFactor_Type_In &solver_factor_in,
+    const Weight_U_Nc_Type &Weight_U_Nc,
+    MPC_StateSpace_Updater_Function_Object<Parameter_Type,
+                                           EmbeddedIntegratorSateSpace_Type>
+        &state_space_updater_function,
+    LTV_MPC_Phi_F_Updater_Function_Object<
+        EmbeddedIntegratorSateSpace_Type, Parameter_Type,
+        typename PredictionMatrices_Type::Phi_Type,
+        typename PredictionMatrices_Type::F_Type> &phi_f_updater_function)
+    -> LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                             ReferenceTrajectory_Type, Parameter_Type,
+                             SolverFactor_Type_In> {
+
+  return LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                               ReferenceTrajectory_Type, Parameter_Type,
+                               SolverFactor_Type_In>(
+      kalman_filter, prediction_matrices, reference_trajectory,
+      solver_factor_in, Weight_U_Nc, state_space_updater_function,
+      phi_f_updater_function);
+}
+
+/* LTV MPC No Constraints Type */
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+using LTV_MPC_NoConstraints_Type =
+    LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                          ReferenceTrajectory_Type, Parameter_Type,
+                          SolverFactor_Type_In>;
 
 } // namespace PythonMPC
 

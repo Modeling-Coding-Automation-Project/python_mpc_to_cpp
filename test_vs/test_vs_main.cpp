@@ -650,7 +650,7 @@ void check_LTI_MPC(void) {
     auto Y_max = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
 
     LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(reference_trajectory),
         decltype(delta_U_min),
         decltype(delta_U_max),
         decltype(U_min), decltype(U_max),
@@ -662,7 +662,7 @@ void check_LTI_MPC(void) {
         solver_factor);
 
     LTI_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(reference_trajectory),
         decltype(delta_U_min),
         decltype(delta_U_max),
         decltype(U_min), decltype(U_max),
@@ -671,7 +671,7 @@ void check_LTI_MPC(void) {
     > lti_mpc_copy(lti_mpc);
 
     LTI_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(reference_trajectory),
         decltype(delta_U_min),
         decltype(delta_U_max),
         decltype(U_min), decltype(U_max),
@@ -690,6 +690,174 @@ void check_LTI_MPC(void) {
 
     tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
         "check LTI MPC, update.");
+
+
+    tester.throw_error_if_test_failed();
+}
+
+template <typename T>
+void check_LTV_MPC(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+
+    /* 定義 */
+    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
+    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+
+    constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = PythonMPC_ServoMotorData::OUTPUT_SIZE;
+
+    constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_ServoMotorData::AUGMENTED_STATE_SIZE;
+
+    auto A = make_DenseMatrix<4, 4>(
+        static_cast<T>(1.0), static_cast<T>(0.05), static_cast<T>(0.0), static_cast<T>(0.0),
+        static_cast<T>(-2.56038538), static_cast<T>(0.95000025), static_cast<T>(0.12801927), static_cast<T>(0.0),
+        static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.05),
+        static_cast<T>(6.40099503), static_cast<T>(0.0), static_cast<T>(-0.32004975), static_cast<T>(0.49)
+    );
+    using A_Type = decltype(A);
+
+    auto B = make_DenseMatrix<4, 1>(
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.05)
+    );
+    using B_Type = decltype(B);
+
+    auto C = make_DenseMatrix<2, 4>(
+        static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
+        static_cast<T>(1280.19900634), static_cast<T>(0.0), static_cast<T>(-64.00995032), static_cast<T>(0.0)
+    );
+    using C_Type = decltype(C);
+
+    auto D = make_DenseMatrixZeros<T, OUTPUT_SIZE, INPUT_SIZE>();
+
+    T dt = static_cast<T>(0.05);
+
+    auto sys = make_DiscreteStateSpace(A, B, C, D, dt);
+
+    auto Q = make_KalmanFilter_Q<STATE_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    auto R = make_KalmanFilter_R<OUTPUT_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE* Nc>;
+
+    Weight_U_Nc_Type weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE* Nc>();
+    weight_U_Nc = weight_U_Nc * static_cast<T>(0.001);
+
+    auto kalman_filter = make_LinearKalmanFilter(sys, Q, R);
+    using LKF_Type = decltype(kalman_filter);
+
+    kalman_filter.converge_G();
+
+    auto F = PythonMPC_ServoMotorData::get_F<T>();
+    using F_Type = decltype(F);
+
+    auto Phi = PythonMPC_ServoMotorData::get_Phi<T>();
+    using Phi_Type = decltype(Phi);
+
+    using PredictionMatrices_Type = MPC_PredictionMatrices<decltype(F), decltype(Phi),
+        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;
+
+    PredictionMatrices_Type prediction_matrices(F, Phi);
+
+    auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
+        static_cast<T>(1.0), static_cast<T>(0.0));
+
+    using ReferenceTrajectory_Type = MPC_ReferenceTrajectory<decltype(ref), Np>;
+    ReferenceTrajectory_Type reference_trajectory(ref);
+
+    auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
+    using SolverFactor_Type = decltype(solver_factor);
+
+    using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
+
+    using EmbeddedIntegratorSateSpace_Type =
+        typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
+
+    MPC_StateSpace_Updater_Function_Object<
+        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>
+        MPC_StateSpace_Updater_Function = 
+        PythonMPC_ServoMotorData::mpc_state_space_updater::MPC_StateSpace_Updater::update<
+        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
+
+    LTV_MPC_Phi_F_Updater_Function_Object<
+        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
+        LTV_MPC_Phi_F_Updater_Function =
+        PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
+            EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
+
+    LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ltv_mpc = make_LTV_MPC_NoConstraints(
+            kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
+            weight_U_Nc, MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
+
+    LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ltv_mpc_copy(ltv_mpc);
+
+    LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ltv_mpc_move = ltv_mpc_copy;
+
+    ltv_mpc = std::move(ltv_mpc_move);
+
+    /* 計算 */
+    auto Y = make_StateSpaceOutput<OUTPUT_SIZE>(static_cast<T>(0.0), static_cast<T>(0.0));
+
+    auto U = ltv_mpc.update_manipulation(ref, Y);
+
+    auto U_answer = make_StateSpaceInput<INPUT_SIZE>(static_cast<T>(23.535215353823776));
+
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_manipulation.");
+
+    /* パラメータ更新 */
+    T A_3_0_answer = static_cast<T>(2.56039801);
+    T B_3_0_answer = static_cast<T>(0.02);
+    T Phi_39_0_answer = static_cast<T>(2.26675737e-03);
+    T F_39_0_answer = static_cast<T>(-3.90212671e+01);
+    T solver_factor_0_39_answer = static_cast<T>(1.58999462);
+
+    Parameter_Type parameter;
+    parameter.Mmotor = static_cast<T>(250);
+
+    ltv_mpc.update_parameters(parameter);
+
+    T A_3_0 = ltv_mpc.get_kalman_filter().state_space.A(3, 0);
+    T B_3_0 = ltv_mpc.get_kalman_filter().state_space.B(3, 0);
+    T Phi_39_0 = ltv_mpc.get_prediction_matrices().Phi(39, 0);
+    T F_39_0 = ltv_mpc.get_prediction_matrices().F(39, 0);
+    T solver_factor_0_39 = ltv_mpc.get_solver_factor()(0, 39);
+
+    tester.expect_near(A_3_0, A_3_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, A(3, 0).");
+
+    tester.expect_near(B_3_0, B_3_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, B(3, 0).");
+
+    tester.expect_near(Phi_39_0, Phi_39_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, Phi(39, 0).");
+
+    tester.expect_near(F_39_0, F_39_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, F(39, 0).");
+
+    tester.expect_near(solver_factor_0_39, solver_factor_0_39_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, solver_factor(0, 39).");
 
 
     tester.throw_error_if_test_failed();
@@ -720,6 +888,10 @@ int main(void) {
     check_LTI_MPC<double>();
 
     check_LTI_MPC<float>();
+
+    check_LTV_MPC<double>();
+
+    //check_LTV_MPC<float>();
 
 
     return 0;
