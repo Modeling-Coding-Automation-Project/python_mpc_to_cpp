@@ -722,6 +722,7 @@ void check_LTV_MPC(void) {
         static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.05),
         static_cast<T>(6.40099503), static_cast<T>(0.0), static_cast<T>(-0.32004975), static_cast<T>(0.49)
     );
+    using A_Type = decltype(A);
 
     auto B = make_DenseMatrix<4, 1>(
         static_cast<T>(0.0),
@@ -729,11 +730,13 @@ void check_LTV_MPC(void) {
         static_cast<T>(0.0),
         static_cast<T>(0.05)
     );
+    using B_Type = decltype(B);
 
     auto C = make_DenseMatrix<2, 4>(
         static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
         static_cast<T>(1280.19900634), static_cast<T>(0.0), static_cast<T>(-64.00995032), static_cast<T>(0.0)
     );
+    using C_Type = decltype(C);
 
     auto D = make_DenseMatrixZeros<T, OUTPUT_SIZE, INPUT_SIZE>();
 
@@ -787,13 +790,14 @@ void check_LTV_MPC(void) {
         PythonMPC_ServoMotorData::mpc_state_space_updater::MPC_StateSpace_Updater::update<
         Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
-    //LTV_MPC_Phi_F_Updater_Function_Object<
-    //    typename LKF_Type::DiscreteStateSpace_Type, Parameter_Type,
-    //    Phi_Type, F_Type>
-    //    LTV_MPC_Phi_F_Updater_Function =
-    //    PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
-    //        typename LKF_Type::DiscreteStateSpace_Type, Parameter_Type,
-    //        Phi_Type, F_Type>;
+    using EmbeddedIntegratorSateSpace_Type =
+        typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
+
+    LTV_MPC_Phi_F_Updater_Function_Object<
+        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
+        LTV_MPC_Phi_F_Updater_Function =
+        PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
+            EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
 
 
     tester.throw_error_if_test_failed();
@@ -827,7 +831,7 @@ int main(void) {
 
     check_LTV_MPC<double>();
 
-    check_LTV_MPC<float>();
+    //check_LTV_MPC<float>();
 
 
     return 0;

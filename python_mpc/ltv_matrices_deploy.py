@@ -474,7 +474,7 @@ class LTVMatricesDeploy:
 
         code_text += f"class {class_name} {{\npublic:\n"
         code_text += f"template <typename A_Type, typename B_Type, typename C_Type,\n" + \
-            f"          typename D_Type, typename Phi_Type, typename F_Type >\n"
+            f"          typename Phi_Type, typename F_Type >\n"
         code_text += "static inline void update(const A_Type &A, const B_Type &B,\n" + \
             f"          const C_Type &C, Phi_Type& Phi, F_Type& F) {{\n"
 

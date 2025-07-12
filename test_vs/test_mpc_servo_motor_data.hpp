@@ -619,7 +619,7 @@ namespace prediction_matrices_phi_f_updater {
 
     class PredictionMatricesPhiF_Updater {
     public:
-        template <typename A_Type, typename B_Type, typename C_Type, typename D_Type,
+        template <typename A_Type, typename B_Type, typename C_Type,
             typename Phi_Type, typename F_Type>
         static inline void update(const A_Type& A, const B_Type& B, const C_Type& C,
             Phi_Type& Phi, F_Type& F) {
