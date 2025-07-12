@@ -205,92 +205,92 @@ def main():
         ltv_mpc,
         parameters=controller_parameters,
         number_of_delay=Number_of_Delay)
-    # print(deployed_file_names)
+    print(deployed_file_names)
 
-    # # %% simulation
-    # t_sim = 80.0
-    # time = np.arange(0, t_sim, dt)
+    # %% simulation
+    t_sim = 80.0
+    time = np.arange(0, t_sim, dt)
 
-    # # create input signal
-    # _, input_signal = PulseGenerator.sample_pulse(
-    #     sampling_interval=dt,
-    #     start_time=time[0],
-    #     period=20.0,
-    #     pulse_width=50.0,
-    #     pulse_amplitude=1.0,
-    #     duration=time[-1],
-    # )
+    # create input signal
+    _, input_signal = PulseGenerator.sample_pulse(
+        sampling_interval=dt,
+        start_time=time[0],
+        period=20.0,
+        pulse_width=50.0,
+        pulse_amplitude=1.0,
+        duration=time[-1],
+    )
 
-    # # real plant model
-    # # You can change the characteristic with changing the A, B, C matrices
-    # A, B, C, _ = StateSpaceUpdater.update(plant_parameters)
+    # real plant model
+    # You can change the characteristic with changing the A, B, C matrices
+    A, B, C, _ = StateSpaceUpdater.update(plant_parameters)
 
-    # X = np.array([[0.0],
-    #               [0.0],
-    #               [0.0],
-    #               [0.0]])
-    # Y = np.array([[0.0],
-    #               [0.0]])
-    # U = np.array([[0.0]])
+    X = np.array([[0.0],
+                  [0.0],
+                  [0.0],
+                  [0.0]])
+    Y = np.array([[0.0],
+                  [0.0]])
+    U = np.array([[0.0]])
 
-    # plotter = SimulationPlotter()
+    plotter = SimulationPlotter()
 
-    # y_measured = Y
-    # y_store = [Y] * (Number_of_Delay + 1)
-    # delay_index = 0
+    y_measured = Y
+    y_store = [Y] * (Number_of_Delay + 1)
+    delay_index = 0
 
-    # PARAMETER_CHANGE_TIME = 20.0
-    # parameter_changed = False
-    # MPC_UPDATE_TIME = 40.0
-    # MPC_updated = False
+    PARAMETER_CHANGE_TIME = 20.0
+    parameter_changed = False
+    MPC_UPDATE_TIME = 40.0
+    MPC_updated = False
 
-    # for i in range(len(time)):
-    #     if not parameter_changed and time[i] > PARAMETER_CHANGE_TIME:
-    #         plant_parameters.Mmotor = 250.0
-    #         A, B, C, _ = StateSpaceUpdater.update(plant_parameters)
-    #         parameter_changed = True
+    for i in range(len(time)):
+        if not parameter_changed and time[i] > PARAMETER_CHANGE_TIME:
+            plant_parameters.Mmotor = 250.0
+            A, B, C, _ = StateSpaceUpdater.update(plant_parameters)
+            parameter_changed = True
 
-    #     # system response
-    #     X = A @ X + B @ U
-    #     y_store[delay_index] = C @ X
+        # system response
+        X = A @ X + B @ U
+        y_store[delay_index] = C @ X
 
-    #     # system delay
-    #     delay_index += 1
-    #     if delay_index > Number_of_Delay:
-    #         delay_index = 0
+        # system delay
+        delay_index += 1
+        if delay_index > Number_of_Delay:
+            delay_index = 0
 
-    #     y_measured = y_store[delay_index]
+        y_measured = y_store[delay_index]
 
-    #     # controller
-    #     ref = np.array([[input_signal[i, 0]], [0.0]])
+        # controller
+        ref = np.array([[input_signal[i, 0]], [0.0]])
 
-    #     if not MPC_updated and time[i] > MPC_UPDATE_TIME:
-    #         controller_parameters.Mmotor = 250.0
-    #         ltv_mpc.update_parameters(controller_parameters)
-    #         MPC_updated = True
+        if not MPC_updated and time[i] > MPC_UPDATE_TIME:
+            controller_parameters.Mmotor = 250.0
+            ltv_mpc.update_parameters(controller_parameters)
+            MPC_updated = True
 
-    #     U = ltv_mpc.update_manipulation(ref, y_measured)
+        U = ltv_mpc.update_manipulation(ref, y_measured)
 
-    #     plotter.append_name(ref, "ref")
-    #     plotter.append_name(U, "U")
-    #     plotter.append_name(y_measured, "y_measured")
-    #     plotter.append_name(X, "X")
+        plotter.append_name(ref, "ref")
+        plotter.append_name(U, "U")
+        plotter.append_name(y_measured, "y_measured")
+        plotter.append_name(X, "X")
 
-    # plotter.assign("ref", position=(0, 0), column=0, row=0, x_sequence=time)
-    # plotter.assign("y_measured", position=(0, 0),
-    #                column=0, row=0, x_sequence=time)
-    # plotter.assign("ref", position=(0, 1), column=1, row=0, x_sequence=time)
-    # plotter.assign("y_measured", position=(0, 1),
-    #                column=1, row=0, x_sequence=time)
+    plotter.assign("ref", position=(0, 0), column=0, row=0, x_sequence=time)
+    plotter.assign("y_measured", position=(0, 0),
+                   column=0, row=0, x_sequence=time)
+    plotter.assign("ref", position=(0, 1), column=1, row=0, x_sequence=time)
+    plotter.assign("y_measured", position=(0, 1),
+                   column=1, row=0, x_sequence=time)
 
-    # plotter.assign("X", position=(1, 0), column=0, row=0, x_sequence=time)
-    # plotter.assign("X", position=(1, 0), column=1, row=0, x_sequence=time)
-    # plotter.assign("X", position=(1, 1), column=2, row=0, x_sequence=time)
-    # plotter.assign("X", position=(2, 1), column=3, row=0, x_sequence=time)
+    plotter.assign("X", position=(1, 0), column=0, row=0, x_sequence=time)
+    plotter.assign("X", position=(1, 0), column=1, row=0, x_sequence=time)
+    plotter.assign("X", position=(1, 1), column=2, row=0, x_sequence=time)
+    plotter.assign("X", position=(2, 1), column=3, row=0, x_sequence=time)
 
-    # plotter.assign_all("U", position=(2, 0), x_sequence=time)
+    plotter.assign_all("U", position=(2, 0), x_sequence=time)
 
-    # plotter.plot("Servo Motor plant, LTV MPC Response")
+    plotter.plot("Servo Motor plant, LTV MPC Response")
 
 
 if __name__ == "__main__":
