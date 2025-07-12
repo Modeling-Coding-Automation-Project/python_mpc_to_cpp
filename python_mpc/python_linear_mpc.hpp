@@ -750,6 +750,53 @@ template <typename LKF_Type_In, typename PredictionMatrices_Type_In,
           typename SolverFactor_Type_In = SolverFactor_Empty>
 class LTV_MPC_NoConstraints {
 public:
+  /* Type */
+  using LKF_Type = LKF_Type_In;
+  using PredictionMatrices_Type = PredictionMatrices_Type_In;
+  using ReferenceTrajectory_Type = ReferenceTrajectory_Type_In;
+
+protected:
+  /* Type */
+  using _T = typename PredictionMatrices_Type::Value_Type;
+
+public:
+  /* Type */
+  using Value_Type = _T;
+
+  static constexpr std::size_t INPUT_SIZE = LKF_Type::INPUT_SIZE;
+  static constexpr std::size_t STATE_SIZE = LKF_Type::STATE_SIZE;
+  static constexpr std::size_t OUTPUT_SIZE = LKF_Type::OUTPUT_SIZE;
+
+  static constexpr std::size_t NP = PredictionMatrices_Type::NP;
+  static constexpr std::size_t NC = PredictionMatrices_Type::NC;
+
+  static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
+
+  using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
+  using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
+  using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
+
+  using U_Horizon_Type =
+      PythonControl::StateSpaceInput_Type<_T, (INPUT_SIZE * NC)>;
+  using X_Augmented_Type =
+      PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
+  using Y_Store_Type =
+      PythonControl::DelayedVectorObject<Y_Type, NUMBER_OF_DELAY>;
+
+  typedef typename std::conditional<
+      std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
+      PythonNumpy::DenseMatrix_Type<_T, (INPUT_SIZE * NC), (OUTPUT_SIZE * NP)>,
+      SolverFactor_Type_In>::type SolverFactor_Type;
+
+  static_assert(SolverFactor_Type::COLS == (INPUT_SIZE * NC),
+                "SolverFactor_Type::COLS must be equal to (INPUT_SIZE * NC)");
+  static_assert(SolverFactor_Type::ROWS == (OUTPUT_SIZE * NP),
+                "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
+                "NP)");
+
+public:
+  /* Constructor */
+  LTV_MPC_NoConstraints() {}
 };
 
 } // namespace PythonMPC
