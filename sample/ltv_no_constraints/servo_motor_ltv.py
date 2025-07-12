@@ -1,5 +1,5 @@
 """
-File: servo_motor.py
+File: servo_motor_ltv.py
 
 This script demonstrates Model Predictive Control (MPC) for a DC servo motor system without constraints.
 It models the servo motor as a linear time-invariant (LTI) system, discretizes the plant, sets up an MPC controller,
