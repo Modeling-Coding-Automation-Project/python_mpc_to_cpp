@@ -629,6 +629,9 @@ class LinearMPC_Deploy:
 
         number_of_delay = ltv_mpc_nc.Number_of_Delay
 
+        code_file_name = caller_file_name_without_ext + "_" + variable_name
+        code_file_name_ext = code_file_name + ".hpp"
+
         # %% generate parameter class code
         parameter_code_file_name = caller_file_name_without_ext + "_parameters.hpp"
         parameter_code_file_name_no_extension = parameter_code_file_name.split(".")[
@@ -639,6 +642,8 @@ class LinearMPC_Deploy:
 
         parameter_code_file_name_ext = ControlDeploy.write_to_file(
             parameter_code, parameter_code_file_name)
+
+        deployed_file_names.append(parameter_code_file_name_ext)
 
         # %% generate MPC State Space Updater code
         mpc_state_space_updater_python_name = \
@@ -652,6 +657,8 @@ class LinearMPC_Deploy:
 
         mpc_state_space_updater_cpp_name_ext = ControlDeploy.write_to_file(
             mpc_state_space_updater_code, mpc_state_space_updater_cpp_name)
+
+        deployed_file_names.append(mpc_state_space_updater_cpp_name_ext)
 
         # %% generate Embedded Integrator Updater code
         embedded_integrator_updater_file_name = \
@@ -667,6 +674,8 @@ class LinearMPC_Deploy:
         embedded_integrator_updater_cpp_name_ext = ControlDeploy.write_to_file(
             embedded_integrator_updater_code, embedded_integrator_updater_cpp_name)
 
+        deployed_file_names.append(embedded_integrator_updater_cpp_name_ext)
+
         # %% generate Prediction Matrices Phi F updater code
         prediction_matrices_updater_file_name = \
             ltv_mpc_nc.state_space_initializer.prediction_matrices_phi_f_updater_file_name
@@ -680,6 +689,8 @@ class LinearMPC_Deploy:
 
         prediction_matrices_updater_cpp_name_ext = ControlDeploy.write_to_file(
             prediction_matrices_updater_code, prediction_matrices_updater_cpp_name)
+
+        deployed_file_names.append(prediction_matrices_updater_cpp_name_ext)
 
         # %% generate LTV MPC Phi F Updater code
         LTV_MPC_Phi_F_updater_file_name = \
@@ -697,5 +708,37 @@ class LinearMPC_Deploy:
         LTV_MPC_Phi_F_updater_cpp_name_ext = ControlDeploy.write_to_file(
             LTV_MPC_Phi_F_updater_code, LTV_MPC_Phi_F_updater_cpp_name)
 
+        deployed_file_names.append(LTV_MPC_Phi_F_updater_cpp_name_ext)
+
         # %% main code generation
         code_text = ""
+
+        file_header_macro_name = "__" + code_file_name.upper() + "_HPP__"
+
+        code_text += "#ifndef " + file_header_macro_name + "\n"
+        code_text += "#define " + file_header_macro_name + "\n\n"
+
+        # code_text += f"#include \"{lkf_file_name}\"\n"
+        # code_text += f"#include \"{F_file_name}\"\n"
+        # code_text += f"#include \"{Phi_file_name}\"\n"
+        # code_text += f"#include \"{solver_factor_file_name}\"\n\n"
+        code_text += "#include \"python_mpc.hpp\"\n\n"
+
+        namespace_name = code_file_name
+
+        code_text += "namespace " + namespace_name + " {\n\n"
+
+        code_text += "using namespace PythonNumpy;\n"
+        code_text += "using namespace PythonControl;\n"
+        code_text += "using namespace PythonMPC;\n\n"
+
+        code_text += "} // namespace " + namespace_name + "\n\n"
+
+        code_text += "#endif // " + file_header_macro_name + "\n"
+
+        code_file_name_ext = ControlDeploy.write_to_file(
+            code_text, code_file_name_ext)
+
+        deployed_file_names.append(code_file_name_ext)
+
+        return deployed_file_names
