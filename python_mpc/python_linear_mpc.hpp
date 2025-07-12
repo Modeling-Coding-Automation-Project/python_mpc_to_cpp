@@ -814,8 +814,7 @@ protected:
 
   using _LTV_MPC_Phi_F_Updater_Function_Object =
       LTV_MPC_Phi_F_Updater_Function_Object<EmbeddedIntegratorSateSpace_Type,
-                                            Parameter_Type, typename Phi_Type,
-                                            typename F_Type>;
+                                            Parameter_Type, Phi_Type, F_Type>;
 
   using SolverFactor_InvSolver_Left_Type =
       decltype(std::declval<PythonNumpy::Transpose_Type<Phi_Type>>() *
@@ -985,9 +984,8 @@ public:
     this->_state_space_updater_function(parameter,
                                         this->_kalman_filter.state_space);
 
-    this->_phi_f_updater_function<EmbeddedIntegratorSateSpace_Type>(
-        parameter, this->_prediction_matrices.Phi,
-        this->_prediction_matrices.F);
+    this->_phi_f_updater_function(parameter, this->_prediction_matrices.Phi,
+                                  this->_prediction_matrices.F);
 
     this->_update_solver_factor(this->_prediction_matrices.Phi,
                                 this->_prediction_matrices.F,
