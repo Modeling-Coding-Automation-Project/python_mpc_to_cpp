@@ -164,6 +164,29 @@ inline void solve_LMPC_No_Constraints(
 
   delta_U = solver_factor * reference_trajectory.calculate_dif(F * X_augmented);
 }
+
+/**
+ * @brief Calculates the control input U based on the latest control input and
+ * the delta control input.
+ *
+ * This function computes the new control input U by adding the delta_U to the
+ * latest control input U_latest.
+ *
+ * @tparam U_Type Type of the control input.
+ *
+ * @param U_latest The latest control input.
+ * @param delta_U The change in control input to be applied.
+ * @return The updated control input U.
+ */
+template <typename U_Type>
+inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
+    -> U_Type {
+
+  auto U = U_latest + delta_U;
+
+  return U;
+}
+
 }; // namespace LMPC_CommonFunctions
 
 /**
@@ -436,7 +459,7 @@ protected:
    */
   inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
 
-    auto U = this->_U_latest + delta_U;
+    auto U = LMPC_CommonFunctions::calculate_this_U(this->_U_latest, delta_U);
 
     return U;
   }
