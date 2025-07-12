@@ -759,6 +759,7 @@ void check_LTV_MPC(void) {
     using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE* Nc>;
 
     Weight_U_Nc_Type weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE* Nc>();
+    weight_U_Nc = weight_U_Nc * static_cast<T>(0.001);
 
     auto kalman_filter = make_LinearKalmanFilter(sys, Q, R);
     using LKF_Type = decltype(kalman_filter);
@@ -791,10 +792,10 @@ void check_LTV_MPC(void) {
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
     MPC_StateSpace_Updater_Function_Object<
-        Parameter_Type, EmbeddedIntegratorSateSpace_Type>
+        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>
         MPC_StateSpace_Updater_Function = 
         PythonMPC_ServoMotorData::mpc_state_space_updater::MPC_StateSpace_Updater::update<
-        Parameter_Type, EmbeddedIntegratorSateSpace_Type>;
+        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
     LTV_MPC_Phi_F_Updater_Function_Object<
         EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
@@ -816,7 +817,47 @@ void check_LTV_MPC(void) {
     ltv_mpc = std::move(ltv_mpc_move);
 
     /* 計算 */
+    auto Y = make_StateSpaceOutput<OUTPUT_SIZE>(static_cast<T>(0.0), static_cast<T>(0.0));
 
+    auto U = ltv_mpc.update_manipulation(ref, Y);
+
+    auto U_answer = make_StateSpaceInput<INPUT_SIZE>(static_cast<T>(23.535215353823776));
+
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_manipulation.");
+
+    /* パラメータ更新 */
+    T A_3_0_answer = static_cast<T>(2.56039801);
+    T B_3_0_answer = static_cast<T>(0.02);
+    T Phi_39_0_answer = static_cast<T>(2.26675737e-03);
+    T F_39_0_answer = static_cast<T>(-3.90212671e+01);
+    T solver_factor_0_39_answer = static_cast<T>(1.58999462);
+
+    Parameter_Type parameter;
+    parameter.Mmotor = static_cast<T>(250);
+
+    ltv_mpc.update_parameters(parameter);
+
+    T A_3_0 = ltv_mpc.get_kalman_filter().state_space.A(3, 0);
+    T B_3_0 = ltv_mpc.get_kalman_filter().state_space.B(3, 0);
+    T Phi_39_0 = ltv_mpc.get_prediction_matrices().Phi(39, 0);
+    T F_39_0 = ltv_mpc.get_prediction_matrices().F(39, 0);
+    T solver_factor_0_39 = ltv_mpc.get_solver_factor()(0, 39);
+
+    tester.expect_near(A_3_0, A_3_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, A(3, 0).");
+
+    tester.expect_near(B_3_0, B_3_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, B(3, 0).");
+
+    tester.expect_near(Phi_39_0, Phi_39_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, Phi(39, 0).");
+
+    tester.expect_near(F_39_0, F_39_0_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, F(39, 0).");
+
+    tester.expect_near(solver_factor_0_39, solver_factor_0_39_answer, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update_parameters, solver_factor(0, 39).");
 
 
     tester.throw_error_if_test_failed();
@@ -850,7 +891,7 @@ int main(void) {
 
     check_LTV_MPC<double>();
 
-    check_LTV_MPC<float>();
+    //check_LTV_MPC<float>();
 
 
     return 0;

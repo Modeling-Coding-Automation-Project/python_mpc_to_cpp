@@ -461,6 +461,42 @@ protected:
     return U;
   }
 
+  /**
+   * @brief Returns the Kalman filter used in the MPC.
+   *
+   * This function provides access to the Kalman filter instance, allowing
+   * external components to retrieve the current state estimate and other
+   * properties of the Kalman filter.
+   *
+   * @return A constant reference to the Kalman filter instance.
+   */
+  inline auto get_kalman_filter() const -> const LKF_Type & {
+    return this->_kalman_filter;
+  }
+
+  /**
+   * @brief Returns the prediction matrices used in the MPC.
+   *
+   * This function provides access to the prediction matrices, which are used
+   * to compute the control inputs based on the current state and reference
+   * trajectory.
+   *
+   * @return A constant reference to the prediction matrices.
+   */
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
+    return this->_prediction_matrices;
+  }
+
+  /**
+   * @brief Retrieves the solver factor used by the MPC solver.
+   *
+   * @return A constant reference to the internal SolverFactor_Type instance.
+   */
+  inline auto get_solver_factor() const -> const SolverFactor_Type & {
+    return this->_solver_factor;
+  }
+
 protected:
   /* Variables */
   LKF_Type _kalman_filter;
@@ -809,8 +845,8 @@ public:
 protected:
   /* Type */
   using _MPC_StateSpace_Updater_Function_Object =
-      MPC_StateSpace_Updater_Function_Object<Parameter_Type,
-                                             EmbeddedIntegratorSateSpace_Type>;
+      MPC_StateSpace_Updater_Function_Object<
+          Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
   using _LTV_MPC_Phi_F_Updater_Function_Object =
       LTV_MPC_Phi_F_Updater_Function_Object<EmbeddedIntegratorSateSpace_Type,
@@ -988,7 +1024,6 @@ public:
                                   this->_prediction_matrices.F);
 
     this->_update_solver_factor(this->_prediction_matrices.Phi,
-                                this->_prediction_matrices.F,
                                 this->_Weight_U_Nc);
   }
 
@@ -1034,6 +1069,42 @@ public:
     return this->_U_latest;
   }
 
+  /**
+   * @brief Returns the Kalman filter used in the MPC.
+   *
+   * This function provides access to the Kalman filter instance, allowing
+   * external components to retrieve the current state estimate and other
+   * properties of the Kalman filter.
+   *
+   * @return A constant reference to the Kalman filter instance.
+   */
+  inline auto get_kalman_filter() const -> const LKF_Type & {
+    return this->_kalman_filter;
+  }
+
+  /**
+   * @brief Returns the prediction matrices used in the MPC.
+   *
+   * This function provides access to the prediction matrices, which are used
+   * to compute the control inputs based on the current state and reference
+   * trajectory.
+   *
+   * @return A constant reference to the prediction matrices.
+   */
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
+    return this->_prediction_matrices;
+  }
+
+  /**
+   * @brief Retrieves the solver factor used by the MPC solver.
+   *
+   * @return A constant reference to the internal SolverFactor_Type instance.
+   */
+  inline auto get_solver_factor() const -> const SolverFactor_Type & {
+    return this->_solver_factor;
+  }
+
 protected:
   /* Function */
 
@@ -1046,14 +1117,15 @@ protected:
    * matrix for control input changes.
    *
    * @param Phi The prediction matrix Phi.
-   * @param F The prediction matrix F.
    * @param Weight_U_Nc The weight matrix for control input changes.
    */
-  inline void _update_solver_factor(const Phi_Type &Phi, const F_Type &F,
+  inline void _update_solver_factor(const Phi_Type &Phi,
                                     const Weight_U_Nc_Type &Weight_U_Nc) {
 
-    this->_solver_factor = this->_solver_factor_inv_solver.solve(
-        PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc, Phi.transpose());
+    auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
+
+    this->_solver_factor =
+        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose());
   }
 
   /**
