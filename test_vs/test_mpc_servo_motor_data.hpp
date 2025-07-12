@@ -230,25 +230,28 @@ auto get_solver_factor(void)
   return solver_factor;
 }
 
+template <typename T>
 class Parameter {
 public:
-  double Lshaft = static_cast<double>(1.0);
-  double dshaft = static_cast<double>(0.02);
-  double shaftrho = static_cast<double>(7850.0);
-  double G = static_cast<double>(81500000000.0);
-  double Mmotor = static_cast<double>(100.0);
-  double Rmotor = static_cast<double>(0.1);
-  double Bmotor = static_cast<double>(0.1);
-  double R = static_cast<double>(20.0);
-  double Kt = static_cast<double>(10.0);
-  double Bload = static_cast<double>(25.0);
+  double Lshaft = static_cast<T>(1.0);
+  double dshaft = static_cast<T>(0.02);
+  double shaftrho = static_cast<T>(7850.0);
+  double G = static_cast<T>(81500000000.0);
+  double Mmotor = static_cast<T>(100.0);
+  double Rmotor = static_cast<T>(0.1);
+  double Bmotor = static_cast<T>(0.1);
+  double R = static_cast<T>(20.0);
+  double Kt = static_cast<T>(10.0);
+  double Bload = static_cast<T>(25.0);
 };
 
-using Parameter_Type = Parameter;
+template <typename T>
+using Parameter_Type = Parameter<T>;
 
 namespace mpc_state_space_updater {
 
-template <typename A_Updater_Output_Type> class A_Updater {
+template <typename T, typename A_Updater_Output_Type>
+class A_Updater {
 public:
   static inline auto update(double Lshaft, double dshaft, double shaftrho,
                             double G, double Mmotor, double Rmotor,
@@ -285,30 +288,31 @@ public:
 
     double x9 = 0.1 * x7;
 
-    result.template set<0, 0>(static_cast<double>(1));
-    result.template set<0, 1>(static_cast<double>(0.05));
-    result.template set<0, 2>(static_cast<double>(0));
-    result.template set<0, 3>(static_cast<double>(0));
-    result.template set<1, 0>(static_cast<double>(-x4 * x6));
-    result.template set<1, 1>(static_cast<double>(-0.05 * Bload * x4 + 1));
+    result.template set<0, 0>(static_cast<T>(1));
+    result.template set<0, 1>(static_cast<T>(0.05));
+    result.template set<0, 2>(static_cast<T>(0));
+    result.template set<0, 3>(static_cast<T>(0));
+    result.template set<1, 0>(static_cast<T>(-x4 * x6));
+    result.template set<1, 1>(static_cast<T>(-0.05 * Bload * x4 + 1));
     result.template set<1, 2>(
-        static_cast<double>(x6 / (500.0 * x1 + 1.96349540849362 * x3)));
-    result.template set<1, 3>(static_cast<double>(0));
-    result.template set<2, 0>(static_cast<double>(0));
-    result.template set<2, 1>(static_cast<double>(0));
-    result.template set<2, 2>(static_cast<double>(1));
-    result.template set<2, 3>(static_cast<double>(0.05));
-    result.template set<3, 0>(static_cast<double>(0.000490873852123405 * x8));
-    result.template set<3, 1>(static_cast<double>(0));
-    result.template set<3, 2>(static_cast<double>(-2.45436926061703e-05 * x8));
+        static_cast<T>(x6 / (500.0 * x1 + 1.96349540849362 * x3)));
+    result.template set<1, 3>(static_cast<T>(0));
+    result.template set<2, 0>(static_cast<T>(0));
+    result.template set<2, 1>(static_cast<T>(0));
+    result.template set<2, 2>(static_cast<T>(1));
+    result.template set<2, 3>(static_cast<T>(0.05));
+    result.template set<3, 0>(static_cast<T>(0.000490873852123405 * x8));
+    result.template set<3, 1>(static_cast<T>(0));
+    result.template set<3, 2>(static_cast<T>(-2.45436926061703e-05 * x8));
     result.template set<3, 3>(
-        static_cast<double>(-Bmotor * x9 - Kt * Kt * x9 / R + 1));
+        static_cast<T>(-Bmotor * x9 - Kt * Kt * x9 / R + 1));
 
     return result;
   }
 };
 
-template <typename B_Updater_Output_Type> class B_Updater {
+template <typename T, typename B_Updater_Output_Type>
+class B_Updater {
 public:
   static inline auto update(double Lshaft, double dshaft, double shaftrho,
                             double G, double Mmotor, double Rmotor,
@@ -328,17 +332,18 @@ public:
                                     double Mmotor) -> B_Updater_Output_Type {
     B_Updater_Output_Type result;
 
-    result.template set<0, 0>(static_cast<double>(0));
-    result.template set<1, 0>(static_cast<double>(0));
-    result.template set<2, 0>(static_cast<double>(0));
+    result.template set<0, 0>(static_cast<T>(0));
+    result.template set<1, 0>(static_cast<T>(0));
+    result.template set<2, 0>(static_cast<T>(0));
     result.template set<3, 0>(
-        static_cast<double>(0.1 * Kt / (Mmotor * R * (Rmotor * Rmotor))));
+        static_cast<T>(0.1 * Kt / (Mmotor * R * (Rmotor * Rmotor))));
 
     return result;
   }
 };
 
-template <typename C_Updater_Output_Type> class C_Updater {
+template <typename T, typename C_Updater_Output_Type>
+class C_Updater {
 public:
   static inline auto update(double Lshaft, double dshaft, double shaftrho,
                             double G, double Mmotor, double Rmotor,
@@ -361,14 +366,14 @@ public:
 
     double x0 = G * (dshaft * dshaft * dshaft * dshaft) / Lshaft;
 
-    result.template set<0, 0>(static_cast<double>(1.0));
-    result.template set<0, 1>(static_cast<double>(0.0));
-    result.template set<0, 2>(static_cast<double>(0.0));
-    result.template set<0, 3>(static_cast<double>(0.0));
-    result.template set<1, 0>(static_cast<double>(0.098174770424681 * x0));
-    result.template set<1, 1>(static_cast<double>(0.0));
-    result.template set<1, 2>(static_cast<double>(-0.00490873852123405 * x0));
-    result.template set<1, 3>(static_cast<double>(0.0));
+    result.template set<0, 0>(static_cast<T>(1.0));
+    result.template set<0, 1>(static_cast<T>(0.0));
+    result.template set<0, 2>(static_cast<T>(0.0));
+    result.template set<0, 3>(static_cast<T>(0.0));
+    result.template set<1, 0>(static_cast<T>(0.098174770424681 * x0));
+    result.template set<1, 1>(static_cast<T>(0.0));
+    result.template set<1, 2>(static_cast<T>(-0.00490873852123405 * x0));
+    result.template set<1, 3>(static_cast<T>(0.0));
 
     return result;
   }
@@ -391,16 +396,18 @@ public:
     double Kt = parameter.Kt;
     double Bload = parameter.Bload;
 
+    using T = typename MPC_StateSpace_Updater_Output_Type::A_Type::Value_Type;
+
     auto A =
-        A_Updater<typename MPC_StateSpace_Updater_Output_Type::A_Type>::update(
+        A_Updater<T, typename MPC_StateSpace_Updater_Output_Type::A_Type>::update(
             Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
     auto B =
-        B_Updater<typename MPC_StateSpace_Updater_Output_Type::B_Type>::update(
+        B_Updater<T, typename MPC_StateSpace_Updater_Output_Type::B_Type>::update(
             Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
     auto C =
-        C_Updater<typename MPC_StateSpace_Updater_Output_Type::C_Type>::update(
+        C_Updater<T, typename MPC_StateSpace_Updater_Output_Type::C_Type>::update(
             Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
     output.A = A;
@@ -413,7 +420,8 @@ public:
 
 namespace mpc_embedded_integrator_state_space_updater {
 
-    template <typename A_Updater_Output_Type> class A_Updater {
+    template <typename T, typename A_Updater_Output_Type>
+    class A_Updater {
     public:
         static inline auto update(double Lshaft, double dshaft, double shaftrho,
             double G, double Mmotor, double Rmotor,
@@ -454,50 +462,51 @@ namespace mpc_embedded_integrator_state_space_updater {
 
             double x11 = 0.1 * x9;
 
-            result.template set<0, 0>(static_cast<double>(1));
-            result.template set<0, 1>(static_cast<double>(0.05));
-            result.template set<0, 2>(static_cast<double>(0));
-            result.template set<0, 3>(static_cast<double>(0));
-            result.template set<0, 4>(static_cast<double>(0.0));
-            result.template set<0, 5>(static_cast<double>(0.0));
-            result.template set<1, 0>(static_cast<double>(-x5 * x8));
-            result.template set<1, 1>(static_cast<double>(-0.05 * Bload * x5 + 1));
+            result.template set<0, 0>(static_cast<T>(1));
+            result.template set<0, 1>(static_cast<T>(0.05));
+            result.template set<0, 2>(static_cast<T>(0));
+            result.template set<0, 3>(static_cast<T>(0));
+            result.template set<0, 4>(static_cast<T>(0.0));
+            result.template set<0, 5>(static_cast<T>(0.0));
+            result.template set<1, 0>(static_cast<T>(-x5 * x8));
+            result.template set<1, 1>(static_cast<T>(-0.05 * Bload * x5 + 1));
             result.template set<1, 2>(
-                static_cast<double>(x8 / (500.0 * x1 + 1.96349540849362 * x2 * x4)));
-            result.template set<1, 3>(static_cast<double>(0));
-            result.template set<1, 4>(static_cast<double>(0.0));
-            result.template set<1, 5>(static_cast<double>(0.0));
-            result.template set<2, 0>(static_cast<double>(0));
-            result.template set<2, 1>(static_cast<double>(0));
-            result.template set<2, 2>(static_cast<double>(1));
-            result.template set<2, 3>(static_cast<double>(0.05));
-            result.template set<2, 4>(static_cast<double>(0.0));
-            result.template set<2, 5>(static_cast<double>(0.0));
-            result.template set<3, 0>(static_cast<double>(0.000490873852123405 * x10));
-            result.template set<3, 1>(static_cast<double>(0));
-            result.template set<3, 2>(static_cast<double>(-2.45436926061703e-05 * x10));
+                static_cast<T>(x8 / (500.0 * x1 + 1.96349540849362 * x2 * x4)));
+            result.template set<1, 3>(static_cast<T>(0));
+            result.template set<1, 4>(static_cast<T>(0.0));
+            result.template set<1, 5>(static_cast<T>(0.0));
+            result.template set<2, 0>(static_cast<T>(0));
+            result.template set<2, 1>(static_cast<T>(0));
+            result.template set<2, 2>(static_cast<T>(1));
+            result.template set<2, 3>(static_cast<T>(0.05));
+            result.template set<2, 4>(static_cast<T>(0.0));
+            result.template set<2, 5>(static_cast<T>(0.0));
+            result.template set<3, 0>(static_cast<T>(0.000490873852123405 * x10));
+            result.template set<3, 1>(static_cast<T>(0));
+            result.template set<3, 2>(static_cast<T>(-2.45436926061703e-05 * x10));
             result.template set<3, 3>(
-                static_cast<double>(-Bmotor * x11 - Kt * Kt * x11 / R + 1));
-            result.template set<3, 4>(static_cast<double>(0.0));
-            result.template set<3, 5>(static_cast<double>(0.0));
-            result.template set<4, 0>(static_cast<double>(1.0));
-            result.template set<4, 1>(static_cast<double>(0.05));
-            result.template set<4, 2>(static_cast<double>(0));
-            result.template set<4, 3>(static_cast<double>(0));
-            result.template set<4, 4>(static_cast<double>(1));
-            result.template set<4, 5>(static_cast<double>(0));
-            result.template set<5, 0>(static_cast<double>(x3 * x6));
-            result.template set<5, 1>(static_cast<double>(x8));
-            result.template set<5, 2>(static_cast<double>(-x8));
-            result.template set<5, 3>(static_cast<double>(-0.000245436926061703 * x7));
-            result.template set<5, 4>(static_cast<double>(0));
-            result.template set<5, 5>(static_cast<double>(1));
+                static_cast<T>(-Bmotor * x11 - Kt * Kt * x11 / R + 1));
+            result.template set<3, 4>(static_cast<T>(0.0));
+            result.template set<3, 5>(static_cast<T>(0.0));
+            result.template set<4, 0>(static_cast<T>(1.0));
+            result.template set<4, 1>(static_cast<T>(0.05));
+            result.template set<4, 2>(static_cast<T>(0));
+            result.template set<4, 3>(static_cast<T>(0));
+            result.template set<4, 4>(static_cast<T>(1));
+            result.template set<4, 5>(static_cast<T>(0));
+            result.template set<5, 0>(static_cast<T>(x3 * x6));
+            result.template set<5, 1>(static_cast<T>(x8));
+            result.template set<5, 2>(static_cast<T>(-x8));
+            result.template set<5, 3>(static_cast<T>(-0.000245436926061703 * x7));
+            result.template set<5, 4>(static_cast<T>(0));
+            result.template set<5, 5>(static_cast<T>(1));
 
             return result;
         }
     };
 
-    template <typename B_Updater_Output_Type> class B_Updater {
+    template <typename T, typename B_Updater_Output_Type>
+    class B_Updater {
     public:
         static inline auto update(double Lshaft, double dshaft, double shaftrho,
             double G, double Mmotor, double Rmotor,
@@ -517,19 +526,20 @@ namespace mpc_embedded_integrator_state_space_updater {
             double Kt) -> B_Updater_Output_Type {
             B_Updater_Output_Type result;
 
-            result.template set<0, 0>(static_cast<double>(0));
-            result.template set<1, 0>(static_cast<double>(0));
-            result.template set<2, 0>(static_cast<double>(0));
+            result.template set<0, 0>(static_cast<T>(0));
+            result.template set<1, 0>(static_cast<T>(0));
+            result.template set<2, 0>(static_cast<T>(0));
             result.template set<3, 0>(
-                static_cast<double>(0.1 * Kt / (Mmotor * R * (Rmotor * Rmotor))));
-            result.template set<4, 0>(static_cast<double>(0));
-            result.template set<5, 0>(static_cast<double>(0));
+                static_cast<T>(0.1 * Kt / (Mmotor * R * (Rmotor * Rmotor))));
+            result.template set<4, 0>(static_cast<T>(0));
+            result.template set<5, 0>(static_cast<T>(0));
 
             return result;
         }
     };
 
-    template <typename C_Updater_Output_Type> class C_Updater {
+    template <typename T, typename C_Updater_Output_Type>
+    class C_Updater {
     public:
         static inline auto update(double Lshaft, double dshaft, double shaftrho,
             double G, double Mmotor, double Rmotor,
@@ -552,18 +562,18 @@ namespace mpc_embedded_integrator_state_space_updater {
         static inline auto sympy_function() -> C_Updater_Output_Type {
             C_Updater_Output_Type result;
 
-            result.template set<0, 0>(static_cast<double>(0));
-            result.template set<0, 1>(static_cast<double>(0));
-            result.template set<0, 2>(static_cast<double>(0));
-            result.template set<0, 3>(static_cast<double>(0));
-            result.template set<0, 4>(static_cast<double>(1.0));
-            result.template set<0, 5>(static_cast<double>(0));
-            result.template set<1, 0>(static_cast<double>(0));
-            result.template set<1, 1>(static_cast<double>(0));
-            result.template set<1, 2>(static_cast<double>(0));
-            result.template set<1, 3>(static_cast<double>(0));
-            result.template set<1, 4>(static_cast<double>(0));
-            result.template set<1, 5>(static_cast<double>(0.005));
+            result.template set<0, 0>(static_cast<T>(0));
+            result.template set<0, 1>(static_cast<T>(0));
+            result.template set<0, 2>(static_cast<T>(0));
+            result.template set<0, 3>(static_cast<T>(0));
+            result.template set<0, 4>(static_cast<T>(1.0));
+            result.template set<0, 5>(static_cast<T>(0));
+            result.template set<1, 0>(static_cast<T>(0));
+            result.template set<1, 1>(static_cast<T>(0));
+            result.template set<1, 2>(static_cast<T>(0));
+            result.template set<1, 3>(static_cast<T>(0));
+            result.template set<1, 4>(static_cast<T>(0));
+            result.template set<1, 5>(static_cast<T>(0.005));
 
             return result;
         }
@@ -586,13 +596,15 @@ namespace mpc_embedded_integrator_state_space_updater {
             double Kt = parameter.Kt;
             double Bload = parameter.Bload;
 
-            auto A = A_Updater<typename EmbeddedIntegrator_Updater_Output_Type::A_Type>::update(
+            using T = typename EmbeddedIntegrator_Updater_Output_Type::A_Type::Value_Type;
+
+            auto A = A_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::A_Type>::update(
                 Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
-            auto B = B_Updater<typename EmbeddedIntegrator_Updater_Output_Type::B_Type>::update(
+            auto B = B_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::B_Type>::update(
                 Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
-            auto C = C_Updater<typename EmbeddedIntegrator_Updater_Output_Type::C_Type>::update(
+            auto C = C_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::C_Type>::update(
                 Lshaft, dshaft, shaftrho, G, Mmotor, Rmotor, Bmotor, R, Kt, Bload);
 
             output.A = A;

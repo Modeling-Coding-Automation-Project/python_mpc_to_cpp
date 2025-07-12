@@ -779,7 +779,7 @@ void check_LTV_MPC(void) {
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
 
-    using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type;
+    using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
 
     MPC_StateSpace_Updater_Function_Object<
         Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>
