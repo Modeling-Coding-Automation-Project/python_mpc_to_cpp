@@ -127,9 +127,6 @@ struct Integrate_U<U_Type, U_Horizon_Type, 0> {
   }
 };
 
-} // namespace LMPC_Operation
-
-namespace LMPC_CommonFunctions {
 /**
  * @brief Solves the Linear Model Predictive Control (LMPC) problem without
  * constraints.
@@ -187,7 +184,7 @@ inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
   return U;
 }
 
-}; // namespace LMPC_CommonFunctions
+} // namespace LMPC_Operation
 
 /**
  * @brief Linear Model Predictive Control (MPC) class without constraints.
@@ -440,7 +437,7 @@ protected:
 
     U_Horizon_Type delta_U;
 
-    LMPC_CommonFunctions::solve_LMPC_No_Constraints(
+    LMPC_Operation::solve_LMPC_No_Constraints(
         this->_solver_factor, this->_prediction_matrices.F,
         this->_reference_trajectory, X_augmented, delta_U);
 
@@ -459,7 +456,7 @@ protected:
    */
   inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
 
-    auto U = LMPC_CommonFunctions::calculate_this_U(this->_U_latest, delta_U);
+    auto U = LMPC_Operation::calculate_this_U(this->_U_latest, delta_U);
 
     return U;
   }
