@@ -650,7 +650,7 @@ void check_LTI_MPC(void) {
     auto Y_max = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
 
     LTI_MPC<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(reference_trajectory),
         decltype(delta_U_min),
         decltype(delta_U_max),
         decltype(U_min), decltype(U_max),
@@ -662,7 +662,7 @@ void check_LTI_MPC(void) {
         solver_factor);
 
     LTI_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(reference_trajectory),
         decltype(delta_U_min),
         decltype(delta_U_max),
         decltype(U_min), decltype(U_max),
@@ -671,7 +671,7 @@ void check_LTI_MPC(void) {
     > lti_mpc_copy(lti_mpc);
 
     LTI_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory), decltype(Weight_U_Nc),
+        decltype(reference_trajectory),
         decltype(delta_U_min),
         decltype(delta_U_max),
         decltype(U_min), decltype(U_max),
