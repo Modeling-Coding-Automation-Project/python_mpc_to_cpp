@@ -176,8 +176,8 @@ inline void solve_LMPC_No_Constraints(
  * @return The updated control input U.
  */
 template <typename U_Type>
-inline auto calculate_this_U(const U_Type &U_latest,
-                             const U_Type &delta_U) -> U_Type {
+inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
+    -> U_Type {
 
   auto U = U_latest + delta_U;
 
@@ -432,8 +432,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto
-  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 
@@ -483,8 +483,8 @@ protected:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto
-  get_prediction_matrices() const -> const PredictionMatrices_Type & {
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -689,8 +689,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto
-  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
+  inline auto _solve(const _X_Augmented_Type &X_augmented)
+      -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
@@ -782,6 +782,23 @@ using LTV_MPC_Phi_F_Updater_Function_Object =
 
 /* LTV MPC No Constraints */
 
+/**
+ * @brief Linear Time-Varying Model Predictive Control (MPC) class without
+ * constraints.
+ *
+ * This class implements a linear time-varying MPC algorithm that does not
+ * enforce constraints on the control inputs or outputs. It uses a Kalman filter
+ * for state estimation and prediction matrices for system dynamics.
+ *
+ * @tparam LKF_Type_In Type of the Kalman filter used in the MPC.
+ * @tparam PredictionMatrices_Type_In Type of the prediction matrices used in
+ * the MPC.
+ * @tparam ReferenceTrajectory_Type_In Type of the reference trajectory used in
+ * the MPC.
+ * @tparam Parameter_Type_In Type of the parameters used in the MPC.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in the MPC (can
+ * be empty).
+ */
 template <typename LKF_Type_In, typename PredictionMatrices_Type_In,
           typename ReferenceTrajectory_Type_In, typename Parameter_Type_In,
           typename SolverFactor_Type_In = SolverFactor_Empty>
@@ -1041,8 +1058,8 @@ public:
    * @return The updated control input vector.
    */
   template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference,
-                                  const Y_Type &Y) -> U_Type {
+  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
+      -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
@@ -1091,8 +1108,8 @@ public:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto
-  get_prediction_matrices() const -> const PredictionMatrices_Type & {
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -1158,8 +1175,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto
-  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 
@@ -1207,6 +1224,27 @@ protected:
 };
 
 /* make LTV MPC No Constraints */
+
+/**
+ * @brief Factory function to create an instance of LTV_MPC_NoConstraints.
+ *
+ * This function initializes the LTV_MPC_NoConstraints class with the provided
+ * Kalman filter, prediction matrices, reference trajectory, solver factor,
+ * weight matrix for control input changes, state space updater function, and
+ * Phi/F updater function.
+ *
+ * @tparam LKF_Type Type of the Kalman filter.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam Parameter_Type Type of the parameter used for updating state space.
+ * @tparam SolverFactor_Type_In Type of the solver factor (optional).
+ * @tparam Weight_U_Nc_Type Type for the weight matrix for control input
+ * changes.
+ * @tparam EmbeddedIntegratorSateSpace_Type Type of the embedded integrator
+ * state space.
+ * @return An instance of LTV_MPC_NoConstraints initialized with the provided
+ * parameters.
+ */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
