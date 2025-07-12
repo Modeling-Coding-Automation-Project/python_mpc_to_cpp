@@ -759,12 +759,7 @@ void check_LTV_MPC(void) {
     auto kalman_filter = make_LinearKalmanFilter(sys, Q, R);
     using LKF_Type = decltype(kalman_filter);
 
-    kalman_filter.G = make_DenseMatrix<STATE_SIZE, OUTPUT_SIZE>(
-        static_cast<T>(0.04893929), static_cast<T>(0.00074138),
-        static_cast<T>(0.00827874), static_cast<T>(0.00030475),
-        static_cast<T>(9.78774203e-01), static_cast<T>(-7.95038792e-04),
-        static_cast<T>(2.86510380e-03), static_cast<T>(-3.43928205e-06)
-    );
+    kalman_filter.converge_G();
 
     auto F = PythonMPC_ServoMotorData::get_F<T>();
     using F_Type = decltype(F);
@@ -784,6 +779,7 @@ void check_LTV_MPC(void) {
     ReferenceTrajectory_Type reference_trajectory(ref);
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
+    using SolverFactor_Type = decltype(solver_factor);
 
     using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
 
@@ -803,15 +799,15 @@ void check_LTV_MPC(void) {
             EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
 
     LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-        Parameter_Type, decltype(solver_factor)> ltv_mpc = make_LTV_MPC_NoConstraints(
+        Parameter_Type, SolverFactor_Type> ltv_mpc = make_LTV_MPC_NoConstraints(
             kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
             MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
 
     LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-        Parameter_Type, decltype(solver_factor)> ltv_mpc_copy(ltv_mpc);
+        Parameter_Type, SolverFactor_Type> ltv_mpc_copy(ltv_mpc);
 
     LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-        Parameter_Type, decltype(solver_factor)> ltv_mpc_move = ltv_mpc_copy;
+        Parameter_Type, SolverFactor_Type> ltv_mpc_move = ltv_mpc_copy;
 
     ltv_mpc = std::move(ltv_mpc_move);
 
