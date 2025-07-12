@@ -198,7 +198,7 @@ def main():
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)
     generator.build_SIL_code()
 
-    from test_sil.linear_mpc import ServoMotorLtvMpcSIL
+    from test_sil.servo_motor_ltv_mpc import ServoMotorLtvMpcSIL
     ServoMotorLtvMpcSIL.initialize()
 
     # %% simulation
@@ -273,7 +273,7 @@ def main():
 
         tester.expect_near(
             U, U_cpp, NEAR_LIMIT,
-            "Linear MPC servo motor LTV SIL, check update.")
+            "Linear MPC servo motor LTV SIL, check update_manipulation.")
 
     tester.throw_error_if_test_failed()
 

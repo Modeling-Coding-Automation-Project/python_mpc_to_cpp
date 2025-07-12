@@ -176,8 +176,8 @@ inline void solve_LMPC_No_Constraints(
  * @return The updated control input U.
  */
 template <typename U_Type>
-inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
-    -> U_Type {
+inline auto calculate_this_U(const U_Type &U_latest,
+                             const U_Type &delta_U) -> U_Type {
 
   auto U = U_latest + delta_U;
 
@@ -432,8 +432,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
-      -> U_Horizon_Type {
+  virtual inline auto
+  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 
@@ -483,8 +483,8 @@ protected:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto get_prediction_matrices() const
-      -> const PredictionMatrices_Type & {
+  inline auto
+  get_prediction_matrices() const -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -689,8 +689,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto _solve(const _X_Augmented_Type &X_augmented)
-      -> _U_Horizon_Type override {
+  inline auto
+  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
@@ -1041,8 +1041,8 @@ public:
    * @return The updated control input vector.
    */
   template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
-      -> U_Type {
+  inline auto update_manipulation(const Ref_Type &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
@@ -1091,8 +1091,8 @@ public:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto get_prediction_matrices() const
-      -> const PredictionMatrices_Type & {
+  inline auto
+  get_prediction_matrices() const -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -1124,8 +1124,9 @@ protected:
 
     auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
 
-    this->_solver_factor =
-        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose());
+    PythonNumpy::substitute_matrix(
+        this->_solver_factor,
+        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
   }
 
   /**
@@ -1157,8 +1158,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
-      -> U_Horizon_Type {
+  virtual inline auto
+  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 

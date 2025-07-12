@@ -27,7 +27,7 @@ void update_parameters(FLOAT Mmotor) {
   servo_motor_LTV_SIL_parameters::Parameter_Type controller_parameters;
   controller_parameters.Mmotor = Mmotor;
 
-  lmpc.update_parameters(Mmotor);
+  lmpc.update_parameters(controller_parameters);
 }
 
 py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
@@ -76,8 +76,10 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   return result;
 }
 
-PYBIND11_MODULE(LinearMpcSIL, m) {
+PYBIND11_MODULE(ServoMotorLtvMpcSIL, m) {
   m.def("initialize", &initialize, "initialize linear MPC");
   m.def("update_manipulation", &update_manipulation,
         "update MPC with ref and output");
+  m.def("update_parameters", &update_parameters,
+        "update MPC parameters with Mmotor");
 }
