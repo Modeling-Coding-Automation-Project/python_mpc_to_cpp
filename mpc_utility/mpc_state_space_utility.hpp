@@ -28,9 +28,6 @@ struct EmbeddedIntegratorTypes {
 
   using T = typename A_Type_In::Value_Type;
 
-  // constexpr std::size_t A_COLS = A_Type_In::COLS + C_Type_In::COLS;
-  // constexpr std::size_t A_ROWS = A_COLS;
-
   // constexpr std::size_t B_COLS = B_Type_In::COLS + C_Type_In::COLS;
   // constexpr std::size_t B_ROWS = B_Type_In::ROWS;
 
@@ -55,8 +52,13 @@ struct EmbeddedIntegratorTypes {
       (A_Type_In::COLS + C_Type_In::COLS), (A_Type_In::COLS + C_Type_In::COLS)>(
       A_Type_In, O_M_T_Type, C_A_Type, CC_Identity_Type);
 
-  // using B_Type = B_Type;
-  // using C_Type = C_Type;
+  using B_Type =
+      PythonNumpy::ConcatenateBlock_Type<(B_Type_In::COLS + C_Type_In::COLS),
+                                         B_Type_In::ROWS>(B_Type_In, C_B_Type);
+
+  using C_Type = PythonNumpy::ConcatenateBlock_Type<
+      C_Type_In::COLS, (C_Type_In::ROWS + C_Type_In::COLS)>(O_M_Type,
+                                                            CC_Identity_Type);
 };
 
 } // namespace EmbeddedIntegratorOperation
