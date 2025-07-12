@@ -474,8 +474,6 @@ class LinearMPC_Deploy:
 
         code_text += f"using SolverFactor_Type = {solver_factor_file_name_no_extension}::type;\n\n"
 
-        code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
-
         code_text += f"using Delta_U_Min_Type = {delta_U_min_file_name_no_extension}::type;\n\n"
 
         code_text += f"using Delta_U_Max_Type = {delta_U_max_file_name_no_extension}::type;\n\n"
@@ -503,7 +501,7 @@ class LinearMPC_Deploy:
 
         code_text += f"using type = LTI_MPC_Type<\n" + \
             "  LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
-            "  Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type,\n" + \
+            "  Delta_U_Min_Type, Delta_U_Max_Type,\n" + \
             "  U_Min_Type, U_Max_Type, Y_Min_Type, Y_Max_Type,\n" + \
             "  SolverFactor_Type>;\n\n"
 
