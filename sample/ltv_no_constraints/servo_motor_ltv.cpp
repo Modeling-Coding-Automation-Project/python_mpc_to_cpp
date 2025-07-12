@@ -80,7 +80,7 @@ int main(void) {
     ref(0, i) = 1.0;
   }
 
-  auto lti_mpc_nc = servo_motor_ltv_ltv_mpc::make();
+  auto ltv_mpc_nc = servo_motor_ltv_ltv_mpc::make();
 
   auto U = make_StateSpaceInput<INPUT_SIZE>(0.0);
 
@@ -109,7 +109,7 @@ int main(void) {
     /* controller */
     if (!MPC_updated && sim_step >= MPC_UPDATE_STEP) {
       controller_parameters.Mmotor = 250.0;
-      lti_mpc_nc.update_parameters(controller_parameters);
+      ltv_mpc_nc.update_parameters(controller_parameters);
       MPC_updated = true;
 
       for (std::size_t i = 0; i < ref.rows(); ++i) {
@@ -117,7 +117,7 @@ int main(void) {
       }
     }
 
-    U = lti_mpc_nc.update_manipulation(ref, sys.get_Y());
+    U = ltv_mpc_nc.update_manipulation(ref, sys.get_Y());
 
     std::cout << "Y_0: " << sys.get_Y()(0, 0) << ", ";
     std::cout << "Y_1: " << sys.get_Y()(1, 0) << ", ";
