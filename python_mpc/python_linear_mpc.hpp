@@ -1321,6 +1321,14 @@ protected:
       Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
       Y_Max_Type>;
 
+  using _MPC_StateSpace_Updater_Function_Object =
+      typename _LTV_MPC_NoConstraints_Type::
+          _MPC_StateSpace_Updater_Function_Object;
+
+  using _LTV_MPC_Phi_F_Updater_Function_Object =
+      typename _LTV_MPC_NoConstraints_Type::
+          _LTV_MPC_Phi_F_Updater_Function_Object;
+
 public:
   /* Constructor */
   LTV_MPC() : _LTV_MPC_NoConstraints_Type(), _solver() {}
@@ -1330,11 +1338,17 @@ public:
           const PredictionMatrices_Type &prediction_matrices,
           const ReferenceTrajectory_Type &reference_trajectory,
           const _Weight_U_Nc_Type &Weight_U_Nc,
+          _MPC_StateSpace_Updater_Function_Object &state_space_updater_function,
+          _LTV_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function,
           const Delta_U_Min_Type &delta_U_min,
           const Delta_U_Max_Type &delta_U_max, const U_Min_Type &U_min,
           const U_Max_Type &U_max, const Y_Min_Type &Y_min,
           const Y_Max_Type &Y_max, const SolverFactor_Type &solver_factor_in)
-      : _LTV_MPC_NoConstraints_Type(), _solver() {
+      : _LTV_MPC_NoConstraints_Type(kalman_filter, prediction_matrices,
+                                    reference_trajectory, solver_factor_in,
+                                    Weight_U_Nc, state_space_updater_function,
+                                    phi_f_updater_function),
+        _solver() {
 
     _U_Horizon_Type delta_U_Nc;
 
@@ -1421,19 +1435,26 @@ protected:
 
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
-          typename Weight_U_Nc_Type, typename Delta_U_Min_Type,
-          typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
-          typename Y_Min_Type, typename Y_Max_Type,
+          typename Weight_U_Nc_Type, typename EmbeddedIntegratorSateSpace_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type,
           typename SolverFactor_Type_In = SolverFactor_Empty>
-inline auto make_LTV_MPC(const LKF_Type &kalman_filter,
-                         const PredictionMatrices_Type &prediction_matrices,
-                         const ReferenceTrajectory_Type &reference_trajectory,
-                         const Weight_U_Nc_Type &Weight_U_Nc,
-                         const Delta_U_Min_Type &delta_U_min,
-                         const Delta_U_Max_Type &delta_U_max,
-                         const U_Min_Type &U_min, const U_Max_Type &U_max,
-                         const Y_Min_Type &Y_min, const Y_Max_Type &Y_max,
-                         const SolverFactor_Type_In &solver_factor_in)
+inline auto make_LTV_MPC(
+    const LKF_Type &kalman_filter,
+    const PredictionMatrices_Type &prediction_matrices,
+    const ReferenceTrajectory_Type &reference_trajectory,
+    const Weight_U_Nc_Type &Weight_U_Nc,
+    MPC_StateSpace_Updater_Function_Object<Parameter_Type,
+                                           EmbeddedIntegratorSateSpace_Type>
+        &state_space_updater_function,
+    LTV_MPC_Phi_F_Updater_Function_Object<
+        EmbeddedIntegratorSateSpace_Type, Parameter_Type,
+        typename PredictionMatrices_Type::Phi_Type,
+        typename PredictionMatrices_Type::F_Type> &phi_f_updater_function,
+    const Delta_U_Min_Type &delta_U_min, const Delta_U_Max_Type &delta_U_max,
+    const U_Min_Type &U_min, const U_Max_Type &U_max, const Y_Min_Type &Y_min,
+    const Y_Max_Type &Y_max, const SolverFactor_Type_In &solver_factor_in)
     -> LTV_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
                Parameter_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
                U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In> {
@@ -1442,7 +1463,8 @@ inline auto make_LTV_MPC(const LKF_Type &kalman_filter,
                  Parameter_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
                  U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>(
       kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,
-      delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max, solver_factor_in);
+      state_space_updater_function, phi_f_updater_function, delta_U_min,
+      delta_U_max, U_min, U_max, Y_min, Y_max, solver_factor_in);
 }
 
 /* LTV MPC Type */

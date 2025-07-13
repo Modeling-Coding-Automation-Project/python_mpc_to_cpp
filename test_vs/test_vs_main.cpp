@@ -990,16 +990,10 @@ void check_LTV_MPC(void) {
         decltype(U_min), decltype(U_max),
         decltype(Y_min), decltype(Y_max),
         decltype(solver_factor)
-    > ltv_mpc = make_LTV_MPC<decltype(kalman_filter), decltype(prediction_matrices),
-        decltype(reference_trajectory), Parameter_Type,
-        decltype(Weight_U_Nc),
-        decltype(delta_U_min),
-        decltype(delta_U_max),
-        decltype(U_min), decltype(U_max),
-        decltype(Y_min), decltype(Y_max),
-        decltype(solver_factor)
-    >(kalman_filter, prediction_matrices,
+    > ltv_mpc = make_LTV_MPC(kalman_filter, prediction_matrices,
         reference_trajectory, Weight_U_Nc,
+        MPC_StateSpace_Updater_Function,
+        LTV_MPC_Phi_F_Updater_Function,
         delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max,
         solver_factor);
 
@@ -1024,14 +1018,14 @@ void check_LTV_MPC(void) {
     ltv_mpc = std::move(ltv_mpc_move);
 
     /* 計算 */
-    //auto Y = make_StateSpaceOutput<OUTPUT_SIZE>(static_cast<T>(0.0), static_cast<T>(0.0));
+    auto Y = make_StateSpaceOutput<OUTPUT_SIZE>(static_cast<T>(0.0), static_cast<T>(0.0));
 
-    //auto U = ltv_mpc.update_manipulation(ref, Y);
+    auto U = ltv_mpc.update_manipulation(ref, Y);
 
-    //auto U_answer = make_StateSpaceInput<INPUT_SIZE>(static_cast<T>(23.535215353823776));
+    auto U_answer = make_StateSpaceInput<INPUT_SIZE>(static_cast<T>(23.535215353823776));
 
-    //tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
-    //    "check LTV MPC, update.");
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check LTV MPC, update.");
 
 
     tester.throw_error_if_test_failed();
