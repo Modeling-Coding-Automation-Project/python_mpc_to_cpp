@@ -63,7 +63,7 @@ class StateSpaceUpdater:
         local_vars = {"parameters": parameters}
 
         exe_code = (
-            f"from {MPC_STATE_SPACE_UPDATER_FILE_NAME_NO_EXTENSION} import " +
+            f"from servo_motor_ltv_mpc_state_space_updater import " +
             MPC_STATE_SPACE_UPDATER_CLASS_NAME + "\n"
             "A, B, C, D = " +
             MPC_STATE_SPACE_UPDATER_CLASS_NAME +
