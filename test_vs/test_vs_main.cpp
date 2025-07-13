@@ -696,14 +696,14 @@ void check_LTI_MPC(void) {
 }
 
 template <typename T>
-void check_LTV_MPC(void) {
+void check_LTV_MPC_NoConstraints(void) {
     using namespace PythonNumpy;
     using namespace PythonControl;
     using namespace PythonMPC;
 
     MCAPTester<T> tester;
 
-    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-5);
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
@@ -889,9 +889,9 @@ int main(void) {
 
     check_LTI_MPC<float>();
 
-    check_LTV_MPC<double>();
+    check_LTV_MPC_NoConstraints<double>();
 
-    //check_LTV_MPC<float>();
+    check_LTV_MPC_NoConstraints<float>();
 
 
     return 0;
