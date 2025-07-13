@@ -23,7 +23,7 @@ namespace PythonMPC {
 namespace SolverUtility {
 
 static constexpr std::size_t MAX_ITERATION_DEFAULT = 10;
-static constexpr double TOL_DEFAULT = 1e-8;
+static constexpr double TOL_DEFAULT = 1e-6;
 
 } // namespace SolverUtility
 
@@ -1966,6 +1966,8 @@ public:
     this->_solver.set_tol(
         static_cast<_T>(PythonMPC::SolverUtility::TOL_DEFAULT));
 
+    // this->_solver.set_kkt_inv_solver_division_min(static_cast<_T>(1.0e-5));
+
     this->update_E(Phi_in, weight_U_Nc_in);
   }
 
@@ -2085,8 +2087,8 @@ public:
    *
    * @return The number of delta U constraints.
    */
-  inline auto get_number_of_Y_constraints_prediction_offset(void) const
-      -> std::size_t {
+  inline auto
+  get_number_of_Y_constraints_prediction_offset(void) const -> std::size_t {
     return this->_Y_constraints_prediction_offset;
   }
 
