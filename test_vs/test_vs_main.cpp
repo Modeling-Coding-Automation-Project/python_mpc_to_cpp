@@ -863,6 +863,181 @@ void check_LTV_MPC_NoConstraints(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_LTV_MPC(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
+    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+
+    /* 定義 */
+    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
+    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+
+    constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = PythonMPC_ServoMotorData::OUTPUT_SIZE;
+
+    constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_ServoMotorData::AUGMENTED_STATE_SIZE;
+
+    auto A = make_DenseMatrix<4, 4>(
+        static_cast<T>(1.0), static_cast<T>(0.05), static_cast<T>(0.0), static_cast<T>(0.0),
+        static_cast<T>(-2.56038538), static_cast<T>(0.95000025), static_cast<T>(0.12801927), static_cast<T>(0.0),
+        static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.05),
+        static_cast<T>(6.40099503), static_cast<T>(0.0), static_cast<T>(-0.32004975), static_cast<T>(0.49)
+    );
+    using A_Type = decltype(A);
+
+    auto B = make_DenseMatrix<4, 1>(
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.05)
+    );
+    using B_Type = decltype(B);
+
+    auto C = make_DenseMatrix<2, 4>(
+        static_cast<T>(1.0), static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
+        static_cast<T>(1280.19900634), static_cast<T>(0.0), static_cast<T>(-64.00995032), static_cast<T>(0.0)
+    );
+    using C_Type = decltype(C);
+
+    auto D = make_DenseMatrixZeros<T, OUTPUT_SIZE, INPUT_SIZE>();
+
+    T dt = static_cast<T>(0.05);
+
+    auto sys = make_DiscreteStateSpace(A, B, C, D, dt);
+
+    auto Q = make_KalmanFilter_Q<STATE_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    auto R = make_KalmanFilter_R<OUTPUT_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    auto kalman_filter = make_LinearKalmanFilter(sys, Q, R);
+    using LKF_Type = decltype(kalman_filter);
+
+    kalman_filter.G = make_DenseMatrix<STATE_SIZE, OUTPUT_SIZE>(
+        static_cast<T>(0.04893929), static_cast<T>(0.00074138),
+        static_cast<T>(0.00827874), static_cast<T>(0.00030475),
+        static_cast<T>(9.78774203e-01), static_cast<T>(-7.95038792e-04),
+        static_cast<T>(2.86510380e-03), static_cast<T>(-3.43928205e-06)
+    );
+
+    auto F = PythonMPC_ServoMotorData::get_F<T>();
+    using F_Type = decltype(F);
+
+    auto Phi = PythonMPC_ServoMotorData::get_Phi<T>();
+    using Phi_Type = decltype(Phi);
+
+    MPC_PredictionMatrices<decltype(F), decltype(Phi),
+        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
+
+    auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
+        static_cast<T>(1.0), static_cast<T>(0.0));
+
+    MPC_ReferenceTrajectory_Type<decltype(ref), Np> reference_trajectory(ref);
+
+    auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
+
+    using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
+
+    auto Weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE* Nc>()*
+        static_cast<T>(0.001);
+
+    auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(-100));
+    auto delta_U_max = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(100));
+
+    auto U_min = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(-180));
+    auto U_max = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(180));
+
+    auto Y_min = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
+    auto Y_max = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
+
+    using EmbeddedIntegratorSateSpace_Type =
+        typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
+
+    MPC_StateSpace_Updater_Function_Object<
+        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>
+        MPC_StateSpace_Updater_Function =
+        PythonMPC_ServoMotorData::mpc_state_space_updater::MPC_StateSpace_Updater::update<
+        Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
+
+    LTV_MPC_Phi_F_Updater_Function_Object<
+        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
+        LTV_MPC_Phi_F_Updater_Function =
+        PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
+        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
+
+    LTV_MPC<decltype(kalman_filter), decltype(prediction_matrices),
+        decltype(reference_trajectory), Parameter_Type,
+        decltype(delta_U_min),
+        decltype(delta_U_max),
+        decltype(U_min), decltype(U_max),
+        decltype(Y_min), decltype(Y_max),
+        decltype(solver_factor)
+    > ltv_mpc = make_LTV_MPC<decltype(kalman_filter), decltype(prediction_matrices),
+        decltype(reference_trajectory), Parameter_Type,
+        decltype(Weight_U_Nc),
+        decltype(delta_U_min),
+        decltype(delta_U_max),
+        decltype(U_min), decltype(U_max),
+        decltype(Y_min), decltype(Y_max),
+        decltype(solver_factor)
+    >(kalman_filter, prediction_matrices,
+        reference_trajectory, Weight_U_Nc,
+        delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max,
+        solver_factor);
+
+    LTV_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
+        decltype(reference_trajectory), Parameter_Type,
+        decltype(delta_U_min),
+        decltype(delta_U_max),
+        decltype(U_min), decltype(U_max),
+        decltype(Y_min), decltype(Y_max),
+        decltype(solver_factor)
+    > ltv_mpc_copy(ltv_mpc);
+
+    LTV_MPC_Type<decltype(kalman_filter), decltype(prediction_matrices),
+        decltype(reference_trajectory), Parameter_Type,
+        decltype(delta_U_min),
+        decltype(delta_U_max),
+        decltype(U_min), decltype(U_max),
+        decltype(Y_min), decltype(Y_max),
+        decltype(solver_factor)
+    > ltv_mpc_move = ltv_mpc_copy;
+
+    ltv_mpc = std::move(ltv_mpc_move);
+
+    /* 計算 */
+    //auto Y = make_StateSpaceOutput<OUTPUT_SIZE>(static_cast<T>(0.0), static_cast<T>(0.0));
+
+    //auto U = ltv_mpc.update_manipulation(ref, Y);
+
+    //auto U_answer = make_StateSpaceInput<INPUT_SIZE>(static_cast<T>(23.535215353823776));
+
+    //tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+    //    "check LTV MPC, update.");
+
+
+    tester.throw_error_if_test_failed();
+}
+
+
 int main(void) {
 
     check_MPC_PredictionMatrices<double>();
@@ -892,6 +1067,10 @@ int main(void) {
     check_LTV_MPC_NoConstraints<double>();
 
     check_LTV_MPC_NoConstraints<float>();
+
+    check_LTV_MPC<double>();
+
+    check_LTV_MPC<float>();
 
 
     return 0;
