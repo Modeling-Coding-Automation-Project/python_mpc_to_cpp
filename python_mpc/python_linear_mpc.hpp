@@ -1329,15 +1329,12 @@ public:
   LTV_MPC(const LKF_Type &kalman_filter,
           const PredictionMatrices_Type &prediction_matrices,
           const ReferenceTrajectory_Type &reference_trajectory,
-          const Parameter_Type &parameter, const _Weight_U_Nc_Type &Weight_U_Nc,
+          const _Weight_U_Nc_Type &Weight_U_Nc,
           const Delta_U_Min_Type &delta_U_min,
           const Delta_U_Max_Type &delta_U_max, const U_Min_Type &U_min,
           const U_Max_Type &U_max, const Y_Min_Type &Y_min,
           const Y_Max_Type &Y_max, const SolverFactor_Type &solver_factor_in)
-      : _LTV_MPC_NoConstraints_Type(kalman_filter, prediction_matrices,
-                                    reference_trajectory, parameter,
-                                    solver_factor_in),
-        _solver() {
+      : _LTV_MPC_NoConstraints_Type(), _solver() {
 
     _U_Horizon_Type delta_U_Nc;
 
@@ -1419,6 +1416,46 @@ protected:
   /* Variables */
   _Solver_Type _solver;
 };
+
+/* make LTI MPC */
+
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename Weight_U_Nc_Type, typename Delta_U_Min_Type,
+          typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
+          typename Y_Min_Type, typename Y_Max_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+inline auto make_LTV_MPC(const LKF_Type &kalman_filter,
+                         const PredictionMatrices_Type &prediction_matrices,
+                         const ReferenceTrajectory_Type &reference_trajectory,
+                         const Weight_U_Nc_Type &Weight_U_Nc,
+                         const Delta_U_Min_Type &delta_U_min,
+                         const Delta_U_Max_Type &delta_U_max,
+                         const U_Min_Type &U_min, const U_Max_Type &U_max,
+                         const Y_Min_Type &Y_min, const Y_Max_Type &Y_max,
+                         const SolverFactor_Type_In &solver_factor_in)
+    -> LTV_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+               Parameter_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+               U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In> {
+
+  return LTV_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+                 Parameter_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                 U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>(
+      kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,
+      delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max, solver_factor_in);
+}
+
+/* LTV MPC Type */
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+using LTV_MPC_Type =
+    LTV_MPC<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+            Parameter_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+            U_Max_Type, Y_Min_Type, Y_Max_Type, SolverFactor_Type_In>;
 
 } // namespace PythonMPC
 
