@@ -1283,6 +1283,143 @@ using LTV_MPC_NoConstraints_Type =
                           ReferenceTrajectory_Type, Parameter_Type,
                           SolverFactor_Type_In>;
 
+/* LTV MPC */
+
+template <typename LKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+class LTV_MPC
+    : public LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                   ReferenceTrajectory_Type, Parameter_Type,
+                                   SolverFactor_Type_In> {
+
+protected:
+  /* Type */
+  using _LTV_MPC_NoConstraints_Type =
+      LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                            ReferenceTrajectory_Type, Parameter_Type,
+                            SolverFactor_Type_In>;
+
+  using _U_Horizon_Type = typename _LTV_MPC_NoConstraints_Type::U_Horizon_Type;
+
+  using _X_Augmented_Type =
+      typename _LTV_MPC_NoConstraints_Type::X_Augmented_Type;
+
+  using _Weight_U_Nc_Type =
+      PythonNumpy::DiagMatrix_Type<typename _LTV_MPC_NoConstraints_Type::_T,
+                                   (_LTV_MPC_NoConstraints_Type::INPUT_SIZE *
+                                    _LTV_MPC_NoConstraints_Type::NC)>;
+
+  using _Solver_Type = LTI_MPC_QP_Solver_Type<
+      _U_Horizon_Type::COLS, _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE,
+      typename _LTV_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
+      typename PredictionMatrices_Type::Phi_Type,
+      typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
+      Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+      Y_Max_Type>;
+
+public:
+  /* Constructor */
+  LTV_MPC() : _LTV_MPC_NoConstraints_Type(), _solver() {}
+
+  template <typename SolverFactor_Type>
+  LTV_MPC(const LKF_Type &kalman_filter,
+          const PredictionMatrices_Type &prediction_matrices,
+          const ReferenceTrajectory_Type &reference_trajectory,
+          const Parameter_Type &parameter, const _Weight_U_Nc_Type &Weight_U_Nc,
+          const Delta_U_Min_Type &delta_U_min,
+          const Delta_U_Max_Type &delta_U_max, const U_Min_Type &U_min,
+          const U_Max_Type &U_max, const Y_Min_Type &Y_min,
+          const Y_Max_Type &Y_max, const SolverFactor_Type &solver_factor_in)
+      : _LTV_MPC_NoConstraints_Type(kalman_filter, prediction_matrices,
+                                    reference_trajectory, parameter,
+                                    solver_factor_in),
+        _solver() {
+
+    _U_Horizon_Type delta_U_Nc;
+
+    auto X_augmented = PythonNumpy::concatenate_vertically(
+        this->_X_inner_model, this->_Y_store.get());
+
+    this->_solver =
+        make_LTI_MPC_QP_Solver<_U_Horizon_Type::COLS,
+                               _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE>(
+            this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
+            this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
+            U_min, U_max, Y_min, Y_max);
+  }
+
+  /* Copy Constructor */
+  LTV_MPC(const LTV_MPC &other)
+      : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                              ReferenceTrajectory_Type, Parameter_Type,
+                              SolverFactor_Type_In>(other),
+        _solver(other._solver) {}
+
+  LTV_MPC &operator=(const LTV_MPC &other) {
+    if (this != &other) {
+      this->LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                                  ReferenceTrajectory_Type, Parameter_Type,
+                                  SolverFactor_Type_In>::operator=(other);
+      this->_solver = other._solver;
+    }
+    return *this;
+  }
+
+  /* Move Constructor */
+  LTV_MPC(LTV_MPC &&other) noexcept
+      : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
+                              ReferenceTrajectory_Type, Parameter_Type,
+                              SolverFactor_Type_In>(std::move(other)),
+        _solver(std::move(other._solver)) {}
+
+  LTV_MPC &operator=(LTV_MPC &&other) noexcept {
+    if (this != &other) {
+      this->LTV_MPC_NoConstraints<
+          LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+          Parameter_Type, SolverFactor_Type_In>::operator=(std::move(other));
+      this->_solver = std::move(other._solver);
+    }
+    return *this;
+  }
+
+protected:
+  /* Function */
+
+  /**
+   * @brief Solves the MPC optimization problem to calculate the control input
+   * with constraints.
+   *
+   * This function computes the change in control input (delta_U) based on the
+   * augmented state vector (X_augmented) and the reference trajectory, while
+   * considering constraints on the control inputs and outputs.
+   *
+   * @param X_augmented The augmented state vector containing the current state
+   * and output.
+   * @return The calculated change in control input (delta_U).
+   */
+  inline auto _solve(const _X_Augmented_Type &X_augmented)
+      -> _U_Horizon_Type override {
+
+    this->_solver.update_constraints(this->_U_latest, X_augmented,
+                                     this->_prediction_matrices.Phi,
+                                     this->_prediction_matrices.F);
+
+    auto delta_U = this->_solver.solve(
+        this->_prediction_matrices.Phi, this->_prediction_matrices.F,
+        this->_reference_trajectory, X_augmented);
+
+    return delta_U;
+  }
+
+protected:
+  /* Variables */
+  _Solver_Type _solver;
+};
+
 } // namespace PythonMPC
 
 #endif // __PYTHON_LINEAR_MPC_HPP__
