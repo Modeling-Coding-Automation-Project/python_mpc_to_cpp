@@ -30,8 +30,6 @@ from sample.simulation_manager.visualize.simulation_plotter import SimulationPlo
 from sample.simulation_manager.signal_edit.sampler import PulseGenerator
 
 from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility_deploy \
-    import MPC_STATE_SPACE_UPDATER_FILE_NAME_NO_EXTENSION
-from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility_deploy \
     import MPC_STATE_SPACE_UPDATER_CLASS_NAME
 from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility_deploy \
     import MPC_STATE_SPACE_UPDATER_FUNCTION_NAME
