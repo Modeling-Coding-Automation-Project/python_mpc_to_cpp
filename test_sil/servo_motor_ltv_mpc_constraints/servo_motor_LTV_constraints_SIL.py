@@ -18,8 +18,6 @@ from test_vs.MCAP_tester.tester.MCAP_tester import MCAPTester
 from sample.simulation_manager.signal_edit.sampler import PulseGenerator
 
 from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility_deploy \
-    import MPC_STATE_SPACE_UPDATER_FILE_NAME_NO_EXTENSION
-from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility_deploy \
     import MPC_STATE_SPACE_UPDATER_CLASS_NAME
 from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility_deploy \
     import MPC_STATE_SPACE_UPDATER_FUNCTION_NAME
@@ -51,7 +49,7 @@ class StateSpaceUpdater:
         local_vars = {"parameters": parameters}
 
         exe_code = (
-            f"from {MPC_STATE_SPACE_UPDATER_FILE_NAME_NO_EXTENSION} import " +
+            f"from servo_motor_LTV_constraints_SIL_mpc_state_space_updater import " +
             MPC_STATE_SPACE_UPDATER_CLASS_NAME + "\n"
             "A, B, C, D = " +
             MPC_STATE_SPACE_UPDATER_CLASS_NAME +

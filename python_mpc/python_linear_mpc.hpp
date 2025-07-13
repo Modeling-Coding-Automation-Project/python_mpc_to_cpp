@@ -1285,6 +1285,29 @@ using LTV_MPC_NoConstraints_Type =
 
 /* LTV MPC */
 
+/**
+ * @brief Linear Time-Varying Model Predictive Control (MPC) class with
+ * constraints.
+ *
+ * This class implements a linear time-varying MPC algorithm that enforces
+ * constraints on the control inputs and outputs. It uses a Kalman filter for
+ * state estimation and prediction matrices for system dynamics.
+ *
+ * @tparam LKF_Type Type of the Kalman filter used in the MPC.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices used in the
+ * MPC.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory used in
+ * the MPC.
+ * @tparam Parameter_Type Type of the parameters used in the MPC.
+ * @tparam Delta_U_Min_Type Type for the minimum change in control input.
+ * @tparam Delta_U_Max_Type Type for the maximum change in control input.
+ * @tparam U_Min_Type Type for the minimum control input.
+ * @tparam U_Max_Type Type for the maximum control input.
+ * @tparam Y_Min_Type Type for the minimum output constraint.
+ * @tparam Y_Max_Type Type for the maximum output constraint.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in the MPC (can
+ * be empty).
+ */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename Delta_U_Min_Type, typename Delta_U_Max_Type,
@@ -1433,6 +1456,32 @@ protected:
 
 /* make LTI MPC */
 
+/**
+ * @brief Factory function to create an instance of LTV_MPC.
+ *
+ * This function initializes the LTV_MPC class with the provided Kalman filter,
+ * prediction matrices, reference trajectory, weight matrix for control input
+ * changes, state space updater function, Phi/F updater function, and various
+ * constraints.
+ *
+ * @tparam LKF_Type Type of the Kalman filter.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam Parameter_Type Type of the parameters used in the MPC.
+ * @tparam Weight_U_Nc_Type Type for the weight matrix for control input
+ * changes.
+ * @tparam EmbeddedIntegratorSateSpace_Type Type of the embedded integrator
+ * state space.
+ * @tparam Delta_U_Min_Type Type for the minimum change in control input.
+ * @tparam Delta_U_Max_Type Type for the maximum change in control input.
+ * @tparam U_Min_Type Type for the minimum control input.
+ * @tparam U_Max_Type Type for the maximum control input.
+ * @tparam Y_Min_Type Type for the minimum output constraint.
+ * @tparam Y_Max_Type Type for the maximum output constraint.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in the MPC (can
+ * be empty).
+ * @return An instance of LTV_MPC initialized with the provided parameters.
+ */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename Weight_U_Nc_Type, typename EmbeddedIntegratorSateSpace_Type,
