@@ -394,7 +394,7 @@ void check_DU_U_Y_Limits(void) {
 
 
 template <typename T>
-void check_LTI_MPC_QP_Solver(void) {
+void check_LMPC_QP_Solver(void) {
     using namespace PythonNumpy;
     using namespace PythonControl;
     using namespace PythonMPC;
@@ -458,12 +458,12 @@ void check_LTI_MPC_QP_Solver(void) {
     using Y_min_Type = decltype(Y_min);
     using Y_max_Type = decltype(Y_max);
 
-    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+    LMPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
         U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
         Delta_U_min_Type, Delta_U_max_Type,
         U_min_Type, U_max_Type,
         Y_min_Type, Y_max_Type> lti_mpc_qp_solver =
-        make_LTI_MPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
+        make_LMPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
             U, X_augmented, Phi, F, weight_U_Nc,
             delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max);
 
@@ -501,13 +501,13 @@ void check_LTI_MPC_QP_Solver(void) {
         gamma_answer.matrix.data, NEAR_LIMIT_STRICT,
         "check LTI MPC QP Solver, gamma vector.");
 
-    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+    LMPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
         U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
         Delta_U_min_Type, Delta_U_max_Type,
         U_min_Type, U_max_Type,
         Y_min_Type, Y_max_Type> lti_mpc_qp_solver_copy(lti_mpc_qp_solver);
 
-    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+    LMPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
         U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
         Delta_U_min_Type, Delta_U_max_Type,
         U_min_Type, U_max_Type,
@@ -531,12 +531,12 @@ void check_LTI_MPC_QP_Solver(void) {
         static_cast<T>(0.001), static_cast<T>(0.001)
     );
 
-    LTI_MPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
+    LMPC_QP_Solver_Type<NUMBER_OF_VARIABLES, OUTPUT_SIZE,
         U_Type, X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
         Delta_U_min_Type, Delta_U_max_Type,
         U_min_Type, U_max_Type,
         decltype(Y_min_Empty), decltype(Y_max_Empty)> qp_solver =
-        make_LTI_MPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
+        make_LMPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
             U, X_augmented, Phi, F, weight_U_Nc,
             delta_U_min, delta_U_max, U_min, U_max, Y_min_Empty, Y_max_Empty);
 
@@ -881,9 +881,9 @@ int main(void) {
 
     check_DU_U_Y_Limits<float>();
 
-    check_LTI_MPC_QP_Solver<double>();
+    check_LMPC_QP_Solver<double>();
 
-    check_LTI_MPC_QP_Solver<float>();
+    check_LMPC_QP_Solver<float>();
 
     check_LTI_MPC<double>();
 

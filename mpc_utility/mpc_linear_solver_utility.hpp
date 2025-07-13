@@ -544,7 +544,7 @@ using DU_U_Y_Limits_Type =
     DU_U_Y_Limits<Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type,
                   Y_Min_Type, Y_Max_Type>;
 
-namespace LTI_MPC_QP_SolverOperation {
+namespace LMPC_QP_SolverOperation {
 
 /* calculate M gamma for delta U min  */
 template <typename M_Type, typename Gamma_Type,
@@ -1831,7 +1831,7 @@ using Calculate_M_Gamma_Y_Max =
                                  F_X_Type, Y_Constraints_Prediction_Offset, 0,
                                  Y_Max_Size>;
 
-} // namespace LTI_MPC_QP_SolverOperation
+} // namespace LMPC_QP_SolverOperation
 
 /* LTI MPC QP solver */
 
@@ -1868,7 +1868,7 @@ template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
           typename Y_Min_Type, typename Y_Max_Type,
           std::size_t Y_Constraints_Prediction_Offset = 0>
-class LTI_MPC_QP_Solver {
+class LMPC_QP_Solver {
 public:
   /* Type */
   using Value_Type = typename U_Type::Value_Type;
@@ -1945,15 +1945,15 @@ protected:
 
 public:
   /* Constructor */
-  LTI_MPC_QP_Solver() : limits(), M(), gamma(), _solver() {}
+  LMPC_QP_Solver() : limits(), M(), gamma(), _solver() {}
 
-  LTI_MPC_QP_Solver(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
-                    const Phi_Type &Phi_in, const F_Type &F_in,
-                    const Weight_U_Nc_Type &weight_U_Nc_in,
-                    const Delta_U_Min_Type &delta_U_Min_in,
-                    const Delta_U_Max_Type &delta_U_Max_in,
-                    const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
-                    const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
+  LMPC_QP_Solver(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
+                 const Phi_Type &Phi_in, const F_Type &F_in,
+                 const Weight_U_Nc_Type &weight_U_Nc_in,
+                 const Delta_U_Min_Type &delta_U_Min_in,
+                 const Delta_U_Max_Type &delta_U_Max_in,
+                 const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
+                 const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
       : limits(), M(), gamma(), _solver() {
 
     this->limits = make_DU_U_Y_Limits(delta_U_Min_in, delta_U_Max_in, U_min_in,
@@ -1970,15 +1970,15 @@ public:
   }
 
   /* Copy Constructor */
-  LTI_MPC_QP_Solver(const LTI_MPC_QP_Solver &other)
+  LMPC_QP_Solver(const LMPC_QP_Solver &other)
       : limits(other.limits), M(other.M), gamma(other.gamma),
         _solver(other._solver) {}
 
-  LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type, X_augmented_Type,
-                    Phi_Type, F_Type, Weight_U_Nc_Type, Delta_U_Min_Type,
-                    Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
-                    Y_Max_Type, Y_Constraints_Prediction_Offset> &
-  operator=(const LTI_MPC_QP_Solver &other) {
+  LMPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type, X_augmented_Type,
+                 Phi_Type, F_Type, Weight_U_Nc_Type, Delta_U_Min_Type,
+                 Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                 Y_Max_Type, Y_Constraints_Prediction_Offset> &
+  operator=(const LMPC_QP_Solver &other) {
     if (this != &other) {
       this->limits = other.limits;
       this->M = other.M;
@@ -1989,15 +1989,15 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC_QP_Solver(LTI_MPC_QP_Solver &&other) noexcept
+  LMPC_QP_Solver(LMPC_QP_Solver &&other) noexcept
       : limits(std::move(other.limits)), M(std::move(other.M)),
         gamma(std::move(other.gamma)), _solver(std::move(other._solver)) {}
 
-  LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type, X_augmented_Type,
-                    Phi_Type, F_Type, Weight_U_Nc_Type, Delta_U_Min_Type,
-                    Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
-                    Y_Max_Type, Y_Constraints_Prediction_Offset> &
-  operator=(LTI_MPC_QP_Solver &&other) noexcept {
+  LMPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type, X_augmented_Type,
+                 Phi_Type, F_Type, Weight_U_Nc_Type, Delta_U_Min_Type,
+                 Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                 Y_Max_Type, Y_Constraints_Prediction_Offset> &
+  operator=(LMPC_QP_Solver &&other) noexcept {
     if (this != &other) {
       this->limits = std::move(other.limits);
       this->M = std::move(other.M);
@@ -2157,7 +2157,7 @@ protected:
     std::size_t initial_position = total_index;
 
     // delta_U_min constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_Min<
+    LMPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_Min<
         M_Type, Gamma_Type, decltype(this->limits.delta_U_min),
         Limits_Type::DELTA_U_MIN_SIZE>::apply(this->M, this->gamma,
                                               this->limits.delta_U_min,
@@ -2166,7 +2166,7 @@ protected:
     initial_position = total_index;
 
     // delta_U_max constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_Max<
+    LMPC_QP_SolverOperation::Calculate_M_Gamma_Delta_U_Max<
         M_Type, Gamma_Type, decltype(this->limits.delta_U_max),
         Limits_Type::DELTA_U_MAX_SIZE>::apply(this->M, this->gamma,
                                               this->limits.delta_U_max,
@@ -2187,7 +2187,7 @@ protected:
     std::size_t initial_position = total_index;
 
     // U_min constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Min<
+    LMPC_QP_SolverOperation::Calculate_M_Gamma_U_Min<
         M_Type, Gamma_Type, decltype(this->limits.U_min), U_Type,
         Limits_Type::U_MIN_SIZE>::apply(this->M, this->gamma,
                                         this->limits.U_min, U, total_index,
@@ -2196,7 +2196,7 @@ protected:
     initial_position = total_index;
 
     // U_max constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_U_Max<
+    LMPC_QP_SolverOperation::Calculate_M_Gamma_U_Max<
         M_Type, Gamma_Type, decltype(this->limits.U_max), U_Type,
         Limits_Type::U_MAX_SIZE>::apply(this->M, this->gamma,
                                         this->limits.U_max, U, total_index,
@@ -2224,7 +2224,7 @@ protected:
     auto F_X = F * X_augmented;
 
     // Y_min constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Y_Min<
+    LMPC_QP_SolverOperation::Calculate_M_Gamma_Y_Min<
         M_Type, Gamma_Type, decltype(this->limits.Y_min), Phi_Type,
         decltype(F_X), Y_CONSTRAINTS_PREDICTION_OFFSET,
         Limits_Type::Y_MIN_SIZE>::apply(this->M, this->gamma,
@@ -2234,7 +2234,7 @@ protected:
     initial_position = total_index;
 
     // Y_max constraints
-    LTI_MPC_QP_SolverOperation::Calculate_M_Gamma_Y_Max<
+    LMPC_QP_SolverOperation::Calculate_M_Gamma_Y_Max<
         M_Type, Gamma_Type, decltype(this->limits.Y_max), Phi_Type,
         decltype(F_X), Y_CONSTRAINTS_PREDICTION_OFFSET,
         Limits_Type::Y_MAX_SIZE>::apply(this->M, this->gamma,
@@ -2260,12 +2260,12 @@ protected:
   _Solver_Type _solver;
 };
 
-/* make LTI_MPC_QP_Solver */
+/* make LMPC_QP_Solver */
 
 /**
- * @brief Factory function to create an instance of LTI_MPC_QP_Solver.
+ * @brief Factory function to create an instance of LMPC_QP_Solver.
  *
- * This function initializes and returns an instance of LTI_MPC_QP_Solver with
+ * This function initializes and returns an instance of LMPC_QP_Solver with
  * the provided parameters.
  *
  * @tparam Number_Of_Variables Number of control variables.
@@ -2284,7 +2284,7 @@ protected:
  * @tparam U_Max_Type Type representing the maximum control input limits.
  * @tparam Y_Min_Type Type representing the minimum output limits.
  * @tparam Y_Max_Type Type representing the maximum output limits.
- * @return An instance of LTI_MPC_QP_Solver initialized with the provided
+ * @return An instance of LMPC_QP_Solver initialized with the provided
  * parameters.
  */
 template <std::size_t Number_Of_Variables, std::size_t Output_Size,
@@ -2294,21 +2294,20 @@ template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename Y_Min_Type, typename Y_Max_Type,
           std::size_t Y_Constraints_Prediction_Offset = 0>
 inline auto
-make_LTI_MPC_QP_Solver(const U_Type &U_in,
-                       const X_augmented_Type &X_augmented_in,
-                       const Phi_Type &Phi_in, const F_Type &F_in,
-                       const Weight_U_Nc_Type &weight_U_Nc_in,
-                       const Delta_U_Min_Type &delta_U_Min_in,
-                       const Delta_U_Max_Type &delta_U_Max_in,
-                       const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
-                       const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
-    -> LTI_MPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type,
-                         X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
-                         Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
-                         U_Max_Type, Y_Min_Type, Y_Max_Type,
-                         Y_Constraints_Prediction_Offset> {
+make_LMPC_QP_Solver(const U_Type &U_in, const X_augmented_Type &X_augmented_in,
+                    const Phi_Type &Phi_in, const F_Type &F_in,
+                    const Weight_U_Nc_Type &weight_U_Nc_in,
+                    const Delta_U_Min_Type &delta_U_Min_in,
+                    const Delta_U_Max_Type &delta_U_Max_in,
+                    const U_Min_Type &U_min_in, const U_Max_Type &U_max_in,
+                    const Y_Min_Type &Y_min_in, const Y_Max_Type &Y_max_in)
+    -> LMPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type,
+                      X_augmented_Type, Phi_Type, F_Type, Weight_U_Nc_Type,
+                      Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
+                      U_Max_Type, Y_Min_Type, Y_Max_Type,
+                      Y_Constraints_Prediction_Offset> {
 
-  return LTI_MPC_QP_Solver<
+  return LMPC_QP_Solver<
       Number_Of_Variables, Output_Size, U_Type, X_augmented_Type, Phi_Type,
       F_Type, Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
       U_Max_Type, Y_Min_Type, Y_Max_Type, Y_Constraints_Prediction_Offset>(
@@ -2316,17 +2315,18 @@ make_LTI_MPC_QP_Solver(const U_Type &U_in,
       delta_U_Max_in, U_min_in, U_max_in, Y_min_in, Y_max_in);
 }
 
-/* LTI_MPC_QP_Solver Type */
+/* LMPC_QP_Solver Type */
 template <std::size_t Number_Of_Variables, std::size_t Output_Size,
           typename U_Type, typename X_augmented_Type, typename Phi_Type,
           typename F_Type, typename Weight_U_Nc_Type, typename Delta_U_Min_Type,
           typename Delta_U_Max_Type, typename U_Min_Type, typename U_Max_Type,
           typename Y_Min_Type, typename Y_Max_Type,
           std::size_t Y_Constraints_Prediction_Offset = 0>
-using LTI_MPC_QP_Solver_Type = LTI_MPC_QP_Solver<
-    Number_Of_Variables, Output_Size, U_Type, X_augmented_Type, Phi_Type,
-    F_Type, Weight_U_Nc_Type, Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type,
-    U_Max_Type, Y_Min_Type, Y_Max_Type, Y_Constraints_Prediction_Offset>;
+using LMPC_QP_Solver_Type =
+    LMPC_QP_Solver<Number_Of_Variables, Output_Size, U_Type, X_augmented_Type,
+                   Phi_Type, F_Type, Weight_U_Nc_Type, Delta_U_Min_Type,
+                   Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                   Y_Max_Type, Y_Constraints_Prediction_Offset>;
 
 } // namespace PythonMPC
 

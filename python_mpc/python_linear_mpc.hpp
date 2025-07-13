@@ -602,7 +602,7 @@ protected:
                                    (_LTI_MPC_NoConstraints_Type::INPUT_SIZE *
                                     _LTI_MPC_NoConstraints_Type::NC)>;
 
-  using _Solver_Type = LTI_MPC_QP_Solver_Type<
+  using _Solver_Type = LMPC_QP_Solver_Type<
       _U_Horizon_Type::COLS, _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE,
       typename _LTI_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
       typename PredictionMatrices_Type::Phi_Type,
@@ -633,8 +633,8 @@ public:
         this->_X_inner_model, this->_Y_store.get());
 
     this->_solver =
-        make_LTI_MPC_QP_Solver<_U_Horizon_Type::COLS,
-                               _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE>(
+        make_LMPC_QP_Solver<_U_Horizon_Type::COLS,
+                            _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE>(
             this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
             this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
             U_min, U_max, Y_min, Y_max);
@@ -1313,7 +1313,7 @@ protected:
                                    (_LTV_MPC_NoConstraints_Type::INPUT_SIZE *
                                     _LTV_MPC_NoConstraints_Type::NC)>;
 
-  using _Solver_Type = LTI_MPC_QP_Solver_Type<
+  using _Solver_Type = LMPC_QP_Solver_Type<
       _U_Horizon_Type::COLS, _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE,
       typename _LTV_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
       typename PredictionMatrices_Type::Phi_Type,
@@ -1345,8 +1345,8 @@ public:
         this->_X_inner_model, this->_Y_store.get());
 
     this->_solver =
-        make_LTI_MPC_QP_Solver<_U_Horizon_Type::COLS,
-                               _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE>(
+        make_LMPC_QP_Solver<_U_Horizon_Type::COLS,
+                            _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE>(
             this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
             this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
             U_min, U_max, Y_min, Y_max);
