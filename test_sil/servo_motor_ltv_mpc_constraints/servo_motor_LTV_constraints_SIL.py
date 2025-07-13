@@ -208,8 +208,8 @@ def main():
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)
     generator.build_SIL_code()
 
-    from test_sil.servo_motor_ltv_mpc import ServoMotorLtvMpcSIL
-    ServoMotorLtvMpcSIL.initialize()
+    from test_sil.servo_motor_ltv_mpc_constraints import ServoMotorLtvMpcConstraintsSIL
+    ServoMotorLtvMpcConstraintsSIL.initialize()
 
     # %% simulation
     t_sim = 80.0
@@ -273,13 +273,15 @@ def main():
             controller_parameters.Mmotor = 250.0
 
             ltv_mpc.update_parameters(controller_parameters)
-            ServoMotorLtvMpcSIL.update_parameters(controller_parameters.Mmotor)
+            ServoMotorLtvMpcConstraintsSIL.update_parameters(
+                controller_parameters.Mmotor)
 
             MPC_updated = True
 
         U = ltv_mpc.update_manipulation(ref, y_measured)
 
-        U_cpp = ServoMotorLtvMpcSIL.update_manipulation(ref, y_measured)
+        U_cpp = ServoMotorLtvMpcConstraintsSIL.update_manipulation(
+            ref, y_measured)
 
         tester.expect_near(
             U, U_cpp, NEAR_LIMIT,

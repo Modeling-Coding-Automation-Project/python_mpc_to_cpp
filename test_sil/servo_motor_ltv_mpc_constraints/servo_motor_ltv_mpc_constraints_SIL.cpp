@@ -1,4 +1,4 @@
-#include "servo_motor_ltv_mpc_SIL_wrapper.hpp"
+#include "servo_motor_ltv_mpc_constraints_SIL_wrapper.hpp"
 
 #include "servo_motor_LTV_constraints_SIL_parameters.hpp"
 
@@ -9,18 +9,23 @@
 
 namespace py = pybind11;
 
-using FLOAT = typename servo_motor_ltv_mpc_SIL_wrapper::type::Value_Type;
+using FLOAT =
+    typename servo_motor_ltv_mpc_constraints_SIL_wrapper::type::Value_Type;
 
-constexpr std::size_t INPUT_SIZE = servo_motor_ltv_mpc_SIL_wrapper::INPUT_SIZE;
-constexpr std::size_t STATE_SIZE = servo_motor_ltv_mpc_SIL_wrapper::STATE_SIZE;
+constexpr std::size_t INPUT_SIZE =
+    servo_motor_ltv_mpc_constraints_SIL_wrapper::INPUT_SIZE;
+constexpr std::size_t STATE_SIZE =
+    servo_motor_ltv_mpc_constraints_SIL_wrapper::STATE_SIZE;
 constexpr std::size_t OUTPUT_SIZE =
-    servo_motor_ltv_mpc_SIL_wrapper::OUTPUT_SIZE;
+    servo_motor_ltv_mpc_constraints_SIL_wrapper::OUTPUT_SIZE;
 
-using Ref_Type = typename servo_motor_ltv_mpc_SIL_wrapper::Ref_Type;
+using Ref_Type = typename servo_motor_ltv_mpc_constraints_SIL_wrapper::Ref_Type;
 
-servo_motor_ltv_mpc_SIL_wrapper::type lmpc;
+servo_motor_ltv_mpc_constraints_SIL_wrapper::type lmpc;
 
-void initialize(void) { lmpc = servo_motor_ltv_mpc_SIL_wrapper::make(); }
+void initialize(void) {
+  lmpc = servo_motor_ltv_mpc_constraints_SIL_wrapper::make();
+}
 
 void update_parameters(FLOAT Mmotor) {
 
@@ -77,7 +82,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   return result;
 }
 
-PYBIND11_MODULE(ServoMotorLtvMpcSIL, m) {
+PYBIND11_MODULE(ServoMotorLtvMpcConstraintsSIL, m) {
   m.def("initialize", &initialize, "initialize linear MPC");
   m.def("update_manipulation", &update_manipulation,
         "update MPC with ref and output");
