@@ -843,16 +843,21 @@ class LinearMPC_Deploy:
 
         code_text += f"  Weight_U_Nc_Type Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
+        mpc_state_space_updater_name = caller_file_name_without_ext + \
+            "_mpc_state_space_updater"
+
         code_text += f"  MPC_StateSpace_Updater_Function_Object<\n" + \
             f"    Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>\n" + \
             f"    MPC_StateSpace_Updater_Function =\n" + \
-            f"    mpc_state_space_updater::MPC_StateSpace_Updater::update<\n" + \
+            f"    {mpc_state_space_updater_name}::MPC_StateSpace_Updater::update<\n" + \
             f"      Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;\n\n"
+
+        ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
             f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
             f"    LTV_MPC_Phi_F_Updater_Function =\n" + \
-            f"    ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<\n" + \
+            f"    {ltv_mpc_phi_f_updater_name}::LTV_MPC_Phi_F_Updater::update<\n" + \
             f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
 
         code_text += f"  auto ltv_mpc_nc = make_LTV_MPC_NoConstraints(\n" + \
@@ -1304,16 +1309,21 @@ class LinearMPC_Deploy:
 
         code_text += f"  ReferenceTrajectory_Type reference_trajectory;\n\n"
 
+        mpc_state_space_updater_name = caller_file_name_without_ext + \
+            "_mpc_state_space_updater"
+
         code_text += f"  MPC_StateSpace_Updater_Function_Object<\n" + \
             f"    Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>\n" + \
             f"    MPC_StateSpace_Updater_Function =\n" + \
-            f"    mpc_state_space_updater::MPC_StateSpace_Updater::update<\n" + \
+            f"    {mpc_state_space_updater_name}::MPC_StateSpace_Updater::update<\n" + \
             f"      Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;\n\n"
+
+        ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
             f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
             f"    LTV_MPC_Phi_F_Updater_Function =\n" + \
-            f"    ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<\n" + \
+            f"    {ltv_mpc_phi_f_updater_name}::LTV_MPC_Phi_F_Updater::update<\n" + \
             f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
 
         code_text += f"  auto ltv_mpc = make_LTV_MPC(\n" + \
