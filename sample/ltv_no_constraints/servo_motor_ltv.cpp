@@ -19,8 +19,8 @@
 
 /* CAUTION */
 // You need to run "servo_motor_ltv.py" before running this code.
-#include "mpc_state_space_updater.hpp"
 #include "servo_motor_ltv_ltv_mpc.hpp"
+#include "servo_motor_ltv_mpc_state_space_updater.hpp"
 #include "servo_motor_ltv_parameters.hpp"
 
 #include "python_control.hpp"
@@ -94,8 +94,8 @@ int main(void) {
   for (std::size_t sim_step = 0; sim_step < 800; ++sim_step) {
     if (!parameter_changed && sim_step >= PARAMETER_CHANGE_STEP) {
       plant_parameters.Mmotor = 250.0;
-      mpc_state_space_updater::MPC_StateSpace_Updater::update(plant_parameters,
-                                                              sys);
+      servo_motor_ltv_mpc_state_space_updater::MPC_StateSpace_Updater::update(
+          plant_parameters, sys);
       parameter_changed = true;
 
       for (std::size_t i = 0; i < ref.rows(); ++i) {
