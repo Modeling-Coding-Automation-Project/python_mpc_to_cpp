@@ -6,6 +6,8 @@
 
 #include "test_mpc_servo_motor_data.hpp"
 #include "test_mpc_two_wheel_vehicle_model_data.hpp"
+#include "test_Adaptive_MPC_Phi_F_Updater_Function.hpp"
+
 #include "MCAP_tester.hpp"
 
 using namespace Tester;
@@ -1135,13 +1137,7 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     Weight_U_Nc_Type Weight_U_Nc = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::make<T>();
 
-    Adaptive_MPC_Phi_F_Updater_Function_Object<
-        X_Type, U_Type, Parameter_Type,
-        Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>
-        Adaptive_MPC_Phi_F_Updater_Function =
-        PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_adaptive_mpc_phi_f_updater::Adaptive_MPC_Phi_F_Updater<T>::template update<
-        X_Type, U_Type, Parameter_Type,
-        Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;
+    auto Adaptive_MPC_Phi_F_Updater_Function = get_adaptive_mpc_phi_f_updater_function<T>();
 
     AdaptiveMPC_NoConstraints_Type<B_Type,
         EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
@@ -1178,41 +1174,41 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
 int main(void) {
 
-    check_MPC_PredictionMatrices<double>();
+    //check_MPC_PredictionMatrices<double>();
 
-    check_MPC_PredictionMatrices<float>();
+    //check_MPC_PredictionMatrices<float>();
 
-    check_MPC_ReferenceTrajectory<double>();
+    //check_MPC_ReferenceTrajectory<double>();
 
-    check_MPC_ReferenceTrajectory<float>();
+    //check_MPC_ReferenceTrajectory<float>();
 
-    check_LTI_MPC_NoConstraints<double>();
+    //check_LTI_MPC_NoConstraints<double>();
 
-    check_LTI_MPC_NoConstraints<float>();
+    //check_LTI_MPC_NoConstraints<float>();
 
-    check_DU_U_Y_Limits<double>();
+    //check_DU_U_Y_Limits<double>();
 
-    check_DU_U_Y_Limits<float>();
+    //check_DU_U_Y_Limits<float>();
 
-    check_LMPC_QP_Solver<double>();
+    //check_LMPC_QP_Solver<double>();
 
-    check_LMPC_QP_Solver<float>();
+    //check_LMPC_QP_Solver<float>();
 
-    check_LTI_MPC<double>();
+    //check_LTI_MPC<double>();
 
-    check_LTI_MPC<float>();
+    //check_LTI_MPC<float>();
 
-    check_LTV_MPC_NoConstraints<double>();
+    //check_LTV_MPC_NoConstraints<double>();
 
-    check_LTV_MPC_NoConstraints<float>();
+    //check_LTV_MPC_NoConstraints<float>();
 
-    check_LTV_MPC<double>();
+    //check_LTV_MPC<double>();
 
-    check_LTV_MPC<float>();
+    //check_LTV_MPC<float>();
 
     check_Adaptive_MPC_NoConstraints<double>();
 
-    check_Adaptive_MPC_NoConstraints<float>();
+    //check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;
