@@ -1119,7 +1119,9 @@ void check_Adaptive_MPC_NoConstraints(void) {
     using EmbeddedIntegratorStateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
-
+    AdaptiveMPC_NoConstraints_Type<B_Type,
+        EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ada_mpc;
 
 
     tester.throw_error_if_test_failed();

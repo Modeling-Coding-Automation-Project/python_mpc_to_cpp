@@ -252,7 +252,7 @@ class AdaptiveMPC_Deploy:
         code_text += f"using EmbeddedIntegratorStateSpace_Type =\n" + \
             f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
 
-        code_text += f"using type = AdaptiveMPC_NoConstraints_Type<\n" + \
+        code_text += f"using type = AdaptiveMPC_NoConstraints_Type<B_Type,\n" + \
             "  EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
             "  Parameter_Type, SolverFactor_Type>;\n\n"
 

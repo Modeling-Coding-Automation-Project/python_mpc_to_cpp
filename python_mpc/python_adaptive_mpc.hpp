@@ -264,11 +264,11 @@ inline auto make_AdaptiveMPC_NoConstraints(
 }
 
 /* Adaptive MPC No Constraints Type */
-template <typename EKF_Type, typename PredictionMatrices_Type,
+template <typename B_Type, typename EKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename SolverFactor_Type_In = SolverFactor_Empty>
 using AdaptiveMPC_NoConstraints_Type =
-    AdaptiveMPC_NoConstraints<EKF_Type, PredictionMatrices_Type,
+    AdaptiveMPC_NoConstraints<B_Type, EKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, Parameter_Type,
                               SolverFactor_Type_In>;
 
