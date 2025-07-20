@@ -1179,6 +1179,11 @@ void check_Adaptive_MPC_NoConstraints(void) {
     tester.expect_near(solver_factor_1_19, solver_factor_1_19_answer, NEAR_LIMIT_STRICT,
         "check Adaptive MPC No Constraints, solver_factor(1, 19).");
 
+    Parameter_Type parameter_test;
+    parameter_test.m = static_cast<T>(0.0);
+    ada_mpc.update_parameters(parameter_test);
+    parameter_test.m = static_cast<T>(2000);
+    ada_mpc.update_parameters(parameter_test);
 
     /* 計算 */
 

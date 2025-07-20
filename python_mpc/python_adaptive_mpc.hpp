@@ -218,6 +218,45 @@ public:
 
 public:
   /* Function */
+  template <typename Parameter_Type>
+  inline void update_parameters(const Parameter_Type &parameters) {
+
+    this->_kalman_filter.parameters = parameters;
+  }
+
+  template <typename Ref_Type>
+  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
+      -> U_Type {
+
+    this->_kalman_filter.predict_and_update(this->_U_latest, Y);
+
+    X_Type X = this->_kalman_filter.get_x_hat();
+
+    X_Type X_compensated;
+    Y_Type Y_compensated;
+    this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
+
+    this->_prediction_matrices.update_Phi_F_adaptive_runtime(
+        this->_kalman_filter.Parameters, X_compensated, this->_U_latest);
+
+    auto delta_X = X_compensated - this->_X_inner_model;
+    auto delta_Y = Y_compensated - this->_Y_store.get();
+    auto X_augmented = PythonNumpy::concatenate_vertically(delta_X, delta_Y);
+
+    this->_reference_trajectory.set_reference_sub_Y(reference,
+                                                    this->_Y_store.get());
+
+    auto delta_U = this->_solve(X_augmented);
+
+    LMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
+                                (INPUT_SIZE - 1)>::calculate(this->_U_latest,
+                                                             delta_U);
+
+    this->_X_inner_model = X_compensated;
+
+    return this->_U_latest;
+  }
+
   inline auto get_F(void) const -> F_Type {
     return this->_prediction_matrices.F;
   }
