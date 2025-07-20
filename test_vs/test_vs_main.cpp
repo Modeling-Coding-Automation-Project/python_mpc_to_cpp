@@ -1212,7 +1212,7 @@ int main(void) {
 
     check_Adaptive_MPC_NoConstraints<double>();
 
-    //check_Adaptive_MPC_NoConstraints<float>();
+    check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;
