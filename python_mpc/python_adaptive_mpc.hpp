@@ -13,10 +13,10 @@ namespace PythonMPC {
 
 /* Adaptive MPC Function Object */
 
-template <typename X_Type, typename Y_Type, typename Parameter_Type,
+template <typename X_Type, typename U_Type, typename Parameter_Type,
           typename Phi_Type, typename F_Type, typename StateSpace_Type>
 using Adaptive_MPC_Phi_F_Updater_Function_Object =
-    std::function<void(const X_Type &, const Y_Type &, const Parameter_Type &,
+    std::function<void(const X_Type &, const U_Type &, const Parameter_Type &,
                        Phi_Type &, F_Type &)>;
 
 /* Adaptive MPC No Constraints */
