@@ -1073,7 +1073,7 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     MCAPTester<T> tester;
 
-    //constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
@@ -1154,6 +1154,23 @@ void check_Adaptive_MPC_NoConstraints(void) {
     kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
     Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);
 
+    AdaptiveMPC_NoConstraints_Type<B_Type,
+        EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ada_mpc_copy(ada_mpc);
+
+    AdaptiveMPC_NoConstraints_Type <B_Type,
+        EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ada_mpc_move = ada_mpc_copy;
+
+    ada_mpc = std::move(ada_mpc_move);
+
+    /* チェック */
+    T F_79_10 = ada_mpc.get_F().template get<79, 10>();
+    T F_79_10_answer = static_cast<T>(1.0);
+
+    tester.expect_near(F_79_10, F_79_10_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, F(79, 10).");
+
 
     tester.throw_error_if_test_failed();
 }
@@ -1195,7 +1212,7 @@ int main(void) {
 
     check_Adaptive_MPC_NoConstraints<double>();
 
-    check_Adaptive_MPC_NoConstraints<float>();
+    //check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;

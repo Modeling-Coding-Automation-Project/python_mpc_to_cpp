@@ -216,6 +216,10 @@ public:
     return *this;
   }
 
+public:
+  /* Function */
+  inline F_Type get_F(void) const { return this->_prediction_matrices.F; }
+
 protected:
   /* Variables */
   EKF_Type _kalman_filter;
