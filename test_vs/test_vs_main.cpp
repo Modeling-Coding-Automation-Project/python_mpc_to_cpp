@@ -1161,11 +1161,12 @@ void check_Adaptive_MPC_NoConstraints(void) {
     ada_mpc = std::move(ada_mpc_move);
 
     /* チェック */
-    T F_79_10 = ada_mpc.get_F().template get<79, 10>();
-    T F_79_10_answer = static_cast<T>(1.0);
+    T F_19_10 = ada_mpc.get_F().template get<19, 10>();
+    T F_19_10_answer = static_cast<T>(1.0);
 
-    tester.expect_near(F_79_10, F_79_10_answer, NEAR_LIMIT_STRICT,
-        "check Adaptive MPC No Constraints, F(79, 10).");
+    tester.expect_near(F_19_10, F_19_10_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, F(19, 10).");
+
 
 
     tester.throw_error_if_test_failed();
