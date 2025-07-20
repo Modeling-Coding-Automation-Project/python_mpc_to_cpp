@@ -188,9 +188,7 @@ def main():
 
     # You can create cpp header which can easily define lti_mpc as C++ code
     deployed_file_names = LinearMPC_Deploy.generate_LTV_MPC_NC_cpp_code(
-        ltv_mpc,
-        parameters=controller_parameters,
-        number_of_delay=Number_of_Delay)
+        ltv_mpc)
 
     current_dir = os.path.dirname(__file__)
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)
