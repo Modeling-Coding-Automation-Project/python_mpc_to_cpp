@@ -108,6 +108,8 @@ class AdaptiveMatricesDeploy:
 
         code_text += f"namespace {file_name_no_extension} {{\n\n"
 
+        arg_list = []
+
         for i, (class_name, methods) in enumerate(class_methods.items()):
             if i < len(class_methods) - 1:
                 # A, B, C, D updater class
@@ -124,6 +126,7 @@ class AdaptiveMatricesDeploy:
                 code_text += function_code
                 code_text += "\n"
 
+                arg_list = visitor.arg_list
             else:
                 # MPC StateSpace Updater class
                 output_type_name = f"{class_name}_Output_Type"
@@ -135,7 +138,9 @@ class AdaptiveMatricesDeploy:
                     "const Parameter_Type& parameter, " + \
                     f"{output_type_name}& output) {{\n"
 
-                visitor = StateSpaceUpdaterToCppVisitor()
+                visitor = StateSpaceUpdaterToCppVisitor(
+                    arg_list=arg_list
+                )
                 visitor.output_type_name = output_type_name
 
                 function_code = visitor.convert(

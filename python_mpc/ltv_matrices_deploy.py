@@ -98,6 +98,7 @@ class MatrixUpdaterToCppVisitor(ast.NodeVisitor):
         self.Value_Type_name = "double"
         self.class_name = ""
         self.in_class = False
+        self.arg_list = []
         self.indent = ""
         self.SparseAvailable = None
 
@@ -179,13 +180,17 @@ class MatrixUpdaterToCppVisitor(ast.NodeVisitor):
                     Value_Type_name = python_to_cpp_types.get(
                         Value_Type_python_name, "double")
             arg_strs.append(f"{Value_Type_name} {arg}")
-        arg_list = ", ".join(arg_strs)
+
+            if node.name != "sympy_function":
+                self.arg_list.append(arg)
+
+        arg_list_text = ", ".join(arg_strs)
 
         # return type
         ret_type = self.Output_Type_name
 
         # function header
-        self.cpp_code += f"{self.indent}{static_str}inline auto {node.name}({arg_list}) -> {ret_type} {{\n"
+        self.cpp_code += f"{self.indent}{static_str}inline auto {node.name}({arg_list_text}) -> {ret_type} {{\n"
 
         if node.name == "update":
             update_args = [arg.arg for arg in node.args.args]
@@ -312,12 +317,14 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
     state-space matrices (A, B, C, and optionally D) using updater classes.
     """
 
-    def __init__(self):
+    def __init__(self, arg_list=[]):
         self.cpp_code = ""
         self.indent = "    "
         self.param_names = []
+        self.var_names = []
         self.has_D = False
 
+        self.arg_list = arg_list
         self.output_type_name = ""
 
     def visit_FunctionDef(self, node):
@@ -402,14 +409,21 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
             j = j.strip("()")
             self.cpp_code += f"{self.indent}double {var_name} = {array_name}.template get<{i}, {j}>();\n"
 
+            self.var_names.append(var_name)
+
         self.cpp_code += "\n"
 
         # A, B, C
         for updater in ["A", "B", "C"]:
+            if self.arg_list:
+                arg_list = [f"{v}" for v in self.arg_list]
+            else:
+                arg_list = [f"{v[0]}" for v in self.param_names]
+
             self.cpp_code += (
                 f"{self.indent}auto {updater} = {updater}_Updater<typename " +
                 f"{self.output_type_name}::{updater}_Type>::update("
-                + ", ".join([v[0] for v in self.param_names]) + ");\n\n"
+                + ", ".join(arg_list) + ");\n\n"
             )
 
         # D
