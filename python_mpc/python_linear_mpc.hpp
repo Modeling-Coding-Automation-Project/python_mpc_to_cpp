@@ -887,11 +887,7 @@ public:
         _solver_factor(), _X_inner_model(), _U_latest(), _Y_store(),
         _solver_factor_inv_solver(), _Weight_U_Nc() {}
 
-  template <typename LKF_Type, typename PredictionMatrices_Type,
-            typename ReferenceTrajectory_Type,
-            typename SolverFactor_Type_In_Constructor,
-            typename _MPC_StateSpace_Updater_Function_Object,
-            typename _LTV_MPC_Phi_F_Updater_Function_Object>
+  template <typename SolverFactor_Type_In_Constructor>
   LTV_MPC_NoConstraints(
       const LKF_Type &kalman_filter,
       const PredictionMatrices_Type &prediction_matrices,
