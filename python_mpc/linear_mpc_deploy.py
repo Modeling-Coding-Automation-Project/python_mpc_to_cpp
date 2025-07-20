@@ -816,7 +816,7 @@ class LinearMPC_Deploy:
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
-        code_text += f"using EmbeddedIntegratorSateSpace_Type =\n" + \
+        code_text += f"using EmbeddedIntegratorStateSpace_Type =\n" + \
             f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
 
         code_text += f"using type = LTV_MPC_NoConstraints_Type<\n" + \
@@ -851,10 +851,10 @@ class LinearMPC_Deploy:
         ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
-            f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
+            f"    EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
             f"    LTV_MPC_Phi_F_Updater_Function =\n" + \
             f"    {ltv_mpc_phi_f_updater_name}::LTV_MPC_Phi_F_Updater::update<\n" + \
-            f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
+            f"      EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
 
         code_text += f"  auto ltv_mpc_nc = make_LTV_MPC_NoConstraints(\n" + \
             "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
@@ -1222,7 +1222,7 @@ class LinearMPC_Deploy:
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
-        code_text += f"using EmbeddedIntegratorSateSpace_Type =\n" + \
+        code_text += f"using EmbeddedIntegratorStateSpace_Type =\n" + \
             f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
 
         code_text += f"using type = LTV_MPC_Type<\n" + \
@@ -1316,10 +1316,10 @@ class LinearMPC_Deploy:
         ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
-            f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
+            f"    EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
             f"    LTV_MPC_Phi_F_Updater_Function =\n" + \
             f"    {ltv_mpc_phi_f_updater_name}::LTV_MPC_Phi_F_Updater::update<\n" + \
-            f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
+            f"      EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
 
         code_text += f"  auto ltv_mpc = make_LTV_MPC(\n" + \
             "    kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,\n" + \

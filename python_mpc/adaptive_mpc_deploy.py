@@ -222,6 +222,10 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"using C_Type = typename EKF_Type::C_Type;\n\n"
 
+        code_text += f"using X_Type = StateSpaceState_Type<{type_name}, STATE_SIZE>;\n\n"
+
+        code_text += f"using Y_Type = StateSpaceOutput_Type<{type_name}, OUTPUT_SIZE>;\n\n"
+
         code_text += f"using F_Type = {F_file_name_no_extension}::type;\n\n"
 
         code_text += f"using Phi_Type = {Phi_file_name_no_extension}::type;\n\n"
@@ -245,7 +249,7 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
-        code_text += f"using EmbeddedIntegratorSateSpace_Type =\n" + \
+        code_text += f"using EmbeddedIntegratorStateSpace_Type =\n" + \
             f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
 
         code_text += f"using type = AdaptiveMPC_NoConstraints_Type<\n" + \
@@ -272,10 +276,12 @@ class AdaptiveMPC_Deploy:
             "_adaptive_mpc_phi_f_updater"
 
         code_text += f"  Adaptive_MPC_Phi_F_Updater_Function_Object<\n" + \
-            f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
+            f"    X_Type, Y_Type, Parameter_Type,\n" + \
+            f"    Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>\n" + \
             f"    Adaptive_MPC_Phi_F_Updater_Function =\n" + \
             f"    {adaptive_mpc_phi_f_updater_name}::Adaptive_MPC_Phi_F_Updater::update<\n" + \
-            f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
+            f"      X_Type, Y_Type, Parameter_Type,\n" + \
+            f"      Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;\n\n"
 
         # code_text += f"  auto adaptive_mpc_nc = make_Adaptive_MPC_NoConstraints(\n" + \
         #     "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
