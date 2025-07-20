@@ -1098,6 +1098,8 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     using Y_Type = StateSpaceOutput_Type<double, OUTPUT_SIZE>;
 
+    using U_Type = StateSpaceInput_Type<double, INPUT_SIZE>;
+
     using F_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::type;
 
     using Phi_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::type;
@@ -1134,19 +1136,19 @@ void check_Adaptive_MPC_NoConstraints(void) {
     Weight_U_Nc_Type Weight_U_Nc = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::make();
 
     Adaptive_MPC_Phi_F_Updater_Function_Object<
-        X_Type, Y_Type, Parameter_Type,
+        X_Type, U_Type, Parameter_Type,
         Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>
         Adaptive_MPC_Phi_F_Updater_Function =
         PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_adaptive_mpc_phi_f_updater::Adaptive_MPC_Phi_F_Updater::update<
-        X_Type, Y_Type, Parameter_Type,
+        X_Type, U_Type, Parameter_Type,
         Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;
 
     AdaptiveMPC_NoConstraints_Type<B_Type,
         EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
         Parameter_Type, SolverFactor_Type> ada_mpc =
         make_AdaptiveMPC_NoConstraints(
-            kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
-            Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);
+    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
+    Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);
 
 
     tester.throw_error_if_test_failed();
