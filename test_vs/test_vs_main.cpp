@@ -788,7 +788,7 @@ void check_LTV_MPC_NoConstraints(void) {
 
     using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
 
-    using EmbeddedIntegratorSateSpace_Type =
+    using EmbeddedIntegratorStateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
     MPC_StateSpace_Updater_Function_Object<
@@ -798,10 +798,10 @@ void check_LTV_MPC_NoConstraints(void) {
         Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
     LTV_MPC_Phi_F_Updater_Function_Object<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>
         LTV_MPC_Phi_F_Updater_Function =
         PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
-            EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
+            EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
 
     LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
         Parameter_Type, SolverFactor_Type> ltv_mpc = make_LTV_MPC_NoConstraints(
@@ -968,7 +968,7 @@ void check_LTV_MPC(void) {
     auto Y_min = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
     auto Y_max = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
 
-    using EmbeddedIntegratorSateSpace_Type =
+    using EmbeddedIntegratorStateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
     MPC_StateSpace_Updater_Function_Object<
@@ -978,10 +978,10 @@ void check_LTV_MPC(void) {
         Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
     LTV_MPC_Phi_F_Updater_Function_Object<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>
         LTV_MPC_Phi_F_Updater_Function =
         PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
 
     LTV_MPC<decltype(kalman_filter), decltype(prediction_matrices),
         decltype(reference_trajectory), Parameter_Type,
