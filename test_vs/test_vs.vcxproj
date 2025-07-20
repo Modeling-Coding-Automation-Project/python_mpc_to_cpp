@@ -107,8 +107,8 @@
       <AdditionalIncludeDirectories>..\external_libraries\python_numpy_to_cpp\base_matrix;..\external_libraries\python_numpy_to_cpp\python_numpy;..\external_libraries\python_math_to_cpp\python_math;..\external_libraries\python_math_to_cpp\base_math;..\external_libraries\base_utility_cpp\base_utility;..\external_libraries\python_control_to_cpp\python_control;..\external_libraries\python_optimization_to_cpp\python_optimization;..\mpc_utility;..\python_mpc;.\MCAP_tester\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <Optimization>MaxSpeed</Optimization>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
