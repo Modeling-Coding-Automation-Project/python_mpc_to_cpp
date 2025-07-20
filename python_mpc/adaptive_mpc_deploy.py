@@ -276,11 +276,11 @@ class AdaptiveMPC_Deploy:
             "_adaptive_mpc_phi_f_updater"
 
         code_text += f"  Adaptive_MPC_Phi_F_Updater_Function_Object<\n" + \
-            f"    X_Type, Y_Type, Parameter_Type,\n" + \
+            f"    X_Type, U_Type, Parameter_Type,\n" + \
             f"    Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>\n" + \
             f"    Adaptive_MPC_Phi_F_Updater_Function =\n" + \
             f"    {adaptive_mpc_phi_f_updater_name}::Adaptive_MPC_Phi_F_Updater::update<\n" + \
-            f"      X_Type, Y_Type, Parameter_Type,\n" + \
+            f"      X_Type, U_Type, Parameter_Type,\n" + \
             f"      Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;\n\n"
 
         code_text += f"  auto adaptive_mpc_nc = make_AdaptiveMPC_NoConstraints(\n" + \

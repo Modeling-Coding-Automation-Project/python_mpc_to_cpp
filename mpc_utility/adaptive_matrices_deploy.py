@@ -127,9 +127,9 @@ class AdaptiveMatricesDeploy:
                 output_type_name = f"{class_name}_Output_Type"
 
                 code_text += f"class {class_name} {{\npublic:\n"
-                code_text += "template <typename X_Type, typename Y_Type, " + \
+                code_text += "template <typename X_Type, typename U_Type, " + \
                     f"typename Parameter_Type, typename {output_type_name}>\n"
-                code_text += "static inline void update(const X_Type& X, const Y_Type& Y, " + \
+                code_text += "static inline void update(const X_Type& X, const U_Type& U, " + \
                     "const Parameter_Type& parameter, " + \
                     f"{output_type_name}& output) {{\n"
 
@@ -251,13 +251,13 @@ class AdaptiveMatricesDeploy:
         code_text += f"using namespace {prediction_matrices_phi_f_updater_cpp_name_no_extension};\n\n"
 
         code_text += f"class {class_name} {{\npublic:\n"
-        code_text += f"template <typename X_Type, typename Y_Type, typename Parameter_Type,\n" + \
+        code_text += f"template <typename X_Type, typename U_Type, typename Parameter_Type,\n" + \
             "  typename Phi_Type, typename F_Type, typename StateSpace_Type>\n"
-        code_text += "static inline void update(const X_Type &X, const Y_Type &Y,\n" + \
+        code_text += "static inline void update(const X_Type &X, const U_Type &U,\n" + \
             "  const Parameter_Type &parameter, Phi_Type& Phi, F_Type& F) {\n\n"
 
         code_text += "  StateSpace_Type state_space;\n"
-        code_text += "  EmbeddedIntegrator_Updater::update(X, Y, parameter, state_space);\n\n"
+        code_text += "  EmbeddedIntegrator_Updater::update(X, U, parameter, state_space);\n\n"
 
         code_text += "  PredictionMatricesPhiF_Updater::update(\n"
         code_text += "      state_space.A, state_space.B, state_space.C, Phi, F);\n\n"
