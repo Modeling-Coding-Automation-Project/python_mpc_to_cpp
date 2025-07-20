@@ -222,6 +222,32 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"using C_Type = typename EKF_Type::C_Type;\n\n"
 
+        code_text += f"using F_Type = {F_file_name_no_extension}::type;\n\n"
+
+        code_text += f"using Phi_Type = {Phi_file_name_no_extension}::type;\n\n"
+
+        code_text += f"using SolverFactor_Type = {solver_factor_file_name_no_extension}::type;\n\n"
+
+        code_text += f"using PredictionMatrices_Type = MPC_PredictionMatrices_Type<\n" + \
+            "  F_Type, Phi_Type, NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;\n\n"
+
+        ref_row_size_text = "1"
+        if ada_mpc_nc.is_ref_trajectory:
+            ref_row_size_text = "NP"
+
+        code_text += f"using Ref_Type = DenseMatrix_Type<{type_name}, OUTPUT_SIZE, " + \
+            ref_row_size_text + ">;\n\n"
+
+        code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
+            "  Ref_Type, NP>;\n\n"
+
+        code_text += f"using Parameter_Type = {parameter_code_file_name_without_ext}::Parameter_Type;\n\n"
+
+        code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
+
+        code_text += f"using EmbeddedIntegratorSateSpace_Type =\n" + \
+            f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
+
         code_text += "} // namespace " + namespace_name + "\n\n"
 
         code_text += "#endif // " + file_header_macro_name + "\n"
