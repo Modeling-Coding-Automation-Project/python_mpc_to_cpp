@@ -908,8 +908,6 @@ class LinearMPC_Deploy:
         else:
             caller_file_name_without_ext = file_name
 
-        number_of_delay = ltv_mpc.Number_of_Delay
-
         code_file_name = caller_file_name_without_ext + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
 
