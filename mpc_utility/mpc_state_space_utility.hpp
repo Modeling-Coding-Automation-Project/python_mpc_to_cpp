@@ -21,6 +21,8 @@
 
 namespace PythonMPC {
 
+class SolverFactor_Empty {};
+
 template <typename A_Type_In, typename B_Type_In, typename C_Type_In>
 struct EmbeddedIntegratorTypes {
 

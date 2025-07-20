@@ -23,8 +23,6 @@
 
 namespace PythonMPC {
 
-class SolverFactor_Empty {};
-
 namespace LMPC_Operation {
 
 /**
@@ -658,7 +656,8 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other) noexcept
+  LTI_MPC(LTI_MPC &&other)
+  noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
@@ -1404,7 +1403,8 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other) noexcept
+  LTV_MPC(LTV_MPC &&other)
+  noexcept
       : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, Parameter_Type,
                               SolverFactor_Type_In>(std::move(other)),
