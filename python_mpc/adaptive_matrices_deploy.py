@@ -89,33 +89,9 @@ class AdaptiveMatricesDeploy:
         return code_text
 
     @staticmethod
-    def generate_mpc_state_space_updater_cpp_code(input_python_file_name: str,
-                                                  file_name_no_extension: str):
-        """
-        Generates C++ header code for MPC (Model Predictive Control) state-space updater classes
-        based on the structure and methods of Python classes defined in the specified input file.
-        This function reads a Python file containing class definitions for MPC state-space updaters,
-        extracts their methods, and converts them into corresponding C++ class templates and methods.
-        The generated C++ code is returned as a string, formatted as a header file with include guards
-        and a namespace based on the provided file name.
-        Args:
-            input_python_file_name (str): The name of the Python file containing the class definitions
-                to be converted.
-            file_name_no_extension (str): The base name (without extension) to use for the C++ header
-                file, include guards, and namespace.
-        Returns:
-            str: The generated C++ header code as a string.
-        Raises:
-            ValueError: If no classes are found in the specified Python file.
-        Notes:
-            - The function expects the input Python file to contain specific class structures for
-                MPC state-space updaters.
-            - Uses helper classes and functions such as `ControlDeploy.find_file`, `extract_class_methods`,
-                `MatrixUpdaterToCppVisitor`, and `StateSpaceUpdaterToCppVisitor`
-                  for file handling and code conversion.
-            - The last class in the file is treated as the main MPC StateSpace Updater class, while others
-                are treated as matrix updater classes (A, B, C, D, etc.).
-        """
+    def generate_embedded_integrator_updater_cpp_code(
+            input_python_file_name: str,
+            file_name_no_extension: str):
 
         function_file_path = ControlDeploy.find_file(
             input_python_file_name, os.getcwd())
@@ -153,9 +129,11 @@ class AdaptiveMatricesDeploy:
                 output_type_name = f"{class_name}_Output_Type"
 
                 code_text += f"class {class_name} {{\npublic:\n"
-                code_text += f"template <typename Parameter_Type, typename " + output_type_name + ">\n"
-                code_text += "static inline void update(const Parameter_Type& parameter, " + \
-                    output_type_name + "& output) {\n"
+                code_text += "template <typename X_Type, typename Y_Type, " + \
+                    f"typename Parameter_Type, typename {output_type_name}>\n"
+                code_text += "static inline void update(const X_Type& X, const Y_Type& Y, " + \
+                    "const Parameter_Type& parameter, " + \
+                    f"{output_type_name}& output) {{\n"
 
                 visitor = StateSpaceUpdaterToCppVisitor()
                 visitor.output_type_name = output_type_name
