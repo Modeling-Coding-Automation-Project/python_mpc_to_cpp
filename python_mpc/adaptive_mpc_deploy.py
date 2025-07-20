@@ -197,6 +197,12 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"constexpr std::size_t NUMBER_OF_DELAY = {ekf_file_name_no_extension}::NUMBER_OF_DELAY;\n\n"
 
+        code_text += f"using EKF_Type = {ekf_file_name_no_extension}::type;\n\n"
+
+        code_text += f"using A_Type = typename EKF_Type::A_Type;\n\n"
+
+        code_text += f"using C_Type = typename EKF_Type::C_Type;\n\n"
+
         code_text += "} // namespace " + namespace_name + "\n\n"
 
         code_text += "#endif // " + file_header_macro_name + "\n"
