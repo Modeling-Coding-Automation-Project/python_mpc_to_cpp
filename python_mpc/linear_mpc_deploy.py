@@ -812,7 +812,7 @@ class LinearMPC_Deploy:
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
             "  Ref_Type, NP>;\n\n"
 
-        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter;\n\n"
+        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter_Type;\n\n"
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
@@ -1218,7 +1218,7 @@ class LinearMPC_Deploy:
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
             "  Ref_Type, NP>;\n\n"
 
-        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter;\n\n"
+        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter_Type;\n\n"
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
