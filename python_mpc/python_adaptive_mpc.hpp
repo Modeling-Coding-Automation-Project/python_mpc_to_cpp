@@ -218,7 +218,17 @@ public:
 
 public:
   /* Function */
-  inline F_Type get_F(void) const { return this->_prediction_matrices.F; }
+  inline auto get_F(void) const -> F_Type {
+    return this->_prediction_matrices.F;
+  }
+
+  inline auto get_Phi(void) const -> Phi_Type {
+    return this->_prediction_matrices.Phi;
+  }
+
+  inline auto get_solver_factor(void) const -> SolverFactor_Type {
+    return this->_solver_factor;
+  }
 
 protected:
   /* Variables */
