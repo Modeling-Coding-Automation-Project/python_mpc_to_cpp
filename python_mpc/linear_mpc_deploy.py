@@ -45,9 +45,6 @@ class LinearMPC_Deploy:
             Generates C++ code for an LTI MPC with constraints.
     """
 
-    def __init__(self):
-        pass
-
     @staticmethod
     def generate_LTI_MPC_NC_cpp_code(
             lti_mpc_nc: LTI_MPC_NoConstraints, file_name=None, number_of_delay=0):

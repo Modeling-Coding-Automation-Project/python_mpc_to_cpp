@@ -22,6 +22,7 @@ import sympy as sp
 from dataclasses import dataclass
 
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC_NoConstraints
+from python_mpc.adaptive_mpc_deploy import AdaptiveMPC_Deploy
 
 from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
 
@@ -173,7 +174,8 @@ def main():
         fxu, fxu_jacobian_X, fxu_jacobian_U, \
         hx, hx_jacobian = create_model(sim_delta_time)
 
-    parameters_ekf = Parameter()
+    plant_parameters = Parameter()
+    controller_parameters = Parameter()
 
     Q_ekf = np.diag([1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     R_ekf = np.diag([1.0, 1.0, 1.0, 1.0, 1.0])
@@ -195,13 +197,18 @@ def main():
         fxu=fxu, fxu_jacobian_X=fxu_jacobian_X,
         fxu_jacobian_U=fxu_jacobian_U,
         hx=hx, hx_jacobian=hx_jacobian,
-        parameters_struct=parameters_ekf,
+        parameters_struct=controller_parameters,
         Np=Np, Nc=Nc,
         Weight_U=Weight_U,
         Weight_Y=Weight_Y,
         Q_kf=Q_ekf,
         R_kf=R_ekf,
         Number_of_Delay=Number_of_Delay)
+
+    # You can create cpp header which can easily define lti_mpc as C++ code
+    deployed_file_names = AdaptiveMPC_Deploy.generate_Adaptive_MPC_NC_cpp_code(
+        ada_mpc)
+    print(deployed_file_names)
 
     # # X: px, py, theta, r, beta, V
     # x_true = X_initial
