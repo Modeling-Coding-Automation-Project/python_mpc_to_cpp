@@ -305,6 +305,7 @@ inline auto sympy_function(const double px, const double V, const double r, cons
 }
 
 inline auto function(const X_Type X, const Parameter_Type Parameters) -> Y_Type {
+    static_cast<void>(Parameters);
 
     double px = X.template get<0, 0>();
 
@@ -368,6 +369,8 @@ inline auto sympy_function() -> C_Type {
 }
 
 inline auto function(const X_Type X, const Parameter_Type Parameters) -> C_Type {
+    static_cast<void>(X);
+    static_cast<void>(Parameters);
 
     return sympy_function();
 }

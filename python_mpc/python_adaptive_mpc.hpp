@@ -86,7 +86,7 @@ protected:
   /* Type */
   using _Adaptive_MPC_Phi_F_Updater_Function_Object =
       Adaptive_MPC_Phi_F_Updater_Function_Object<
-          X_Type, Y_Type, Parameter_Type, Phi_Type, F_Type,
+          X_Type, U_Type, Parameter_Type, Phi_Type, F_Type,
           EmbeddedIntegratorStateSpace_Type>;
 
   using SolverFactor_InvSolver_Left_Type =
@@ -111,15 +111,14 @@ public:
   template <typename EKF_Type, typename PredictionMatrices_Type,
             typename ReferenceTrajectory_Type,
             typename SolverFactor_Type_In_Constructor,
-            typename _MPC_StateSpace_Updater_Function_Object,
-            typename _Adaptive_MPC_Phi_F_Updater_Function_Object>
+            typename Adaptive_MPC_Phi_F_Updater_Function_Object_In>
   AdaptiveMPC_NoConstraints(
       const EKF_Type &kalman_filter,
       const PredictionMatrices_Type &prediction_matrices,
       const ReferenceTrajectory_Type &reference_trajectory,
       const SolverFactor_Type_In_Constructor &solver_factor_in,
       const Weight_U_Nc_Type &Weight_U_Nc,
-      _Adaptive_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function)
+      Adaptive_MPC_Phi_F_Updater_Function_Object_In &phi_f_updater_function)
       : _kalman_filter(kalman_filter),
         _prediction_matrices(prediction_matrices),
         _reference_trajectory(reference_trajectory), _solver_factor(),

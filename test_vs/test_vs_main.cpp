@@ -1073,7 +1073,7 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     MCAPTester<T> tester;
 
-    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
+    //constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
