@@ -205,7 +205,7 @@ def main():
         R_kf=R_ekf,
         Number_of_Delay=Number_of_Delay)
 
-    # You can create cpp header which can easily define lti_mpc as C++ code
+    # You can create cpp header which can easily define MPC as C++ code
     deployed_file_names = AdaptiveMPC_Deploy.generate_Adaptive_MPC_NC_cpp_code(
         ada_mpc)
     print(deployed_file_names)

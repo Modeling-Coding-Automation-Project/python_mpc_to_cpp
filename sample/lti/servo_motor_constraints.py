@@ -21,7 +21,8 @@ A. Bemporad and E. Mosca, "Fulfilling hard constraints in uncertain linear syste
 import os
 import sys
 sys.path.append(os.getcwd())
-sys.path.append(os.path.join(os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
+sys.path.append(os.path.join(
+    os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
 
 import math
 import numpy as np
@@ -116,7 +117,7 @@ def main():
                       U_min=U_min, U_max=U_max,
                       Y_min=Y_min, Y_max=Y_max)
 
-    # You can create cpp header which can easily define lti_mpc as C++ code
+    # You can create cpp header which can easily define MPC as C++ code
     deployed_file_names = LinearMPC_Deploy.generate_LTI_MPC_cpp_code(
         lti_mpc, number_of_delay=Number_of_Delay)
     print(deployed_file_names)
