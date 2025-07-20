@@ -61,11 +61,13 @@ class AdaptiveMPC_Deploy:
             ada_mpc_nc.B_symbolic_file_name, "B_Type"
         )
 
-        adaptive_mpc_B = B_symbolic_SparseAvailable_list[0]
+        B_matrix_name = f"{variable_name}_B"
 
-        exec(f"{variable_name}_B = adaptive_mpc_B")
+        exec(
+            f"{B_matrix_name} = B_symbolic_SparseAvailable_list[0]")
         B_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_B, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code({B_matrix_name}," +
+            " caller_file_name_without_ext)")
 
         deployed_file_names.append(B_file_name)
         B_file_name_no_extension = B_file_name.split(".")[0]
