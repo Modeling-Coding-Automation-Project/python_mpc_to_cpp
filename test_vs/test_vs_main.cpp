@@ -1065,6 +1065,48 @@ void check_LTV_MPC(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_Adaptive_MPC_NoConstraints(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
+    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+
+    /* 定義 */
+    constexpr std::size_t Np = PythonMPC_TwoWheelVehicleModelData::Np;
+    constexpr std::size_t Nc = PythonMPC_TwoWheelVehicleModelData::Nc;
+
+    constexpr std::size_t INPUT_SIZE = PythonMPC_TwoWheelVehicleModelData::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = PythonMPC_TwoWheelVehicleModelData::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = PythonMPC_TwoWheelVehicleModelData::OUTPUT_SIZE;
+
+    constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_TwoWheelVehicleModelData::AUGMENTED_STATE_SIZE;
+
+    using EKF_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::type;
+
+    using A_Type = typename EKF_Type::A_Type;
+
+    using B_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_B::type;
+
+    using C_Type = typename EKF_Type::C_Type;
+
+    using X_Type = StateSpaceState_Type<double, STATE_SIZE>;
+
+    using Y_Type = StateSpaceOutput_Type<double, OUTPUT_SIZE>;
+
+    using F_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::type;
+
+    using Phi_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::type;
+
+
+
+    tester.throw_error_if_test_failed();
+}
+
 
 int main(void) {
 
@@ -1099,6 +1141,10 @@ int main(void) {
     check_LTV_MPC<double>();
 
     check_LTV_MPC<float>();
+
+    check_Adaptive_MPC_NoConstraints<double>();
+
+    check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;
