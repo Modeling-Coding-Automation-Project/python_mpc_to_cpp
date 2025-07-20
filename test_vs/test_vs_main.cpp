@@ -1175,41 +1175,41 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
 int main(void) {
 
-    //check_MPC_PredictionMatrices<double>();
+    check_MPC_PredictionMatrices<double>();
 
-    //check_MPC_PredictionMatrices<float>();
+    check_MPC_PredictionMatrices<float>();
 
-    //check_MPC_ReferenceTrajectory<double>();
+    check_MPC_ReferenceTrajectory<double>();
 
-    //check_MPC_ReferenceTrajectory<float>();
+    check_MPC_ReferenceTrajectory<float>();
 
-    //check_LTI_MPC_NoConstraints<double>();
+    check_LTI_MPC_NoConstraints<double>();
 
-    //check_LTI_MPC_NoConstraints<float>();
+    check_LTI_MPC_NoConstraints<float>();
 
-    //check_DU_U_Y_Limits<double>();
+    check_DU_U_Y_Limits<double>();
 
-    //check_DU_U_Y_Limits<float>();
+    check_DU_U_Y_Limits<float>();
 
-    //check_LMPC_QP_Solver<double>();
+    check_LMPC_QP_Solver<double>();
 
-    //check_LMPC_QP_Solver<float>();
+    check_LMPC_QP_Solver<float>();
 
-    //check_LTI_MPC<double>();
+    check_LTI_MPC<double>();
 
-    //check_LTI_MPC<float>();
+    check_LTI_MPC<float>();
 
-    //check_LTV_MPC_NoConstraints<double>();
+    check_LTV_MPC_NoConstraints<double>();
 
-    //check_LTV_MPC_NoConstraints<float>();
+    check_LTV_MPC_NoConstraints<float>();
 
-    //check_LTV_MPC<double>();
+    check_LTV_MPC<double>();
 
-    //check_LTV_MPC<float>();
+    check_LTV_MPC<float>();
 
     check_Adaptive_MPC_NoConstraints<double>();
 
-    //check_Adaptive_MPC_NoConstraints<float>();
+    check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;
