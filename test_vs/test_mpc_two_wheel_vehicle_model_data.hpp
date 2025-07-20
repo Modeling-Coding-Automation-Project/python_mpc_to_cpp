@@ -8,8 +8,8 @@ namespace PythonMPC_TwoWheelVehicleModelData {
 using namespace PythonNumpy;
 using namespace PythonControl;
 
-constexpr std::size_t Np = 16;
-constexpr std::size_t Nc = 1;
+constexpr std::size_t NP = 16;
+constexpr std::size_t NC = 1;
 
 constexpr std::size_t INPUT_SIZE = 2;
 constexpr std::size_t STATE_SIZE = 6;
@@ -1029,6 +1029,118 @@ inline auto make(void) -> type {
 
 } // namespace two_wheel_vehicle_model_ada_mpc_Phi
 
+namespace two_wheel_vehicle_model_ada_mpc_solver_factor {
+
+using namespace PythonNumpy;
+
+using SparseAvailable_ada_mpc_solver_factor = SparseAvailable<
+    ColumnAvailable<false, false, false, true, false, false, false, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false, false, true, true, true, false>,
+    ColumnAvailable<false, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true, true, false, false, false, true>
+>;
+
+using type = SparseMatrix_Type<double, SparseAvailable_ada_mpc_solver_factor>;
+
+inline auto make(void) -> type {
+
+    return make_SparseMatrix<SparseAvailable_ada_mpc_solver_factor>(
+        static_cast<double>(0.007925373319758794),
+        static_cast<double>(0.00039626866598793973),
+        static_cast<double>(0.015650483777689166),
+        static_cast<double>(0.0007925373319758795),
+        static_cast<double>(0.001178792854872398),
+        static_cast<double>(0.023180087525278094),
+        static_cast<double>(0.0031501230417206763),
+        static_cast<double>(0.002337797231136303),
+        static_cast<double>(0.030518835390228323),
+        static_cast<double>(0.007825717503993282),
+        static_cast<double>(0.0038637390006477203),
+        static_cast<double>(0.03767127500507196),
+        static_cast<double>(0.015553195505288721),
+        static_cast<double>(0.005747302750901319),
+        static_cast<double>(0.04464185289859783),
+        static_cast<double>(0.02704780100709136),
+        static_cast<double>(0.00797939539583121),
+        static_cast<double>(0.051434916550559276),
+        static_cast<double>(0.043006591798753775),
+        static_cast<double>(0.010551141223359175),
+        static_cast<double>(0.058054716410129825),
+        static_cast<double>(0.06410887424547212),
+        static_cast<double>(0.013453877043865664),
+        static_cast<double>(0.06450540787857448),
+        static_cast<double>(0.09101662833320345),
+        static_cast<double>(0.01667914743779439),
+        static_cast<double>(0.07079105325660488),
+        static_cast<double>(0.12437492320879223),
+        static_cast<double>(0.020218700100624633),
+        static_cast<double>(0.07691562365688585),
+        static_cast<double>(0.16481232341004148),
+        static_cast<double>(0.024064481283468924),
+        static_cast<double>(0.08288300088216105),
+        static_cast<double>(0.21294128597697934),
+        static_cast<double>(0.028208631327576977),
+        static_cast<double>(0.08869697926946392),
+        static_cast<double>(0.2693585486321333),
+        static_cast<double>(0.03264348029105017),
+        static_cast<double>(0.09436126750088022),
+        static_cast<double>(0.33464550921423364),
+        static_cast<double>(0.037361543666094184),
+        static_cast<double>(0.09987949038132593),
+        static_cast<double>(0.409368596546422),
+        static_cast<double>(0.04235551818516048),
+        static_cast<double>(0.1052551905838037),
+        static_cast<double>(0.03998066854714408),
+        static_cast<double>(0.0003998066854714408),
+        static_cast<double>(0.07996133709428815),
+        static_cast<double>(0.0011994200564143223),
+        static_cast<double>(0.11994200564143223),
+        static_cast<double>(0.002398840112828645),
+        static_cast<double>(0.1599226741885763),
+        static_cast<double>(0.0039980668547144075),
+        static_cast<double>(0.1999033427357204),
+        static_cast<double>(0.005997100282071612),
+        static_cast<double>(0.2398840112828645),
+        static_cast<double>(0.008395940394900258),
+        static_cast<double>(0.2798646798300085),
+        static_cast<double>(0.011194587193200344),
+        static_cast<double>(0.3198453483771526),
+        static_cast<double>(0.01439304067697187),
+        static_cast<double>(0.35982601692429667),
+        static_cast<double>(0.017991300846214836),
+        static_cast<double>(0.39980668547144077),
+        static_cast<double>(0.021989367700929244),
+        static_cast<double>(0.4397873540185849),
+        static_cast<double>(0.026387241241115095),
+        static_cast<double>(0.4797680225657289),
+        static_cast<double>(0.031184921466772382),
+        static_cast<double>(0.519748691112873),
+        static_cast<double>(0.03638240837790111),
+        static_cast<double>(0.5597293596600171),
+        static_cast<double>(0.041979701974501286),
+        static_cast<double>(0.5997100282071612),
+        static_cast<double>(0.047976802256572894),
+        static_cast<double>(0.6396906967543052)
+    );
+
+}
+
+} // namespace two_wheel_vehicle_model_ada_mpc_solver_factor
+
+namespace two_wheel_vehicle_model_ada_mpc_Weight_U_Nc {
+
+using namespace PythonNumpy;
+
+using type = DiagMatrix_Type<double, 2>;
+
+inline auto make(void) -> type {
+
+    return make_DiagMatrix<2>(
+        static_cast<double>(0.1),
+        static_cast<double>(0.1)
+    );
+
+}
+
+} // namespace two_wheel_vehicle_model_ada_mpc_Weight_U_Nc
 
 
 } // namespace PythonMPC_TwoWheelVehicleModelData

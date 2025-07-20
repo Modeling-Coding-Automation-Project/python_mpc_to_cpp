@@ -7,8 +7,8 @@ using namespace PythonNumpy;
 
 namespace PythonMPC_ServoMotorData {
 
-static constexpr std::size_t Np = 20;
-static constexpr std::size_t Nc = 2;
+static constexpr std::size_t NP = 20;
+static constexpr std::size_t NC = 2;
 
 static constexpr std::size_t INPUT_SIZE = 1;
 static constexpr std::size_t STATE_SIZE = 4;
@@ -18,9 +18,9 @@ static constexpr std::size_t AUGMENTED_STATE_SIZE = STATE_SIZE + OUTPUT_SIZE;
 
 template <typename T>
 auto get_F(void)
-    -> DenseMatrix_Type<T, Np * OUTPUT_SIZE, AUGMENTED_STATE_SIZE> {
+    -> DenseMatrix_Type<T, NP * OUTPUT_SIZE, AUGMENTED_STATE_SIZE> {
 
-  auto F = make_DenseMatrix<Np * OUTPUT_SIZE, AUGMENTED_STATE_SIZE>(
+  auto F = make_DenseMatrix<NP * OUTPUT_SIZE, AUGMENTED_STATE_SIZE>(
       static_cast<T>(1.0), static_cast<T>(0.05), static_cast<T>(0.0),
       static_cast<T>(0.0), static_cast<T>(1.0), static_cast<T>(0.0),
       static_cast<T>(6.40099503e+00), static_cast<T>(3.20049752e-01),
@@ -136,9 +136,9 @@ auto get_F(void)
 }
 
 template <typename T>
-auto get_Phi(void) -> DenseMatrix_Type<T, Np * OUTPUT_SIZE, INPUT_SIZE * Nc> {
+auto get_Phi(void) -> DenseMatrix_Type<T, NP * OUTPUT_SIZE, INPUT_SIZE * NC> {
 
-  auto Phi = make_DenseMatrix<Np * OUTPUT_SIZE, INPUT_SIZE * Nc>(
+  auto Phi = make_DenseMatrix<NP * OUTPUT_SIZE, INPUT_SIZE * NC>(
       static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
       static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
       static_cast<T>(-0.00080012), static_cast<T>(0.0), static_cast<T>(0.0),
@@ -184,9 +184,9 @@ auto get_Phi(void) -> DenseMatrix_Type<T, Np * OUTPUT_SIZE, INPUT_SIZE * Nc> {
 
 template <typename T>
 auto get_solver_factor(void)
-    -> DenseMatrix_Type<T, INPUT_SIZE * Nc, Np * OUTPUT_SIZE> {
+    -> DenseMatrix_Type<T, INPUT_SIZE * NC, NP * OUTPUT_SIZE> {
 
-  auto solver_factor = make_DenseMatrix<INPUT_SIZE * Nc, Np * OUTPUT_SIZE>(
+  auto solver_factor = make_DenseMatrix<INPUT_SIZE * NC, NP * OUTPUT_SIZE>(
       static_cast<T>(0.0), static_cast<T>(0.0), static_cast<T>(0.0),
       static_cast<T>(-0.61712582), static_cast<T>(0.0),
       static_cast<T>(-1.37253004), static_cast<T>(0.01234246),
