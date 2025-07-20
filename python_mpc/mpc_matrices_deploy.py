@@ -32,15 +32,10 @@ sys.path.append(os.path.join(
 import ast
 import astor
 import os
-from dataclasses import is_dataclass
-import textwrap
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import python_to_cpp_types
-from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import IntegerPowerReplacer
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import NpArrayExtractor
-
-from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
 
 
 def extract_class_methods(file_path):
