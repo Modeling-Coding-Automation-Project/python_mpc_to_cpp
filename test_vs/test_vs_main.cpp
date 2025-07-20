@@ -1086,60 +1086,60 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_TwoWheelVehicleModelData::AUGMENTED_STATE_SIZE;
 
-    using EKF_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::type;
+    using EKF_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::type<T>;
 
     using A_Type = typename EKF_Type::A_Type;
 
-    using B_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_B::type;
+    using B_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_B::type<T>;
 
     using C_Type = typename EKF_Type::C_Type;
 
-    using X_Type = StateSpaceState_Type<double, STATE_SIZE>;
+    using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
 
-    // using Y_Type = StateSpaceOutput_Type<double, OUTPUT_SIZE>;
+    // using Y_Type = StateSpaceOutput_Type<T, OUTPUT_SIZE>;
 
-    using U_Type = StateSpaceInput_Type<double, INPUT_SIZE>;
+    using U_Type = StateSpaceInput_Type<T, INPUT_SIZE>;
 
-    using F_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::type;
+    using F_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::type<T>;
 
-    using Phi_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::type;
+    using Phi_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::type<T>;
 
-    using SolverFactor_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::type;
+    using SolverFactor_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::type<T>;
 
     using PredictionMatrices_Type = MPC_PredictionMatrices_Type<
         F_Type, Phi_Type, NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;
 
-    using Ref_Type = DenseMatrix_Type<double, OUTPUT_SIZE, 1>;
+    using Ref_Type = DenseMatrix_Type<T, OUTPUT_SIZE, 1>;
 
     using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<
         Ref_Type, NP>;
 
-    using Parameter_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf_parameter::Parameter_Type;
+    using Parameter_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf_parameter::Parameter_Type<T>;
 
-    using Weight_U_Nc_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::type;
+    using Weight_U_Nc_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::type<T>;
 
     using EmbeddedIntegratorStateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
-    auto kalman_filter = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::make();
+    auto kalman_filter = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::make<T>();
 
-    auto F = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::make();
+    auto F = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::make<T>();
 
-    auto Phi = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::make();
+    auto Phi = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::make<T>();
 
-    auto solver_factor = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::make();
+    auto solver_factor = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::make<T>();
 
     PredictionMatrices_Type prediction_matrices(F, Phi);
 
     ReferenceTrajectory_Type reference_trajectory;
 
-    Weight_U_Nc_Type Weight_U_Nc = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::make();
+    Weight_U_Nc_Type Weight_U_Nc = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::make<T>();
 
     Adaptive_MPC_Phi_F_Updater_Function_Object<
         X_Type, U_Type, Parameter_Type,
         Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>
         Adaptive_MPC_Phi_F_Updater_Function =
-        PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_adaptive_mpc_phi_f_updater::Adaptive_MPC_Phi_F_Updater::update<
+        PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_adaptive_mpc_phi_f_updater::Adaptive_MPC_Phi_F_Updater<T>::template update<
         X_Type, U_Type, Parameter_Type,
         Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;
 

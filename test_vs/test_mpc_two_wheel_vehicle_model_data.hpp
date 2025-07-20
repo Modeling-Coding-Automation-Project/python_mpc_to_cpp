@@ -174,7 +174,7 @@ inline auto function(const X_Type<T> X, const U_Type<T> U, const Parameter_Type<
 
     T I = Parameters.I;
 
-    return sympy_function(py, m, beta, r, l_r, l_f, K_r, K_f, px, theta, delta, I,
+    return sympy_function<T>(py, m, beta, r, l_r, l_f, K_r, K_f, px, theta, delta, I,
         accel, V);
 }
 
@@ -196,15 +196,15 @@ inline auto sympy_function(const T m, const T beta, const T r, const T l_r, cons
 
     A_Type<T> result;
 
-    T x0 = 0.01 * sin(theta);
+    T x0 = static_cast<T>(0.01) * sin(theta);
 
-    T x1 = 0.01 * cos(theta);
+    T x1 = static_cast<T>(0.01) * cos(theta);
 
     T x2 = K_f * (l_f * l_f);
 
     T x3 = K_r * (l_r * l_r);
 
-    T x4 = 0.02 / I;
+    T x4 = static_cast<T>(0.02) / I;
 
     T x5 = x4 / V;
 
@@ -222,7 +222,7 @@ inline auto sympy_function(const T m, const T beta, const T r, const T l_r, cons
 
     T x12 = 1 / m;
 
-    T x13 = 0.01 * x12 * x9;
+    T x13 = static_cast<T>(0.01) * x12 * x9;
 
     T x14 = 2 * V;
 
@@ -297,7 +297,7 @@ inline auto function(const X_Type<T> X, const U_Type<T> U, const Parameter_Type<
 
     T I = Parameters.I;
 
-    return sympy_function(m, beta, r, l_r, l_f, K_r, K_f, theta, delta, I, V);
+    return sympy_function<T>(m, beta, r, l_r, l_f, K_r, K_f, theta, delta, I, V);
 }
 
 
@@ -345,7 +345,7 @@ inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> Y
 
     T V = X.template get<5, 0>();
 
-    return sympy_function(px, V, r, py, theta);
+    return sympy_function<T>(px, V, r, py, theta);
 }
 
 
@@ -409,7 +409,7 @@ inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> C
     static_cast<void>(X);
     static_cast<void>(Parameters);
 
-    return sympy_function();
+    return sympy_function<T>();
 }
 
 
@@ -428,13 +428,11 @@ using A_Type = two_wheel_vehicle_model_ekf_A::type<T>;
 template <typename T>
 using C_Type = two_wheel_vehicle_model_ekf_C::type<T>;
 
-template <typename T>
-constexpr std::size_t STATE_SIZE = A_Type<T>::COLS;
+constexpr std::size_t STATE_SIZE = 6;
 
 constexpr std::size_t INPUT_SIZE = 2;
 
-template <typename T>
-constexpr std::size_t OUTPUT_SIZE = C_Type<T>::COLS;
+constexpr std::size_t OUTPUT_SIZE = 5;
 
 template <typename T>
 using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
@@ -480,25 +478,25 @@ inline auto make() -> type<T> {
 
     Parameter_Type<T> parameters;
 
-    StateFunction_Object<X_Type, U_Type, Parameter_Type> state_function_object =
+    StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
         return two_wheel_vehicle_model_ada_mpc_ekf_state_function::function(X, U, Parameters);
 
         };
 
-    StateFunctionJacobian_Object<A_Type, X_Type, U_Type, Parameter_Type> state_function_jacobian_object =
+    StateFunctionJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_jacobian_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
         return two_wheel_vehicle_model_ada_mpc_ekf_state_function_jacobian::function(X, U, Parameters);
 
         };
 
-    MeasurementFunction_Object<Y_Type, X_Type, Parameter_Type> measurement_function_object =
+    MeasurementFunction_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
         return two_wheel_vehicle_model_ada_mpc_ekf_measurement_function::function(X, Parameters);
 
         };
 
-    MeasurementFunctionJacobian_Object<C_Type, X_Type, Parameter_Type> measurement_function_jacobian_object =
+    MeasurementFunctionJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_jacobian_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
         return two_wheel_vehicle_model_ada_mpc_ekf_measurement_function_jacobian::function(X, Parameters);
 
@@ -1220,11 +1218,11 @@ public:
     static inline auto sympy_function(T m, T K_f, T V, T beta, T I, T theta, T l_f, T delta, T K_r, T r, T l_r) -> A_Updater_Output_Type {
         A_Updater_Output_Type result;
 
-        T x0 = 0.01 * sin(theta);
+        T x0 = static_cast<T>(0.01) * sin(theta);
 
         T x1 = -V * x0;
 
-        T x2 = 0.01 * cos(theta);
+        T x2 = static_cast<T>(0.01) * cos(theta);
 
         T x3 = V * x2;
 
@@ -1238,7 +1236,7 @@ public:
 
         T x8 = 1 / I;
 
-        T x9 = 0.02 * x8;
+        T x9 = static_cast<T>(0.02) * x8;
 
         T x10 = x7 * x9;
 
@@ -1263,7 +1261,7 @@ public:
 
         T x20 = 1 / m;
 
-        T x21 = 0.01 * x16 * x20;
+        T x21 = static_cast<T>(0.01) * x16 * x20;
 
         T x22 = 2 * V;
 
@@ -1273,7 +1271,7 @@ public:
 
         T x25 = 2 * beta;
 
-        T x26 = 0.0002 * x8;
+        T x26 = static_cast<T>(0.0002) * x8;
 
         T x27 = x26 * x7;
 
@@ -1425,7 +1423,7 @@ public:
     static inline auto sympy_function(T m, T K_f, T I, T l_f, T V) -> B_Updater_Output_Type {
         B_Updater_Output_Type result;
 
-        T x0 = 0.02 * K_f;
+        T x0 = static_cast<T>(0.02) * K_f;
 
         T x1 = l_f / I;
 
@@ -2670,6 +2668,7 @@ namespace two_wheel_vehicle_model_adaptive_mpc_phi_f_updater {
 using namespace two_wheel_vehicle_model_mpc_embedded_integrator_state_space_updater;
 using namespace two_wheel_vehicle_model_prediction_matrices_phi_f_updater;
 
+template <typename T>
 class Adaptive_MPC_Phi_F_Updater {
 public:
     template <typename X_Type, typename U_Type, typename Parameter_Type,
@@ -2678,7 +2677,7 @@ public:
         const Parameter_Type& parameter, Phi_Type& Phi, F_Type& F) {
 
         StateSpace_Type state_space;
-        EmbeddedIntegrator_Updater::update(X, U, parameter, state_space);
+        EmbeddedIntegrator_Updater<T>::update(X, U, parameter, state_space);
 
         PredictionMatricesPhiF_Updater::update(
             state_space.A, state_space.B, state_space.C, Phi, F);
