@@ -354,21 +354,53 @@ class StateSpaceUpdaterToCppVisitor(ast.NodeVisitor):
         # assuming the first argument is 'parameters'
         param_arg = args[0] if args else "parameters"
 
+        # Lists to store different types of assignments
+        matrix_assignments = []  # For X[i, j] and U[i, j] assignments
+
         # Enumerate variables (those extracted from parameters)
         for stmt in node.body:
             if isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Attribute):
-                # Example: Lshaft = parameters.Lshaft
+                # Example: m = parameters.m
                 var_name = stmt.targets[0].id
                 attr_name = stmt.value.attr
                 self.param_names.append((var_name, attr_name))
+            elif isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Subscript):
+                # Example: px = X[0, 0] or delta = U[0, 0]
+                if isinstance(stmt.value.value, ast.Name) and isinstance(stmt.targets[0], ast.Name):
+                    var_name = stmt.targets[0].id
+                    array_name = stmt.value.value.id  # X or U
+
+                    # Extract indices
+                    if isinstance(stmt.value.slice, ast.Tuple):
+                        # Python 3.9+: X[0, 0] -> stmt.value.slice is ast.Tuple
+                        i = astor.to_source(stmt.value.slice.elts[0]).strip()
+                        j = astor.to_source(stmt.value.slice.elts[1]).strip()
+                    elif hasattr(stmt.value.slice, 'value') and isinstance(stmt.value.slice.value, ast.Tuple):
+                        # Python 3.8 and earlier: X[0, 0] -> stmt.value.slice.value is ast.Tuple
+                        i = astor.to_source(
+                            stmt.value.slice.value.elts[0]).strip()
+                        j = astor.to_source(
+                            stmt.value.slice.value.elts[1]).strip()
+                    else:
+                        # Fallback for single index
+                        i = astor.to_source(stmt.value.slice).strip()
+                        j = "0"
+
+                    matrix_assignments.append((var_name, array_name, i, j))
             elif isinstance(stmt, ast.Assign) and isinstance(stmt.value, ast.Call):
                 # Example: D = D_Updater.update(...)
                 if stmt.targets[0].id == "D":
                     self.has_D = True
 
-        # Extracting variable
+        # Generate C++ code for parameter variables
         for var_name, attr_name in self.param_names:
             self.cpp_code += f"{self.indent}double {var_name} = parameter.{attr_name};\n"
+
+        # Generate C++ code for matrix access variables
+        for var_name, array_name, i, j in matrix_assignments:
+            i = i.strip("()")
+            j = j.strip("()")
+            self.cpp_code += f"{self.indent}double {var_name} = {array_name}.template get<{i}, {j}>();\n"
 
         self.cpp_code += "\n"
 

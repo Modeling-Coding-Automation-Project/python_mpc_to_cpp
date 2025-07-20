@@ -68,3 +68,19 @@ class AdaptiveMPC_Deploy:
             parameter_code, parameter_code_file_name)
 
         deployed_file_names.append(parameter_code_file_name_ext)
+
+        # %% generate Embedded Integrator Updater code
+        embedded_integrator_updater_file_name = \
+            ada_mpc_nc.state_space_initializer.embedded_integrator_updater_file_name
+        embedded_integrator_updater_name_no_extension = \
+            embedded_integrator_updater_file_name.split(".")[0]
+        embedded_integrator_updater_cpp_name = embedded_integrator_updater_name_no_extension + ".hpp"
+
+        embedded_integrator_updater_code = \
+            AdaptiveMatricesDeploy.generate_embedded_integrator_updater_cpp_code(
+                embedded_integrator_updater_file_name, embedded_integrator_updater_name_no_extension)
+
+        embedded_integrator_updater_cpp_name_ext = ControlDeploy.write_to_file(
+            embedded_integrator_updater_code, embedded_integrator_updater_cpp_name)
+
+        deployed_file_names.append(embedded_integrator_updater_cpp_name_ext)
