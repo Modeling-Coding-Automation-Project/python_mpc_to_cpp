@@ -24,6 +24,8 @@ class AdaptiveMPC_Deploy:
     def generate_Adaptive_MPC_NC_cpp_code(
             ada_mpc_nc: AdaptiveMPC_NoConstraints,
             file_name=None):
+        parameters = ada_mpc_nc.kalman_filter.Parameters
+        number_of_delay = ada_mpc_nc.kalman_filter.Number_of_Delay
 
         deployed_file_names = []
 
@@ -50,5 +52,3 @@ class AdaptiveMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = ada_mpc_nc.Number_of_Delay

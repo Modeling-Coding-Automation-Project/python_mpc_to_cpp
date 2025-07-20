@@ -57,7 +57,7 @@ class LinearMPC_Deploy:
         Returns:
             list: A list of file names of the generated C++ code files.
         """
-        number_of_delay = lti_mpc_nc.kalman_filter.Number_of_Delay
+        number_of_delay = lti_mpc_nc.Number_of_Delay
 
         deployed_file_names = []
 
@@ -84,8 +84,6 @@ class LinearMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = lti_mpc_nc.Number_of_Delay
 
         # %% code generation
         code_file_name = caller_file_name_without_ext + "_" + variable_name
@@ -270,8 +268,6 @@ class LinearMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = lti_mpc.Number_of_Delay
 
         # %% code generation
         code_file_name = caller_file_name_without_ext + "_" + variable_name
@@ -601,7 +597,7 @@ class LinearMPC_Deploy:
     def generate_LTV_MPC_NC_cpp_code(ltv_mpc_nc: LTV_MPC_NoConstraints,
                                      file_name=None):
         parameters = ltv_mpc_nc.parameters_struct
-        number_of_delay = ltv_mpc_nc.kalman_filter.Number_of_Delay
+        number_of_delay = ltv_mpc_nc.Number_of_Delay
 
         deployed_file_names = []
 
@@ -628,8 +624,6 @@ class LinearMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = ltv_mpc_nc.Number_of_Delay
 
         code_file_name = caller_file_name_without_ext + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
