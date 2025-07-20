@@ -24,4 +24,31 @@ class AdaptiveMPC_Deploy:
     def generate_Adaptive_MPC_NC_cpp_code(
             ada_mpc_nc: AdaptiveMPC_NoConstraints,
             file_name=None):
-        pass
+
+        deployed_file_names = []
+
+        ControlDeploy.restrict_data_type(ada_mpc_nc.kalman_filter.A.dtype.name)
+
+        type_name = NumpyDeploy.check_dtype(ada_mpc_nc.kalman_filter.A)
+
+        # %% inspect arguments
+        # Get the caller's frame
+        frame = inspect.currentframe().f_back
+        # Get the caller's local variables
+        caller_locals = frame.f_locals
+        # Find the variable name that matches the matrix_in value
+        variable_name = None
+        for name, value in caller_locals.items():
+            if value is ada_mpc_nc:
+                variable_name = name
+                break
+        # Get the caller's file name
+        if file_name is None:
+            caller_file_full_path = frame.f_code.co_filename
+            caller_file_name = os.path.basename(caller_file_full_path)
+            caller_file_name_without_ext = os.path.splitext(caller_file_name)[
+                0]
+        else:
+            caller_file_name_without_ext = file_name
+
+        number_of_delay = ada_mpc_nc.Number_of_Delay
