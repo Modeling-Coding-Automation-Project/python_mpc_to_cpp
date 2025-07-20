@@ -239,7 +239,7 @@ protected:
 template <typename EKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
-          typename X_Type, typename Y_Type,
+          typename X_Type, typename U_Type,
           typename EmbeddedIntegratorStateSpace_Type>
 inline auto make_AdaptiveMPC_NoConstraints(
     const EKF_Type &kalman_filter,
@@ -248,7 +248,7 @@ inline auto make_AdaptiveMPC_NoConstraints(
     const SolverFactor_Type_In &solver_factor_in,
     const Weight_U_Nc_Type &Weight_U_Nc,
     Adaptive_MPC_Phi_F_Updater_Function_Object<
-        X_Type, Y_Type, Parameter_Type,
+        X_Type, U_Type, Parameter_Type,
         typename PredictionMatrices_Type::Phi_Type,
         typename PredictionMatrices_Type::F_Type,
         EmbeddedIntegratorStateSpace_Type> &phi_f_updater_function)

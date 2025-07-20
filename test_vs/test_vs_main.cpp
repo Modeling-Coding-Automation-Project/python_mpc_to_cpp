@@ -1119,9 +1119,34 @@ void check_Adaptive_MPC_NoConstraints(void) {
     using EmbeddedIntegratorStateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
+    auto kalman_filter = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::make();
+
+    auto F = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::make();
+
+    auto Phi = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::make();
+
+    auto solver_factor = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::make();
+
+    PredictionMatrices_Type prediction_matrices(F, Phi);
+
+    ReferenceTrajectory_Type reference_trajectory;
+
+    Weight_U_Nc_Type Weight_U_Nc = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::make();
+
+    Adaptive_MPC_Phi_F_Updater_Function_Object<
+        X_Type, Y_Type, Parameter_Type,
+        Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>
+        Adaptive_MPC_Phi_F_Updater_Function =
+        PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_adaptive_mpc_phi_f_updater::Adaptive_MPC_Phi_F_Updater::update<
+        X_Type, Y_Type, Parameter_Type,
+        Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;
+
     AdaptiveMPC_NoConstraints_Type<B_Type,
         EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-        Parameter_Type, SolverFactor_Type> ada_mpc;
+        Parameter_Type, SolverFactor_Type> ada_mpc =
+        make_AdaptiveMPC_NoConstraints(
+            kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
+            Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);
 
 
     tester.throw_error_if_test_failed();
