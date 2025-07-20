@@ -1,7 +1,7 @@
 """
 File: ltv_matrices_deploy.py
 
-This module provides utilities for converting Python-based 
+This module provides utilities for converting Python-based
 Linear Time-Varying (LTV) Model Predictive Control (MPC) models into C++ code.
 It includes classes and functions to parse Python classes and methods
  (especially those defining system matrices and update logic),
