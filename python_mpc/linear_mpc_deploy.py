@@ -595,9 +595,10 @@ class LinearMPC_Deploy:
 
     @staticmethod
     def generate_LTV_MPC_NC_cpp_code(ltv_mpc_nc: LTV_MPC_NoConstraints,
-                                     parameters,
-                                     file_name=None,
-                                     number_of_delay=0):
+                                     file_name=None):
+        parameters = ltv_mpc_nc.parameters_struct
+        number_of_delay = ltv_mpc_nc.kalman_filter.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(ltv_mpc_nc.kalman_filter.A.dtype.name)
@@ -879,9 +880,10 @@ class LinearMPC_Deploy:
 
     @staticmethod
     def generate_LTV_MPC_cpp_code(ltv_mpc: LTV_MPC_NoConstraints,
-                                  parameters,
-                                  file_name=None,
-                                  number_of_delay=0):
+                                  file_name=None):
+        parameters = ltv_mpc.parameters_struct
+        number_of_delay = ltv_mpc.kalman_filter.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(ltv_mpc.kalman_filter.A.dtype.name)
