@@ -135,6 +135,7 @@
     <ClInclude Include="..\mpc_utility\mpc_linear_solver_utility.hpp" />
     <ClInclude Include="..\mpc_utility\mpc_state_space_utility.hpp" />
     <ClInclude Include="..\mpc_utility\mpc_utility.hpp" />
+    <ClInclude Include="..\python_mpc\python_adaptive_mpc.hpp" />
     <ClInclude Include="..\python_mpc\python_linear_mpc.hpp" />
     <ClInclude Include="..\python_mpc\python_mpc.hpp" />
     <ClInclude Include="MCAP_tester\include\MCAP_tester.hpp" />

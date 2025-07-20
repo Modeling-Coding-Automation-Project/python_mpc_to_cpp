@@ -41,5 +41,8 @@
     <ClInclude Include="test_mpc_servo_motor_data.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\python_mpc\python_adaptive_mpc.hpp">
+      <Filter>リソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -103,7 +103,7 @@ protected:
 
 public:
   /* Constructor */
-  Adaptive_MPC_NoConstraints()
+  AdaptiveMPC_NoConstraints()
       : _kalman_filter(), _prediction_matrices(), _reference_trajectory(),
         _solver_factor(), _X_inner_model(), _U_latest(), _Y_store(),
         _solver_factor_inv_solver(), _Weight_U_Nc() {}
@@ -112,14 +112,14 @@ public:
             typename ReferenceTrajectory_Type,
             typename SolverFactor_Type_In_Constructor,
             typename _MPC_StateSpace_Updater_Function_Object,
-            typename _LTV_MPC_Phi_F_Updater_Function_Object>
-  LTV_MPC_NoConstraints(
+            typename _Adaptive_MPC_Phi_F_Updater_Function_Object>
+  AdaptiveMPC_NoConstraints(
       const EKF_Type &kalman_filter,
       const PredictionMatrices_Type &prediction_matrices,
       const ReferenceTrajectory_Type &reference_trajectory,
       const SolverFactor_Type_In_Constructor &solver_factor_in,
       const Weight_U_Nc_Type &Weight_U_Nc,
-      _LTV_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function)
+      _Adaptive_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function)
       : _kalman_filter(kalman_filter),
         _prediction_matrices(prediction_matrices),
         _reference_trajectory(reference_trajectory), _solver_factor(),
@@ -239,24 +239,26 @@ protected:
 template <typename EKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
+          typename X_Type, typename Y_Type,
           typename EmbeddedIntegratorStateSpace_Type>
-inline auto make_LTV_MPC_NoConstraints(
+inline auto make_AdaptiveMPC_NoConstraints(
     const EKF_Type &kalman_filter,
     const PredictionMatrices_Type &prediction_matrices,
     const ReferenceTrajectory_Type &reference_trajectory,
     const SolverFactor_Type_In &solver_factor_in,
     const Weight_U_Nc_Type &Weight_U_Nc,
-    LTV_MPC_Phi_F_Updater_Function_Object<
-        EmbeddedIntegratorStateSpace_Type, Parameter_Type,
+    Adaptive_MPC_Phi_F_Updater_Function_Object<
+        X_Type, Y_Type, Parameter_Type,
         typename PredictionMatrices_Type::Phi_Type,
-        typename PredictionMatrices_Type::F_Type> &phi_f_updater_function)
-    -> LTV_MPC_NoConstraints<EKF_Type, PredictionMatrices_Type,
-                             ReferenceTrajectory_Type, Parameter_Type,
-                             SolverFactor_Type_In> {
+        typename PredictionMatrices_Type::F_Type,
+        EmbeddedIntegratorStateSpace_Type> &phi_f_updater_function)
+    -> AdaptiveMPC_NoConstraints<EKF_Type, PredictionMatrices_Type,
+                                 ReferenceTrajectory_Type, Parameter_Type,
+                                 SolverFactor_Type_In> {
 
-  return LTV_MPC_NoConstraints<EKF_Type, PredictionMatrices_Type,
-                               ReferenceTrajectory_Type, Parameter_Type,
-                               SolverFactor_Type_In>(
+  return AdaptiveMPC_NoConstraints<EKF_Type, PredictionMatrices_Type,
+                                   ReferenceTrajectory_Type, Parameter_Type,
+                                   SolverFactor_Type_In>(
       kalman_filter, prediction_matrices, reference_trajectory,
       solver_factor_in, Weight_U_Nc, phi_f_updater_function);
 }
