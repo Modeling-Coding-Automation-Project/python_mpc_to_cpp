@@ -11,7 +11,7 @@ import copy
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
-from python_mpc.adaptive_matrices_deploy import AdaptiveMatricesDeploy
+from mpc_utility.adaptive_matrices_deploy import AdaptiveMatricesDeploy
 
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC_NoConstraints
 

@@ -1,6 +1,27 @@
 """
-File: adaptive_matrices_deploy.py
+File: ltv_matrices_deploy.py
 
+This module provides utilities for converting Python-based
+Linear Time-Varying (LTV) Model Predictive Control (MPC) models into C++ code.
+It includes classes and functions to parse Python classes and methods
+ (especially those defining system matrices and update logic),
+and generate corresponding C++ header files for use in
+ embedded or high-performance environments.
+
+Key features:
+
+Extracts class methods from Python source files using AST parsing.
+Converts Python matrix updater and state-space updater
+ logic into C++ templates and classes.
+Handles translation of NumPy-based matrix operations
+ and assignments to C++ equivalents.
+Supports generation of C++ code for parameter structures,
+ state-space updaters, and prediction matrix updaters.
+Designed for integration with external code generation
+ and control libraries.
+The generated C++ code enables deployment of LTV MPC models,
+ including all necessary type definitions, update routines,
+and matrix operations, for use in C++ projects.
 """
 import os
 import sys
@@ -13,15 +34,16 @@ import textwrap
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import python_to_cpp_types
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
+
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
 
-from python_mpc.mpc_matrices_deploy import extract_class_methods
-from python_mpc.mpc_matrices_deploy import MatrixUpdaterToCppVisitor
-from python_mpc.mpc_matrices_deploy import StateSpaceUpdaterToCppVisitor
-from python_mpc.mpc_matrices_deploy import PredictionMatricesPhiF_UpdaterToCppVisitor
+from mpc_utility.mpc_matrices_deploy import extract_class_methods
+from mpc_utility.mpc_matrices_deploy import MatrixUpdaterToCppVisitor
+from mpc_utility.mpc_matrices_deploy import StateSpaceUpdaterToCppVisitor
+from mpc_utility.mpc_matrices_deploy import PredictionMatricesPhiF_UpdaterToCppVisitor
 
 
-class AdaptiveMatricesDeploy:
+class LTVMatricesDeploy:
     """
     LTVMatricesDeploy
     A utility class providing static methods to generate C++ code
@@ -84,9 +106,33 @@ class AdaptiveMatricesDeploy:
         return code_text
 
     @staticmethod
-    def generate_embedded_integrator_updater_cpp_code(
-            input_python_file_name: str,
-            file_name_no_extension: str):
+    def generate_mpc_state_space_updater_cpp_code(input_python_file_name: str,
+                                                  file_name_no_extension: str):
+        """
+        Generates C++ header code for MPC (Model Predictive Control) state-space updater classes
+        based on the structure and methods of Python classes defined in the specified input file.
+        This function reads a Python file containing class definitions for MPC state-space updaters,
+        extracts their methods, and converts them into corresponding C++ class templates and methods.
+        The generated C++ code is returned as a string, formatted as a header file with include guards
+        and a namespace based on the provided file name.
+        Args:
+            input_python_file_name (str): The name of the Python file containing the class definitions
+                to be converted.
+            file_name_no_extension (str): The base name (without extension) to use for the C++ header
+                file, include guards, and namespace.
+        Returns:
+            str: The generated C++ header code as a string.
+        Raises:
+            ValueError: If no classes are found in the specified Python file.
+        Notes:
+            - The function expects the input Python file to contain specific class structures for
+                MPC state-space updaters.
+            - Uses helper classes and functions such as `ControlDeploy.find_file`, `extract_class_methods`,
+                `MatrixUpdaterToCppVisitor`, and `StateSpaceUpdaterToCppVisitor`
+                  for file handling and code conversion.
+            - The last class in the file is treated as the main MPC StateSpace Updater class, while others
+                are treated as matrix updater classes (A, B, C, D, etc.).
+        """
 
         function_file_path = ControlDeploy.find_file(
             input_python_file_name, os.getcwd())
@@ -102,8 +148,6 @@ class AdaptiveMatricesDeploy:
         code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
 
         code_text += f"namespace {file_name_no_extension} {{\n\n"
-
-        arg_list = []
 
         for i, (class_name, methods) in enumerate(class_methods.items()):
             if i < len(class_methods) - 1:
@@ -121,21 +165,16 @@ class AdaptiveMatricesDeploy:
                 code_text += function_code
                 code_text += "\n"
 
-                arg_list = visitor.arg_list
             else:
                 # MPC StateSpace Updater class
                 output_type_name = f"{class_name}_Output_Type"
 
                 code_text += f"class {class_name} {{\npublic:\n"
-                code_text += "template <typename X_Type, typename Y_Type, " + \
-                    f"typename Parameter_Type, typename {output_type_name}>\n"
-                code_text += "static inline void update(const X_Type& X, const Y_Type& Y, " + \
-                    "const Parameter_Type& parameter, " + \
-                    f"{output_type_name}& output) {{\n"
+                code_text += f"template <typename Parameter_Type, typename " + output_type_name + ">\n"
+                code_text += "static inline void update(const Parameter_Type& parameter, " + \
+                    output_type_name + "& output) {\n"
 
-                visitor = StateSpaceUpdaterToCppVisitor(
-                    arg_list=arg_list
-                )
+                visitor = StateSpaceUpdaterToCppVisitor()
                 visitor.output_type_name = output_type_name
 
                 function_code = visitor.convert(
