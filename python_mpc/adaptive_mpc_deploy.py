@@ -84,3 +84,37 @@ class AdaptiveMPC_Deploy:
             embedded_integrator_updater_code, embedded_integrator_updater_cpp_name)
 
         deployed_file_names.append(embedded_integrator_updater_cpp_name_ext)
+
+        # %% generate Prediction Matrices Phi F updater code
+        prediction_matrices_updater_file_name = \
+            ada_mpc_nc.state_space_initializer.prediction_matrices_phi_f_updater_file_name
+        prediction_matrices_updater_name_no_extension = \
+            prediction_matrices_updater_file_name.split(".")[0]
+        prediction_matrices_updater_cpp_name = prediction_matrices_updater_name_no_extension + ".hpp"
+
+        prediction_matrices_updater_code = \
+            AdaptiveMatricesDeploy.generate_prediction_matrices_phi_f_updater_cpp_code(
+                prediction_matrices_updater_file_name, prediction_matrices_updater_name_no_extension)
+
+        prediction_matrices_updater_cpp_name_ext = ControlDeploy.write_to_file(
+            prediction_matrices_updater_code, prediction_matrices_updater_cpp_name)
+
+        deployed_file_names.append(prediction_matrices_updater_cpp_name_ext)
+
+        # %% generate LTV MPC Phi F Updater code
+        LTV_MPC_Phi_F_updater_file_name = \
+            ada_mpc_nc.state_space_initializer.Adaptive_MPC_Phi_F_updater_file_name
+        LTV_MPC_Phi_F_updater_name_no_extension = \
+            LTV_MPC_Phi_F_updater_file_name.split(".")[0]
+        LTV_MPC_Phi_F_updater_cpp_name = LTV_MPC_Phi_F_updater_name_no_extension + ".hpp"
+
+        LTV_MPC_Phi_F_updater_code = \
+            AdaptiveMatricesDeploy.generate_ltv_mpc_phi_f_updater_cpp_code(
+                LTV_MPC_Phi_F_updater_file_name, LTV_MPC_Phi_F_updater_name_no_extension,
+                embedded_integrator_updater_cpp_name,
+                prediction_matrices_updater_cpp_name)
+
+        LTV_MPC_Phi_F_updater_cpp_name_ext = ControlDeploy.write_to_file(
+            LTV_MPC_Phi_F_updater_code, LTV_MPC_Phi_F_updater_cpp_name)
+
+        deployed_file_names.append(LTV_MPC_Phi_F_updater_cpp_name_ext)

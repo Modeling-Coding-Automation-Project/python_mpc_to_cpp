@@ -219,34 +219,6 @@ class AdaptiveMatricesDeploy:
                                                 file_name_no_extension: str,
                                                 embedded_integrator_updater_cpp_name: str,
                                                 prediction_matrices_phi_f_updater_cpp_name: str):
-        """
-        Generates C++ header code for an LTV MPC Phi/F updater class
-          based on provided Python class definitions.
-
-        This function reads a Python file containing class definitions,
-          extracts the first class and its methods,
-        and generates a C++ header file that defines a class
-          with a static `update` method. The generated class
-        uses two other updater classes (for embedded integrator
-          and prediction matrices) and includes their headers.
-        The resulting code is suitable for deployment in a C++ project.
-
-        Args:
-            input_python_file_name (str): Path to the Python file
-              containing the class to convert.
-            file_name_no_extension (str): Base name (without extension)
-              for the generated C++ header file and namespace.
-            embedded_integrator_updater_cpp_name (str):
-            Name of the C++ header file for the embedded integrator updater.
-            prediction_matrices_phi_f_updater_cpp_name (str):
-            Name of the C++ header file for the prediction matrices Phi/F updater.
-
-        Returns:
-            str: The generated C++ header code as a string.
-
-        Raises:
-            ValueError: If no classes are found in the provided Python file.
-        """
 
         function_file_path = ControlDeploy.find_file(
             input_python_file_name, os.getcwd())
@@ -278,12 +250,13 @@ class AdaptiveMatricesDeploy:
         code_text += f"using namespace {prediction_matrices_phi_f_updater_cpp_name_no_extension};\n\n"
 
         code_text += f"class {class_name} {{\npublic:\n"
-        code_text += f"template <typename StateSpace_Type, typename Parameter_Type,\n" + \
-            "  typename Phi_Type, typename F_Type>\n"
-        code_text += "static inline void update(const Parameter_Type &parameter, Phi_Type& Phi, F_Type& F) {\n\n"
+        code_text += f"template <typename X_Type, typename Y_Type, typename Parameter_Type,\n" + \
+            "  typename Phi_Type, typename F_Type, typename StateSpace_Type>\n"
+        code_text += "static inline void update(const X_Type &X, const Y_Type &Y,\n" + \
+            "  const Parameter_Type &parameter, Phi_Type& Phi, F_Type& F) {\n\n"
 
         code_text += "  StateSpace_Type state_space;\n"
-        code_text += "  EmbeddedIntegrator_Updater::update(parameter, state_space);\n\n"
+        code_text += "  EmbeddedIntegrator_Updater::update(X, Y, parameter, state_space);\n\n"
 
         code_text += "  PredictionMatricesPhiF_Updater::update(\n"
         code_text += "      state_space.A, state_space.B, state_space.C, Phi, F);\n\n"
