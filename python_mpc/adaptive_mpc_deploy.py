@@ -11,7 +11,7 @@ import copy
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
-from python_mpc.ltv_matrices_deploy import LTVMatricesDeploy
+from python_mpc.adaptive_matrices_deploy import AdaptiveMatricesDeploy
 
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC_NoConstraints
 
@@ -52,3 +52,19 @@ class AdaptiveMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
+
+        code_file_name = caller_file_name_without_ext + "_" + variable_name
+        code_file_name_ext = code_file_name + ".hpp"
+
+        # %% generate parameter class code
+        parameter_code_file_name = caller_file_name_without_ext + "_parameters.hpp"
+        parameter_code_file_name_no_extension = parameter_code_file_name.split(".")[
+            0]
+
+        parameter_code = AdaptiveMatricesDeploy.generate_parameter_cpp_code(
+            parameters, type_name, parameter_code_file_name_no_extension)
+
+        parameter_code_file_name_ext = ControlDeploy.write_to_file(
+            parameter_code, parameter_code_file_name)
+
+        deployed_file_names.append(parameter_code_file_name_ext)
