@@ -116,12 +116,18 @@ class AdaptiveMPC_Deploy:
 
         ekf_file_name_no_extension = ekf_file_name.split(".")[0]
 
-        for ekf_file_name in ekf_file_names:
-            if "parameter" in ekf_file_name:
-                parameter_code_file_name = ekf_file_name
-                parameter_code_file_name_without_ext = ekf_file_name.split(".")[
+        parameter_code_file_name = ""
+        parameter_code_file_name_without_ext = ""
+        for name in ekf_file_names:
+            if "parameter" in name:
+                parameter_code_file_name = name
+                parameter_code_file_name_without_ext = name.split(".")[
                     0]
                 break
+
+        if parameter_code_file_name == "":
+            raise ValueError(
+                "No parameter file found in EKF deployment files.")
 
         exec(f"{variable_name}_F = ada_mpc_nc.prediction_matrices.F_ndarray")
         F_file_name = eval(
@@ -153,3 +159,51 @@ class AdaptiveMPC_Deploy:
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
             0]
+
+        # %% main code generation
+        code_text = ""
+
+        file_header_macro_name = "__" + code_file_name.upper() + "_HPP__"
+
+        code_text += "#ifndef " + file_header_macro_name + "\n"
+        code_text += "#define " + file_header_macro_name + "\n\n"
+
+        code_text += f"#include \"{ekf_file_name}\"\n"
+        code_text += f"#include \"{F_file_name}\"\n"
+        code_text += f"#include \"{Phi_file_name}\"\n"
+        code_text += f"#include \"{solver_factor_file_name}\"\n"
+        code_text += f"#include \"{Weight_U_Nc_file_name}\"\n"
+        code_text += f"#include \"{parameter_code_file_name}\"\n"
+        code_text += f"#include \"{LTV_MPC_Phi_F_updater_cpp_name}\"\n\n"
+
+        code_text += "#include \"python_mpc.hpp\"\n\n"
+
+        namespace_name = code_file_name
+
+        code_text += "namespace " + namespace_name + " {\n\n"
+
+        code_text += "using namespace PythonNumpy;\n"
+        code_text += "using namespace PythonControl;\n"
+        code_text += "using namespace PythonMPC;\n\n"
+
+        code_text += f"constexpr std::size_t NP = {ada_mpc_nc.Np};\n"
+        code_text += f"constexpr std::size_t NC = {ada_mpc_nc.Nc};\n\n"
+
+        code_text += f"constexpr std::size_t INPUT_SIZE = {ekf_file_name_no_extension}::INPUT_SIZE;\n"
+        code_text += f"constexpr std::size_t STATE_SIZE = {ekf_file_name_no_extension}::STATE_SIZE;\n"
+        code_text += f"constexpr std::size_t OUTPUT_SIZE = {ekf_file_name_no_extension}::OUTPUT_SIZE;\n\n"
+
+        code_text += f"constexpr std::size_t AUGMENTED_STATE_SIZE = STATE_SIZE + OUTPUT_SIZE;\n\n"
+
+        code_text += f"constexpr std::size_t NUMBER_OF_DELAY = {ekf_file_name_no_extension}::NUMBER_OF_DELAY;\n\n"
+
+        code_text += "} // namespace " + namespace_name + "\n\n"
+
+        code_text += "#endif // " + file_header_macro_name + "\n"
+
+        code_file_name_ext = ControlDeploy.write_to_file(
+            code_text, code_file_name_ext)
+
+        deployed_file_names.append(code_file_name_ext)
+
+        return deployed_file_names
