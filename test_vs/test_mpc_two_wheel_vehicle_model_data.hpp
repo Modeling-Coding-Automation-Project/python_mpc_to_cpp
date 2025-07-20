@@ -125,7 +125,7 @@ inline auto sympy_function(const T py, const T m, const T beta, const T r, const
 
     X_Type<T> result;
 
-    T x0 = 0.01 * V;
+    T x0 = static_cast<T>(0.01) * V;
 
     T x1 = K_f * V;
 
