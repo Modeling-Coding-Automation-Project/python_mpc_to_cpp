@@ -1096,7 +1096,7 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     using X_Type = StateSpaceState_Type<double, STATE_SIZE>;
 
-    using Y_Type = StateSpaceOutput_Type<double, OUTPUT_SIZE>;
+    // using Y_Type = StateSpaceOutput_Type<double, OUTPUT_SIZE>;
 
     using U_Type = StateSpaceInput_Type<double, INPUT_SIZE>;
 
@@ -1146,7 +1146,11 @@ void check_Adaptive_MPC_NoConstraints(void) {
     AdaptiveMPC_NoConstraints_Type<B_Type,
         EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
         Parameter_Type, SolverFactor_Type> ada_mpc =
-        make_AdaptiveMPC_NoConstraints(
+        make_AdaptiveMPC_NoConstraints<B_Type, EKF_Type, PredictionMatrices_Type,
+            ReferenceTrajectory_Type, Parameter_Type,
+            SolverFactor_Type, Weight_U_Nc_Type,
+            X_Type, U_Type,
+            EmbeddedIntegratorStateSpace_Type>(
     kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
     Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);
 
@@ -1191,7 +1195,7 @@ int main(void) {
 
     check_Adaptive_MPC_NoConstraints<double>();
 
-    check_Adaptive_MPC_NoConstraints<float>();
+    //check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;

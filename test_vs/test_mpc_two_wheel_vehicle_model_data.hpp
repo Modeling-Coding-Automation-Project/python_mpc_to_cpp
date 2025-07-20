@@ -405,10 +405,6 @@ using type = ExtendedKalmanFilter_Type<
 
 inline auto make() -> type {
 
-    auto A = two_wheel_vehicle_model_ekf_A::make();
-
-    auto C = two_wheel_vehicle_model_ekf_C::make();
-
     auto Q = make_KalmanFilter_Q<STATE_SIZE>(
         static_cast<double>(1.0),
         static_cast<double>(1.0),

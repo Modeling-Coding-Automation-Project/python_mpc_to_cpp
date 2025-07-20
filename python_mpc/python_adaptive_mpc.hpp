@@ -236,7 +236,7 @@ protected:
 };
 
 /* make LTV MPC No Constraints */
-template <typename EKF_Type, typename PredictionMatrices_Type,
+template <typename B_Type, typename EKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
           typename X_Type, typename U_Type,
@@ -252,11 +252,11 @@ inline auto make_AdaptiveMPC_NoConstraints(
         typename PredictionMatrices_Type::Phi_Type,
         typename PredictionMatrices_Type::F_Type,
         EmbeddedIntegratorStateSpace_Type> &phi_f_updater_function)
-    -> AdaptiveMPC_NoConstraints<EKF_Type, PredictionMatrices_Type,
+    -> AdaptiveMPC_NoConstraints<B_Type, EKF_Type, PredictionMatrices_Type,
                                  ReferenceTrajectory_Type, Parameter_Type,
                                  SolverFactor_Type_In> {
 
-  return AdaptiveMPC_NoConstraints<EKF_Type, PredictionMatrices_Type,
+  return AdaptiveMPC_NoConstraints<B_Type, EKF_Type, PredictionMatrices_Type,
                                    ReferenceTrajectory_Type, Parameter_Type,
                                    SolverFactor_Type_In>(
       kalman_filter, prediction_matrices, reference_trajectory,
