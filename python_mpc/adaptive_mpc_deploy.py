@@ -56,6 +56,20 @@ class AdaptiveMPC_Deploy:
         code_file_name = caller_file_name_without_ext + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
 
+        # %% generate B matrix code
+        _, _, B_symbolic_SparseAvailable_list = KalmanFilterDeploy.create_state_and_measurement_function_code(
+            ada_mpc_nc.B_symbolic_file_name, "B_Type"
+        )
+
+        adaptive_mpc_B = B_symbolic_SparseAvailable_list[0]
+
+        exec(f"{variable_name}_B = adaptive_mpc_B")
+        B_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_B, caller_file_name_without_ext)")
+
+        deployed_file_names.append(B_file_name)
+        B_file_name_no_extension = B_file_name.split(".")[0]
+
         # %% generate Embedded Integrator Updater code
         embedded_integrator_updater_file_name = \
             ada_mpc_nc.state_space_initializer.embedded_integrator_updater_file_name
@@ -168,6 +182,7 @@ class AdaptiveMPC_Deploy:
         code_text += "#ifndef " + file_header_macro_name + "\n"
         code_text += "#define " + file_header_macro_name + "\n\n"
 
+        code_text += f"#include \"{B_file_name}\"\n"
         code_text += f"#include \"{ekf_file_name}\"\n"
         code_text += f"#include \"{F_file_name}\"\n"
         code_text += f"#include \"{Phi_file_name}\"\n"
@@ -200,6 +215,8 @@ class AdaptiveMPC_Deploy:
         code_text += f"using EKF_Type = {ekf_file_name_no_extension}::type;\n\n"
 
         code_text += f"using A_Type = typename EKF_Type::A_Type;\n\n"
+
+        code_text += f"using B_Type = {B_file_name_no_extension}::type;\n\n"
 
         code_text += f"using C_Type = typename EKF_Type::C_Type;\n\n"
 
