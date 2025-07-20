@@ -47,7 +47,7 @@ class LinearMPC_Deploy:
 
     @staticmethod
     def generate_LTI_MPC_NC_cpp_code(
-            lti_mpc_nc: LTI_MPC_NoConstraints, file_name=None, number_of_delay=0):
+            lti_mpc_nc: LTI_MPC_NoConstraints, file_name=None):
         """
         Generates C++ code for an LTI MPC without constraints.
         Args:
@@ -57,6 +57,8 @@ class LinearMPC_Deploy:
         Returns:
             list: A list of file names of the generated C++ code files.
         """
+        number_of_delay = lti_mpc_nc.kalman_filter.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(lti_mpc_nc.kalman_filter.A.dtype.name)
@@ -231,7 +233,7 @@ class LinearMPC_Deploy:
 
     @staticmethod
     def generate_LTI_MPC_cpp_code(
-            lti_mpc: LTI_MPC, file_name=None, number_of_delay=0):
+            lti_mpc: LTI_MPC, file_name=None):
         """
         Generates C++ code for an LTI MPC with constraints.
         Args:
@@ -241,6 +243,8 @@ class LinearMPC_Deploy:
         Returns:
             list: A list of file names of the generated C++ code files.
         """
+        number_of_delay = lti_mpc.kalman_filter.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(lti_mpc.kalman_filter.A.dtype.name)
