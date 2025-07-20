@@ -215,10 +215,11 @@ class AdaptiveMatricesDeploy:
         return code_text
 
     @staticmethod
-    def generate_ltv_mpc_phi_f_updater_cpp_code(input_python_file_name: str,
-                                                file_name_no_extension: str,
-                                                embedded_integrator_updater_cpp_name: str,
-                                                prediction_matrices_phi_f_updater_cpp_name: str):
+    def generate_adaptive_mpc_phi_f_updater_cpp_code(
+            input_python_file_name: str,
+            file_name_no_extension: str,
+            embedded_integrator_updater_cpp_name: str,
+            prediction_matrices_phi_f_updater_cpp_name: str):
 
         function_file_path = ControlDeploy.find_file(
             input_python_file_name, os.getcwd())
