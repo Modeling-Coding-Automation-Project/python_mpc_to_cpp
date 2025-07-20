@@ -283,12 +283,11 @@ class AdaptiveMPC_Deploy:
             f"      X_Type, Y_Type, Parameter_Type,\n" + \
             f"      Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;\n\n"
 
-        # code_text += f"  auto adaptive_mpc_nc = make_Adaptive_MPC_NoConstraints(\n" + \
-        #     "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
-        #     "    Weight_U_Nc, MPC_StateSpace_Updater_Function,\n" + \
-        #     "    Adaptive_MPC_Phi_F_Updater_Function);\n\n"
+        code_text += f"  auto adaptive_mpc_nc = make_Adaptive_MPC_NoConstraints(\n" + \
+            "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
+            "    Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);\n\n"
 
-        # code_text += "  return adaptive_mpc_nc;\n\n"
+        code_text += "  return adaptive_mpc_nc;\n\n"
 
         code_text += "}\n\n"
 
