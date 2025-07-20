@@ -56,19 +56,6 @@ class AdaptiveMPC_Deploy:
         code_file_name = caller_file_name_without_ext + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
 
-        # %% generate parameter class code
-        parameter_code_file_name = caller_file_name_without_ext + "_parameters.hpp"
-        parameter_code_file_name_no_extension = parameter_code_file_name.split(".")[
-            0]
-
-        parameter_code = AdaptiveMatricesDeploy.generate_parameter_cpp_code(
-            parameters, type_name, parameter_code_file_name_no_extension)
-
-        parameter_code_file_name_ext = ControlDeploy.write_to_file(
-            parameter_code, parameter_code_file_name)
-
-        deployed_file_names.append(parameter_code_file_name_ext)
-
         # %% generate Embedded Integrator Updater code
         embedded_integrator_updater_file_name = \
             ada_mpc_nc.state_space_initializer.embedded_integrator_updater_file_name
@@ -118,3 +105,51 @@ class AdaptiveMPC_Deploy:
             LTV_MPC_Phi_F_updater_code, LTV_MPC_Phi_F_updater_cpp_name)
 
         deployed_file_names.append(LTV_MPC_Phi_F_updater_cpp_name_ext)
+
+        # %% create EKF, F, Phi, solver_factor, Weight_U_Nc code
+        exec(f"{variable_name}_ekf = ada_mpc_nc.kalman_filter")
+        ekf_file_names = eval(
+            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_without_ext, number_of_delay={number_of_delay})")
+
+        deployed_file_names.append(ekf_file_names)
+        ekf_file_name = ekf_file_names[-1]
+
+        ekf_file_name_no_extension = ekf_file_name.split(".")[0]
+
+        for ekf_file_name in ekf_file_names:
+            if "parameter" in ekf_file_name:
+                parameter_code_file_name = ekf_file_name
+                parameter_code_file_name_without_ext = ekf_file_name.split(".")[
+                    0]
+                break
+
+        exec(f"{variable_name}_F = ada_mpc_nc.prediction_matrices.F_ndarray")
+        F_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
+
+        deployed_file_names.append(F_file_name)
+        F_file_name_no_extension = F_file_name.split(".")[0]
+
+        exec(
+            f"{variable_name}_Phi = ada_mpc_nc.prediction_matrices.Phi_ndarray")
+        Phi_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
+
+        deployed_file_names.append(Phi_file_name)
+        Phi_file_name_no_extension = Phi_file_name.split(".")[0]
+
+        exec(f"{variable_name}_solver_factor = ada_mpc_nc.solver_factor")
+        solver_factor_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_solver_factor, caller_file_name_without_ext)")
+
+        deployed_file_names.append(solver_factor_file_name)
+        solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
+            0]
+
+        exec(f"{variable_name}_Weight_U_Nc = ada_mpc_nc.Weight_U_Nc")
+        Weight_U_Nc_file_name = eval(
+            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Weight_U_Nc, caller_file_name_without_ext)")
+
+        deployed_file_names.append(Weight_U_Nc_file_name)
+        Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
+            0]
