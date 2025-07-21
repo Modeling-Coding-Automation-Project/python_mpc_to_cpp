@@ -82,7 +82,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   return result;
 }
 
-PYBIND11_MODULE(AdaptiveMpcTwoWheelVehicleModelSIL, m) {
+PYBIND11_MODULE(AdaptiveMpcTwoWheelVehicleSIL, m) {
   m.def("initialize", &initialize, "initialize linear MPC");
   m.def("update_manipulation", &update_manipulation,
         "update MPC with ref and output");
