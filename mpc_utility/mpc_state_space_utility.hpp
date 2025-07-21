@@ -368,8 +368,8 @@ calculate_each_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
                          Ref_Type &ref_next) {
   static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
 
-  ref_next.template set<(I * Ref_Type::COLS) + J, 0>(
-      ref.template get<J, I>() - Y.template get<(I * Ref_Type::COLS) + J, 0>());
+  ref_next.template set<J, I>(ref.template get<J, I>() -
+                              Y.template get<J, 0>());
 }
 
 template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
@@ -379,8 +379,8 @@ calculate_each_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
                          Ref_Type &ref_next) {
   static_assert(ROWS == 1, "ROWS must be equal to 1");
 
-  ref_next.template set<(I * Ref_Type::COLS) + J, 0>(
-      ref.template get<J, 0>() - Y.template get<(I * Ref_Type::COLS) + J, 0>());
+  ref_next.template set<J, 0>(ref.template get<J, 0>() -
+                              Y.template get<J, 0>());
 }
 
 // when J_idx < N
@@ -426,8 +426,7 @@ template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t M,
 struct RefSubY_Row<Ref_Type, Y_Type, Np, M, N, 0> {
   static void calculate(const Ref_Type &ref, const Y_Type &Y,
                         Ref_Type &ref_next) {
-    RefSubY_Column<Ref_Type, Y_Type, Ref_Type, Np, 0, N - 1>::calculate(
-        ref, Y, ref_next);
+    RefSubY_Column<Ref_Type, Y_Type, Np, 0, N - 1>::calculate(ref, Y, ref_next);
   }
 };
 
@@ -435,8 +434,8 @@ template <std::size_t Np, std::size_t Number_Of_Output, typename Ref_Type,
           typename Y_Type>
 inline void calculate_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
                                 Ref_Type &ref_next) {
-  RefSubY_Row<Ref_Type, Y_Type, Ref_Type, Np, Np, Number_Of_Output,
-              (Np - 1)>::calculate(ref, Y, ref_next);
+  RefSubY_Row<Ref_Type, Y_Type, Np, Np, Number_Of_Output, (Np - 1)>::calculate(
+      ref, Y, ref_next);
 }
 
 } // namespace MPC_ReferenceTrajectoryOperation

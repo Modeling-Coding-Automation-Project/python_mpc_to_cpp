@@ -1098,7 +1098,7 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
 
-    // using Y_Type = StateSpaceOutput_Type<T, OUTPUT_SIZE>;
+    using Y_Type = StateSpaceOutput_Type<T, OUTPUT_SIZE>;
 
     using U_Type = StateSpaceInput_Type<T, INPUT_SIZE>;
 
@@ -1186,8 +1186,28 @@ void check_Adaptive_MPC_NoConstraints(void) {
     ada_mpc.update_parameters(parameter_test);
 
     /* 計算 */
+    Ref_Type ref;
+    ref(0, 0) = static_cast<T>(0.15);
+    ref(1, 0) = static_cast<T>(0.0);
+    ref(2, 0) = static_cast<T>(0.0);
+    ref(3, 0) = static_cast<T>(0.0);
+    ref(4, 0) = static_cast<T>(15.0);
 
+    Y_Type y_measured;
+    y_measured(0, 0) = static_cast<T>(0.1);
+    y_measured(1, 0) = static_cast<T>(0.0);
+    y_measured(2, 0) = static_cast<T>(0.0);
+    y_measured(3, 0) = static_cast<T>(0.0);
+    y_measured(4, 0) = static_cast<T>(10.0);
 
+    U_Type U_answer;
+    U_answer(0, 0) = static_cast<T>(0.0);
+    U_answer(1, 0) = static_cast<T>(4.85143464);
+
+    auto U = ada_mpc.update_manipulation(ref, y_measured);
+
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, update_manipulation, U.");
 
 
     tester.throw_error_if_test_failed();

@@ -314,7 +314,7 @@ public:
     this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
 
     this->_update_Phi_F_adaptive_runtime(X_compensated, this->_U_latest,
-                                         this->_kalman_filter.Parameters);
+                                         this->_kalman_filter.parameters);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto delta_Y = Y_compensated - this->_Y_store.get();
