@@ -1,6 +1,6 @@
 #include "adaptive_mpc_two_wheel_vehicle_SIL_wrapper.hpp"
 
-#include "adaptive_mpc_two_wheel_vehicle_SIL_ekf_parameters.hpp"
+#include "two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter.hpp"
 
 #include "python_control.hpp"
 
@@ -29,7 +29,7 @@ void initialize(void) {
 
 void update_parameters(FLOAT Mmotor) {
 
-  servo_motor_LTV_constraints_SIL_parameters::Parameter_Type
+  two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter_Type
       controller_parameters;
   controller_parameters.Mmotor = Mmotor;
 
