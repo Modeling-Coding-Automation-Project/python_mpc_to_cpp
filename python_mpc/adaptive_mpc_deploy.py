@@ -1,3 +1,12 @@
+"""
+File: adaptive_mpc_deploy.py
+
+This module provides functionality to deploy an Adaptive Model Predictive Control
+(MPC) system without constraints from Python to C++ code.
+It includes the `AdaptiveMPC_Deploy` class, which contains static methods for generating
+C++ header files representing the structure and parameters of an Adaptive MPC controller,
+including its Kalman filter, prediction matrices, solver factors, and weight matrices.
+"""
 import os
 import sys
 sys.path.append(os.getcwd())
@@ -19,11 +28,50 @@ TOL = 1e-30
 
 
 class AdaptiveMPC_Deploy:
+    """
+    A utility class for deploying Adaptive Model Predictive Control (MPC)
+      models without constraints
+    by generating corresponding C++ header files from Python objects.
+
+    This class provides static methods to automate the translation
+      of Python-based Adaptive MPC models into C++ code,
+        facilitating deployment in embedded or high-performance environments.
+
+    Notes
+    -----
+    - This class is not intended to be instantiated.
+    - The code generation process inspects the caller's context to
+      determine variable names and file paths.
+    - The generated C++ code includes all necessary type definitions, constants,
+      and factory functions
+      to reconstruct the Adaptive MPC object in C++.
+    """
 
     @staticmethod
     def generate_Adaptive_MPC_NC_cpp_code(
             ada_mpc_nc: AdaptiveMPC_NoConstraints,
             file_name=None):
+        """
+        Generates C++ header files for deploying an Adaptive Model Predictive Control (MPC) system without constraints.
+        This function automates the process of converting a configured Python AdaptiveMPC_NoConstraints object into a set of C++ header files.
+        These files encapsulate the system's matrices, Kalman filter,
+         prediction matrices, solver factors, weights, and updater functions,
+        making them ready for integration into a C++ codebase.
+        The function performs the following steps:
+            - Inspects the calling context to determine variable and file names for code generation.
+            - Generates C++ code for the B matrix, embedded integrator updater,
+              prediction matrices updater, and adaptive MPC Phi/F updater.
+            - Generates C++ code for the Kalman filter (EKF), F and Phi matrices,
+              solver factor, and input weight matrices.
+            - Assembles a main C++ header file that includes all generated components and defines the necessary types and a factory function for the Adaptive MPC object.
+            - Writes all generated code to files and returns their names.
+
+        Notes:
+            - This function relies on several helper classes and functions (e.g., ControlDeploy, NumpyDeploy, KalmanFilterDeploy, AdaptiveMatricesDeploy).
+            - The generated C++ code assumes a specific structure and naming convention for types and factory functions.
+            - The function uses dynamic code execution (exec/eval) to handle variable names and code generation context.
+        """
+
         parameters = ada_mpc_nc.kalman_filter.Parameters
         number_of_delay = ada_mpc_nc.kalman_filter.Number_of_Delay
 
