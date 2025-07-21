@@ -1,6 +1,12 @@
 """
 File: adaptive_matrices_deploy.py
 
+This module provides the `AdaptiveMatricesDeploy` class,
+which contains static utility methods for generating C++ code from Python source files and
+dataclass parameter objects,
+specifically for Linear Time-Varying (LTV) Model Predictive Control (MPC) matrix operations.
+The generated C++ code is intended for use in control systems and MPC applications,
+leveraging templates and namespaces for type safety and modularity.
 """
 import os
 import sys
@@ -87,6 +93,35 @@ class AdaptiveMatricesDeploy:
     def generate_embedded_integrator_updater_cpp_code(
             input_python_file_name: str,
             file_name_no_extension: str):
+        """
+        Generates C++ header code for embedded integrator updater classes
+          based on Python class definitions.
+
+        This function reads a Python file containing class definitions
+          for matrix updaters and a state-space updater,
+        and generates a corresponding C++ header file with templated classes
+          and methods suitable for embedded deployment.
+
+        Args:
+            input_python_file_name (str): The path to the Python file
+              containing the updater class definitions.
+            file_name_no_extension (str): The base name (without extension)
+              to use for the generated C++ header file and namespace.
+
+        Returns:
+            str: The generated C++ header code as a string.
+
+        Raises:
+            ValueError: If no classes are found in the specified Python file.
+
+        Notes:
+            - The generated C++ code includes template classes for each updater,
+              with appropriate type parameters.
+            - The function relies on helper functions and visitors
+                to parse Python source and convert method bodies to C++.
+            - The output is wrapped in include guards and a namespace
+              based on `file_name_no_extension`.
+        """
 
         function_file_path = ControlDeploy.find_file(
             input_python_file_name, os.getcwd())
@@ -220,6 +255,31 @@ class AdaptiveMatricesDeploy:
             file_name_no_extension: str,
             embedded_integrator_updater_cpp_name: str,
             prediction_matrices_phi_f_updater_cpp_name: str):
+        """
+        Generates C++ header code for an adaptive MPC Phi/F updater class.
+
+        This function creates a C++ header file as a string, which defines a class for updating
+        the prediction matrices (Phi, F) in an adaptive Model Predictive Control (MPC) context.
+        The generated class integrates two updater modules: one for the embedded integrator and
+        one for the prediction matrices. The resulting C++ code includes necessary headers,
+        namespace usage, and a templated static update method that performs the update logic.
+
+        Args:
+            input_python_file_name (str): Path to the Python file containing the class
+              to be converted.
+            file_name_no_extension (str): Base name (without extension) for the generated
+              C++ header file and namespace.
+            embedded_integrator_updater_cpp_name (str): Filename of the embedded integrator
+              updater C++ header to include.
+            prediction_matrices_phi_f_updater_cpp_name (str): Filename of the
+              prediction matrices Phi/F updater C++ header to include.
+
+        Returns:
+            str: The generated C++ header code as a string.
+
+        Raises:
+            ValueError: If no classes are found in the specified Python file.
+        """
 
         function_file_path = ControlDeploy.find_file(
             input_python_file_name, os.getcwd())
