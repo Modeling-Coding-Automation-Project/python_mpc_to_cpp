@@ -201,68 +201,28 @@ using MPC_PredictionMatrices_Type =
 
 namespace MPC_ReferenceTrajectoryOperation {
 
-/**
- * @brief Calculates the difference between a reference value and a predicted
- * value for a specific index, and stores the result in the provided difference
- * container.
- *
- * This function is enabled only when ROWS > 1, and asserts at compile time that
- * ROWS == Np. It computes the difference between the reference value at
- * position (J, I) and the predicted value at the corresponding flattened index,
- * then sets this value in the 'dif' container.
- *
- * @tparam ROWS Number of rows in the reference and prediction matrices (must be
- * > 1).
- * @tparam Np Prediction horizon length (must be equal to ROWS).
- * @tparam I Row index for the operation.
- * @tparam J Column index for the operation.
- * @tparam Ref_Type Type of the reference matrix.
- * @tparam Fx_Type Type of the predicted matrix.
- * @tparam Dif_Type Type of the difference container.
- * @param ref Reference matrix.
- * @param Fx Predicted matrix.
- * @param dif Container to store the computed difference.
- */
 template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
-          typename Ref_Type, typename Fx_Type, typename Dif_Type>
+          typename Ref_Type, typename In_Type, typename Dif_Type>
 inline typename std::enable_if<(ROWS > 1), void>::type
-calculate_each_dif(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
+calculate_each_dif(const Ref_Type &ref, const In_Type &In_Matrix,
+                   Dif_Type &dif) {
   static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
 
   dif.template set<(I * Ref_Type::COLS) + J, 0>(
       ref.template get<J, I>() -
-      Fx.template get<(I * Ref_Type::COLS) + J, 0>());
+      In_Matrix.template get<(I * Ref_Type::COLS) + J, 0>());
 }
 
-/**
- * @brief Calculates the difference between a reference value and a predicted
- * value for a specific index, and stores the result in the provided difference
- * container.
- *
- * This function is enabled only when ROWS == 1. It computes the difference
- * between the reference value at position (J, 0) and the predicted value at the
- * corresponding flattened index, then sets this value in the 'dif' container.
- *
- * @tparam ROWS Number of rows in the reference matrix (must be equal to 1).
- * @tparam Np Prediction horizon length (must be equal to 1).
- * @tparam I Row index for the operation.
- * @tparam J Column index for the operation.
- * @tparam Ref_Type Type of the reference matrix.
- * @tparam Fx_Type Type of the predicted matrix.
- * @tparam Dif_Type Type of the difference container.
- * @param ref Reference matrix.
- * @param Fx Predicted matrix.
- * @param dif Container to store the computed difference.
- */
 template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
-          typename Ref_Type, typename Fx_Type, typename Dif_Type>
+          typename Ref_Type, typename In_Type, typename Dif_Type>
 inline typename std::enable_if<(ROWS == 1), void>::type
-calculate_each_dif(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
+calculate_each_dif(const Ref_Type &ref, const In_Type &In_Matrix,
+                   Dif_Type &dif) {
   static_assert(ROWS == 1, "ROWS must be equal to 1");
 
   dif.template set<(I * Ref_Type::COLS) + J, 0>(
       ref.template get<J, 0>() -
-      Fx.template get<(I * Ref_Type::COLS) + J, 0>());
+      In_Matrix.template get<(I * Ref_Type::COLS) + J, 0>());
 }
 
 // when J_idx < N
@@ -401,6 +361,84 @@ inline void calculate_dif(const Ref_Type &ref, const Fx_Type &Fx,
          (Np - 1)>::calculate(ref, Fx, dif);
 }
 
+template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+          typename Ref_Type, typename Y_Type>
+inline typename std::enable_if<(ROWS > 1), void>::type
+calculate_each_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
+                         Ref_Type &ref_next) {
+  static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
+
+  ref_next.template set<(I * Ref_Type::COLS) + J, 0>(
+      ref.template get<J, I>() - Y.template get<(I * Ref_Type::COLS) + J, 0>());
+}
+
+template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+          typename Ref_Type, typename Y_Type>
+inline typename std::enable_if<(ROWS == 1), void>::type
+calculate_each_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
+                         Ref_Type &ref_next) {
+  static_assert(ROWS == 1, "ROWS must be equal to 1");
+
+  ref_next.template set<(I * Ref_Type::COLS) + J, 0>(
+      ref.template get<J, 0>() - Y.template get<(I * Ref_Type::COLS) + J, 0>());
+}
+
+// when J_idx < N
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t I,
+          std::size_t J_idx>
+struct RefSubY_Column {
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+
+    calculate_each_ref_sub_Y<Ref_Type::ROWS, Np, I, J_idx>(ref, Y, ref_next);
+
+    RefSubY_Column<Ref_Type, Y_Type, Np, I, J_idx - 1>::calculate(ref, Y,
+                                                                  ref_next);
+  }
+};
+
+// column recursion termination
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t I>
+struct RefSubY_Column<Ref_Type, Y_Type, Np, I, 0> {
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+
+    calculate_each_ref_sub_Y<Ref_Type::ROWS, Np, I, 0>(ref, Y, ref_next);
+  }
+};
+
+// when I_idx < M
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t M,
+          std::size_t N, std::size_t I_idx>
+struct RefSubY_Row {
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+    RefSubY_Column<Ref_Type, Y_Type, Np, I_idx, N - 1>::calculate(ref, Y,
+                                                                  ref_next);
+    RefSubY_Row<Ref_Type, Y_Type, Np, M, N, I_idx - 1>::calculate(ref, Y,
+                                                                  ref_next);
+  }
+};
+
+// row recursion termination
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t M,
+          std::size_t N>
+struct RefSubY_Row<Ref_Type, Y_Type, Np, M, N, 0> {
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+    RefSubY_Column<Ref_Type, Y_Type, Ref_Type, Np, 0, N - 1>::calculate(
+        ref, Y, ref_next);
+  }
+};
+
+template <std::size_t Np, std::size_t Number_Of_Output, typename Ref_Type,
+          typename Y_Type>
+inline void calculate_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
+                                Ref_Type &ref_next) {
+  RefSubY_Row<Ref_Type, Y_Type, Ref_Type, Np, Np, Number_Of_Output,
+              (Np - 1)>::calculate(ref, Y, ref_next);
+}
+
 } // namespace MPC_ReferenceTrajectoryOperation
 
 /* MPC Reference Trajectory */
@@ -490,8 +528,8 @@ public:
   inline auto set_reference_sub_Y(const Ref_Type &ref, const Y_Type &Y)
       -> void {
 
-    this->reference.reference_vector = ref;
-    this->reference.Y_store.set(Y);
+    MPC_ReferenceTrajectoryOperation::calculate_ref_sub_Y<NP, NUMBER_OF_OUTPUT>(
+        ref, Y, this->reference);
   }
 
 public:
