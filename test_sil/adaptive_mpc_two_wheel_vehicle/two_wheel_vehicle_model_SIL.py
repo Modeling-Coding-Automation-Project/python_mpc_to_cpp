@@ -202,8 +202,8 @@ def main():
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)
     generator.build_SIL_code()
 
-    from test_sil.adaptive_mpc_two_wheel_vehicle import AdaptiveMpcTwoWheelVehicleModelSIL
-    AdaptiveMpcTwoWheelVehicleModelSIL.initialize()
+    from test_sil.adaptive_mpc_two_wheel_vehicle import AdaptiveMpcTwoWheelVehicleSIL
+    AdaptiveMpcTwoWheelVehicleSIL.initialize()
 
     # X: px, py, theta, r, beta, V
     x_true = X_initial
@@ -250,11 +250,11 @@ def main():
 
         u_from_mpc = ada_mpc.update_manipulation(ref, y_measured)
 
-        U_cpp = AdaptiveMpcTwoWheelVehicleModelSIL.update_manipulation(
+        U_cpp = AdaptiveMpcTwoWheelVehicleSIL.update_manipulation(
             ref, y_measured)
 
         tester.expect_near(
-            U, U_cpp, NEAR_LIMIT,
+            u_from_mpc, U_cpp, NEAR_LIMIT,
             "Adaptive MPC two wheel vehicle model SIL, check update_manipulation.")
 
     tester.throw_error_if_test_failed()
