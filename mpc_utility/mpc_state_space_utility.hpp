@@ -486,6 +486,14 @@ public:
     return dif;
   }
 
+  template <typename Y_Type>
+  inline auto set_reference_sub_Y(const Ref_Type &ref, const Y_Type &Y)
+      -> void {
+
+    this->reference.reference_vector = ref;
+    this->reference.Y_store.set(Y);
+  }
+
 public:
   /* Constant */
   static constexpr std::size_t NP = Np;

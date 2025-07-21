@@ -313,8 +313,8 @@ public:
     Y_Type Y_compensated;
     this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
 
-    this->_prediction_matrices.update_Phi_F_adaptive_runtime(
-        this->_kalman_filter.Parameters, X_compensated, this->_U_latest);
+    this->_update_Phi_F_adaptive_runtime(X_compensated, this->_U_latest,
+                                         this->_kalman_filter.Parameters);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto delta_Y = Y_compensated - this->_Y_store.get();
@@ -361,6 +361,14 @@ protected:
     return this->_solver_factor *
            this->_reference_trajectory.calculate_dif(
                this->_prediction_matrices.F * X_augmented);
+  }
+
+  inline void _update_Phi_F_adaptive_runtime(const X_Type &X, const U_Type &U,
+                                             const Parameter_Type &parameters) {
+
+    this->_phi_f_updater_function(X, U, parameters,
+                                  this->_prediction_matrices.Phi,
+                                  this->_prediction_matrices.F);
   }
 
 protected:
