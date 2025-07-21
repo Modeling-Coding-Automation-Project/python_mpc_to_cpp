@@ -11,6 +11,83 @@
 
 namespace PythonMPC {
 
+namespace AdaptiveMPC_Operation {
+
+template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
+          typename Y_Store_Type, typename LKF_Type>
+inline typename std::enable_if<(Number_Of_Delay > 0), void>::type
+compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
+                     Y_Type &Y_out, Y_Store_Type &Y_store,
+                     LKF_Type &kalman_filter) {
+
+  static_cast<void>(X_in);
+
+  Y_Type Y_measured = Y_in;
+
+  X_out = kalman_filter.get_x_hat_without_delay();
+  auto Y = kalman_filter.state_space.C * X_out;
+
+  Y_store.push(Y);
+  auto Y_diff = Y_measured - Y_store.get();
+
+  Y_out = Y + Y_diff;
+}
+
+template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
+          typename Y_Store_Type, typename LKF_Type>
+inline typename std::enable_if<(Number_Of_Delay == 0), void>::type
+compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
+                     Y_Type &Y_out, Y_Store_Type &Y_store,
+                     LKF_Type &kalman_filter) {
+
+  static_cast<void>(kalman_filter);
+
+  Y_store.push(Y_in);
+
+  X_out = X_in;
+  Y_out = Y_in;
+}
+
+template <typename U_Type, typename U_Horizon_Type, std::size_t Index>
+struct Integrate_U {
+  /**
+   * @brief Recursively integrates the control input over the horizon.
+   *
+   * This function updates the control input U by adding the corresponding
+   * delta_U_Horizon value for the given index.
+   *
+   * @param U The current control input to be updated.
+   * @param delta_U_Horizon The delta control input for the horizon.
+   */
+  static void calculate(U_Type &U, const U_Horizon_Type &delta_U_Horizon) {
+
+    U.template set<Index, 0>(U.template get<Index, 0>() +
+                             delta_U_Horizon.template get<Index, 0>());
+    Integrate_U<U_Type, U_Horizon_Type, Index - 1>::calculate(U,
+                                                              delta_U_Horizon);
+  }
+};
+
+template <typename U_Type, typename U_Horizon_Type>
+struct Integrate_U<U_Type, U_Horizon_Type, 0> {
+  /**
+   * @brief Base case for the recursive integration of control input.
+   *
+   * This function updates the first element of the control input U by adding
+   * the corresponding delta_U_Horizon value.
+   *
+   * @param U The current control input to be updated.
+   * @param delta_U_Horizon The delta control input for the horizon.
+   */
+  static void calculate(U_Type &U, const U_Horizon_Type &delta_U_Horizon) {
+
+    U.template set<0, 0>(U.template get<0, 0>() +
+                         delta_U_Horizon.template get<0, 0>());
+  }
+};
+
+} // namespace AdaptiveMPC_Operation
+
 /* Adaptive MPC Function Object */
 
 template <typename X_Type, typename U_Type, typename Parameter_Type,
@@ -248,8 +325,8 @@ public:
 
     auto delta_U = this->_solve(X_augmented);
 
-    LMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
-                                (INPUT_SIZE - 1)>::calculate(this->_U_latest,
+    AdaptiveMPC_Operation::Integrate_U<
+        U_Type, U_Horizon_Type, (INPUT_SIZE - 1)>::calculate(this->_U_latest,
                                                              delta_U);
 
     this->_X_inner_model = X_compensated;
@@ -267,6 +344,23 @@ public:
 
   inline auto get_solver_factor(void) const -> SolverFactor_Type {
     return this->_solver_factor;
+  }
+
+protected:
+  /* Function */
+  inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
+                                    X_Type &X_out, Y_Type &Y_out) {
+
+    AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
+        X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
+  }
+
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
+
+    return this->_solver_factor *
+           this->_reference_trajectory.calculate_dif(
+               this->_prediction_matrices.F * X_augmented);
   }
 
 protected:
