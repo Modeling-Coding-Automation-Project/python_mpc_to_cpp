@@ -2,7 +2,7 @@ name: Run test sample
 
 on:
   push:
-    branches: [ feature/* ]
+    branches: [ feature/test_sample ]
 
 jobs:
 
