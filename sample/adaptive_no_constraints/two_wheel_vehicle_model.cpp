@@ -132,7 +132,7 @@ int main(void) {
       create_reference(time, DELTA_TIME, SIMULATION_TIME);
 
   /* Simulation */
-  for (std::size_t sim_step = 0; sim_step < 500; ++sim_step) {
+  for (std::size_t sim_step = 0; sim_step < MAX_STEP; ++sim_step) {
     /* system response */
     X = two_wheel_vehicle_model_ada_mpc_ekf_state_function::function(
         X, U, parameters);
