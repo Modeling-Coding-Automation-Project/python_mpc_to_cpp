@@ -215,6 +215,8 @@ public:
     // This is because the solver_factor_in can be different type from
     // "SolverFactor_Type".
     PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor_in);
+
+    this->_X_inner_model = this->_kalman_filter.get_x_hat();
   }
 
   /* Copy Constructor */

@@ -1124,6 +1124,14 @@ void check_Adaptive_MPC_NoConstraints(void) {
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
     auto kalman_filter = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::make<T>();
+    kalman_filter.X_hat = StateSpaceState_Type<T, STATE_SIZE>({
+        {static_cast<T>(0.0)},
+        {static_cast<T>(0.0)},
+        {static_cast<T>(0.0)},
+        {static_cast<T>(0.0)},
+        {static_cast<T>(0.0)},
+        {static_cast<T>(10.0)}
+        });
 
     auto F = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::make<T>();
 
