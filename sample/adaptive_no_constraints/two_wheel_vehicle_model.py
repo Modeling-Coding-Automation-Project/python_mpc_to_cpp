@@ -24,7 +24,7 @@ from dataclasses import dataclass
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC_NoConstraints
 from python_mpc.adaptive_mpc_deploy import AdaptiveMPC_Deploy
 
-# from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
+from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
 
 
 def create_model(delta_time: float):
@@ -210,90 +210,90 @@ def main():
         ada_mpc)
     print(deployed_file_names)
 
-    # # X: px, py, theta, r, beta, V
-    # x_true = X_initial
-    # # U: delta, accel
-    # u = np.array([[0.0], [0.0]])
+    # X: px, py, theta, r, beta, V
+    x_true = X_initial
+    # U: delta, accel
+    u = np.array([[0.0], [0.0]])
 
-    # # create reference
-    # x_sequence, y_sequence, theta_sequence, r_sequence, V_sequence = \
-    #     create_reference(time, sim_delta_time, simulation_time)
+    # create reference
+    x_sequence, y_sequence, theta_sequence, r_sequence, V_sequence = \
+        create_reference(time, sim_delta_time, simulation_time)
 
-    # plotter = SimulationPlotter()
+    plotter = SimulationPlotter()
 
-    # y_measured = np.array([[0.0], [0.0], [0.0], [0.0], [0.0]])
-    # y_store = [y_measured] * (Number_of_Delay + 1)
-    # delay_index = 0
+    y_measured = np.array([[0.0], [0.0], [0.0], [0.0], [0.0]])
+    y_store = [y_measured] * (Number_of_Delay + 1)
+    delay_index = 0
 
-    # # simulation
-    # for i in range(round(simulation_time / sim_delta_time)):
-    #     # system response
-    #     if i > 0:
-    #         u = np.copy(u_from_mpc)
+    # simulation
+    for i in range(round(simulation_time / sim_delta_time)):
+        # system response
+        if i > 0:
+            u = np.copy(u_from_mpc)
 
-    #     x_true = ada_mpc.state_space_initializer.fxu_function(
-    #         x_true, u, plant_parameters)
-    #     y_store[delay_index] = ada_mpc.state_space_initializer.hx_function(
-    #         x_true, plant_parameters)
+        x_true = ada_mpc.state_space_initializer.fxu_function(
+            x_true, u, plant_parameters)
+        y_store[delay_index] = ada_mpc.state_space_initializer.hx_function(
+            x_true, plant_parameters)
 
-    #     # system delay
-    #     delay_index += 1
-    #     if delay_index > Number_of_Delay:
-    #         delay_index = 0
+        # system delay
+        delay_index += 1
+        if delay_index > Number_of_Delay:
+            delay_index = 0
 
-    #     y_measured = y_store[delay_index]
+        y_measured = y_store[delay_index]
 
-    #     # controller
-    #     ref = np.array([
-    #         [x_sequence[i, 0]],
-    #         [y_sequence[i, 0]],
-    #         [theta_sequence[i, 0]],
-    #         [r_sequence[i, 0]],
-    #         [V_sequence[i, 0]]
-    #     ])
+        # controller
+        ref = np.array([
+            [x_sequence[i, 0]],
+            [y_sequence[i, 0]],
+            [theta_sequence[i, 0]],
+            [r_sequence[i, 0]],
+            [V_sequence[i, 0]]
+        ])
 
-    #     u_from_mpc = ada_mpc.update_manipulation(ref, y_measured)
+        u_from_mpc = ada_mpc.update_manipulation(ref, y_measured)
 
-    #     plotter.append_name(x_true, "x_true")
-    #     plotter.append_name(ref, "ref")
-    #     plotter.append_name(y_measured, "y_measured")
-    #     plotter.append_name(u_from_mpc, "u")
+        plotter.append_name(x_true, "x_true")
+        plotter.append_name(ref, "ref")
+        plotter.append_name(y_measured, "y_measured")
+        plotter.append_name(u_from_mpc, "u")
 
-    # # plot
-    # plotter.assign("x_true", column=0, row=0, position=(0, 0),
-    #                x_sequence=time, label="px_true")
-    # plotter.assign("ref", column=0, row=0, position=(0, 0),
-    #                x_sequence=time, label="px_ref")
+    # plot
+    plotter.assign("x_true", column=0, row=0, position=(0, 0),
+                   x_sequence=time, label="px_true")
+    plotter.assign("ref", column=0, row=0, position=(0, 0),
+                   x_sequence=time, label="px_ref")
 
-    # plotter.assign("x_true", column=1, row=0, position=(1, 0),
-    #                x_sequence=time, label="py_true")
-    # plotter.assign("ref", column=1, row=0, position=(1, 0),
-    #                x_sequence=time, label="py_ref")
+    plotter.assign("x_true", column=1, row=0, position=(1, 0),
+                   x_sequence=time, label="py_true")
+    plotter.assign("ref", column=1, row=0, position=(1, 0),
+                   x_sequence=time, label="py_ref")
 
-    # plotter.assign("x_true", column=2, row=0, position=(2, 0),
-    #                x_sequence=time, label="theta_true")
-    # plotter.assign("ref", column=2, row=0, position=(2, 0),
-    #                x_sequence=time, label="theta_ref")
+    plotter.assign("x_true", column=2, row=0, position=(2, 0),
+                   x_sequence=time, label="theta_true")
+    plotter.assign("ref", column=2, row=0, position=(2, 0),
+                   x_sequence=time, label="theta_ref")
 
-    # plotter.assign("x_true", column=3, row=0, position=(0, 1),
-    #                x_sequence=time, label="r_true")
-    # plotter.assign("ref", column=3, row=0, position=(0, 1),
-    #                x_sequence=time, label="r_ref")
+    plotter.assign("x_true", column=3, row=0, position=(0, 1),
+                   x_sequence=time, label="r_true")
+    plotter.assign("ref", column=3, row=0, position=(0, 1),
+                   x_sequence=time, label="r_ref")
 
-    # plotter.assign("x_true", column=4, row=0, position=(1, 1),
-    #                x_sequence=time, label="beta_true")
+    plotter.assign("x_true", column=4, row=0, position=(1, 1),
+                   x_sequence=time, label="beta_true")
 
-    # plotter.assign("x_true", column=5, row=0, position=(2, 1),
-    #                x_sequence=time, label="V_true")
-    # plotter.assign("ref", column=4, row=0, position=(2, 1),
-    #                x_sequence=time, label="V_ref")
+    plotter.assign("x_true", column=5, row=0, position=(2, 1),
+                   x_sequence=time, label="V_true")
+    plotter.assign("ref", column=4, row=0, position=(2, 1),
+                   x_sequence=time, label="V_ref")
 
-    # plotter.assign("u", column=0, row=0, position=(0, 2),
-    #                x_sequence=time, label="delta")
-    # plotter.assign("u", column=1, row=0, position=(1, 2),
-    #                x_sequence=time, label="a")
+    plotter.assign("u", column=0, row=0, position=(0, 2),
+                   x_sequence=time, label="delta")
+    plotter.assign("u", column=1, row=0, position=(1, 2),
+                   x_sequence=time, label="a")
 
-    # plotter.plot()
+    plotter.plot()
 
 
 if __name__ == "__main__":
