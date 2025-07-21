@@ -1,3 +1,22 @@
+
+/**
+ * @file python_adaptive_mpc.hpp
+ * @brief Adaptive Model Predictive Control (MPC) implementation for
+ * Python-based models in C++.
+ *
+ * This header defines classes and utilities for adaptive MPC, including delay
+ * compensation, recursive integration of control inputs, and a flexible,
+ * template-based MPC controller without constraints. The implementation is
+ * designed to work with Python-based state-space models and Kalman filters,
+ * supporting runtime adaptation of prediction matrices and reference
+ * trajectories.
+ *
+ * Usage:
+ * - Instantiate AdaptiveMPC_NoConstraints or use make_AdaptiveMPC_NoConstraints
+ * for adaptive MPC without constraints.
+ * - Provide appropriate types for system, prediction, and solver components.
+ * - Use update_parameters() and update_manipulation() for runtime control.
+ */
 #ifndef __PYTHON_ADAPTIVE_MPC_HPP__
 #define __PYTHON_ADAPTIVE_MPC_HPP__
 
@@ -13,6 +32,18 @@ namespace PythonMPC {
 
 namespace AdaptiveMPC_Operation {
 
+/**
+ * @brief Compensates the delay in the state and output vectors for the
+ * Adaptive Model Predictive Control (Adaptive MPC) operation.
+ * This function adjusts the state and output vectors to account for delays
+ * in the system, ensuring that the control inputs are correctly aligned with
+ * the measured outputs.
+ * @tparam Number_Of_Delay The number of delays to compensate for.
+ * @tparam X_Type Type of the state vector.
+ * @tparam Y_Type Type of the output vector.
+ * @tparam Y_Store_Type Type of the delayed output storage.
+ * @tparam LKF_Type Type of the Kalman filter used in Adaptive MPC.
+ */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename LKF_Type>
 inline typename std::enable_if<(Number_Of_Delay > 0), void>::type
@@ -33,6 +64,19 @@ compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
   Y_out = Y + Y_diff;
 }
 
+/**
+ * @brief Specialization of the compensate_X_Y_delay function for the case
+ * where there are no delays.
+ *
+ * This specialization simply copies the input state and output vectors to
+ * the output vectors without any delay compensation.
+ *
+ * @tparam Number_Of_Delay The number of delays to compensate for.
+ * @tparam X_Type Type of the state vector.
+ * @tparam Y_Type Type of the output vector.
+ * @tparam Y_Store_Type Type of the delayed output storage (not used here).
+ * @tparam LKF_Type Type of the Kalman filter (not used here).
+ */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename LKF_Type>
 inline typename std::enable_if<(Number_Of_Delay == 0), void>::type
@@ -98,6 +142,24 @@ using Adaptive_MPC_Phi_F_Updater_Function_Object =
 
 /* Adaptive MPC No Constraints */
 
+/**
+ * @brief Adaptive Model Predictive Control (MPC) without constraints.
+ *
+ * This class implements an adaptive MPC controller that can update its
+ * prediction matrices and reference trajectory based on the provided
+ * parameters. It supports runtime adaptation and is designed to work with
+ * Python-based state-space models.
+ *
+ * @tparam B_Type Type of the system input matrix.
+ * @tparam EKF_Type Type of the Extended Kalman Filter used for state
+ * estimation.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices used in MPC.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory used in
+ * MPC.
+ * @tparam Parameter_Type Type of the parameters used for updating the MPC.
+ * @tparam SolverFactor_Type Type of the solver factor used in MPC (default is
+ * empty).
+ */
 template <typename B_Type_In, typename EKF_Type_In,
           typename PredictionMatrices_Type_In,
           typename ReferenceTrajectory_Type_In, typename Parameter_Type_In,
@@ -297,12 +359,31 @@ public:
 
 public:
   /* Function */
+
+  /**
+   * @brief Updates the parameters of the Kalman filter used in the Adaptive
+   * MPC.
+   *
+   * This function allows for runtime updates of the Kalman filter parameters,
+   * which can affect the state estimation and control input calculations.
+   *
+   * @param parameters The new parameters to be set in the Kalman filter.
+   */
   template <typename Parameter_Type>
   inline void update_parameters(const Parameter_Type &parameters) {
 
     this->_kalman_filter.parameters = parameters;
   }
 
+  /**
+   * @brief Updates the reference trajectory for the Adaptive MPC.
+   *
+   * This function sets a new reference trajectory based on the provided
+   * reference vector, which is used to calculate control inputs.
+   *
+   * @tparam Ref_Type Type of the reference vector.
+   * @param ref The reference vector to be set.
+   */
   template <typename Ref_Type>
   inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
       -> U_Type {
@@ -336,20 +417,59 @@ public:
     return this->_U_latest;
   }
 
+  /**
+   * @brief Returns the prediction matrices used in the Adaptive MPC.
+   *
+   * This function provides access to the prediction matrices, which are used
+   * to compute the control inputs based on the current state and reference
+   * trajectory.
+   *
+   * @return The prediction matrices of type PredictionMatrices_Type.
+   */
   inline auto get_F(void) const -> F_Type {
     return this->_prediction_matrices.F;
   }
 
+  /**
+   * @brief Returns the Phi matrix used in the Adaptive MPC.
+   *
+   * This function provides access to the Phi matrix, which is part of the
+   * prediction matrices and is used in the control input calculations.
+   *
+   * @return The Phi matrix of type Phi_Type.
+   */
   inline auto get_Phi(void) const -> Phi_Type {
     return this->_prediction_matrices.Phi;
   }
 
+  /**
+   * @brief Returns the solver factor used in the Adaptive MPC.
+   *
+   * This function provides access to the solver factor, which is used to
+   * scale the control inputs based on the reference trajectory and prediction
+   * matrices.
+   *
+   * @return The solver factor of type SolverFactor_Type.
+   */
   inline auto get_solver_factor(void) const -> SolverFactor_Type {
     return this->_solver_factor;
   }
 
 protected:
   /* Function */
+
+  /**
+   * @brief Compensates for delays in the state and output vectors.
+   *
+   * This function adjusts the state and output vectors to account for delays
+   * in the system, ensuring that the control inputs are correctly aligned with
+   * the measured outputs.
+   *
+   * @param X_in The input state vector.
+   * @param Y_in The input output vector.
+   * @param X_out The compensated output state vector.
+   * @param Y_out The compensated output vector.
+   */
   inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
                                     X_Type &X_out, Y_Type &Y_out) {
 
@@ -357,6 +477,16 @@ protected:
         X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
   }
 
+  /**
+   * @brief Solves the MPC optimization problem to calculate the control input.
+   *
+   * This function computes the change in control input (delta_U) based on the
+   * augmented state vector (X_augmented) and the reference trajectory.
+   *
+   * @param X_augmented The augmented state vector containing the current state
+   * and output.
+   * @return The calculated change in control input (delta_U).
+   */
   virtual inline auto _solve(const X_Augmented_Type &X_augmented)
       -> U_Horizon_Type {
 
@@ -365,6 +495,17 @@ protected:
                this->_prediction_matrices.F * X_augmented);
   }
 
+  /**
+   * @brief Updates the Phi and F matrices for adaptive runtime.
+   *
+   * This function allows for runtime updates of the Phi and F matrices based
+   * on the current state, control input, and parameters, enabling adaptive
+   * behavior in the MPC.
+   *
+   * @param X The current state vector.
+   * @param U The current control input vector.
+   * @param parameters The parameters used for updating the matrices.
+   */
   inline void _update_Phi_F_adaptive_runtime(const X_Type &X, const U_Type &U,
                                              const Parameter_Type &parameters) {
 
@@ -392,6 +533,24 @@ protected:
 };
 
 /* make LTV MPC No Constraints */
+
+/**
+ * @brief Factory function to create an instance of AdaptiveMPC_NoConstraints.
+ *
+ * This function initializes the AdaptiveMPC_NoConstraints class with the
+ * provided Kalman filter, prediction matrices, reference trajectory, solver
+ * factor, weight matrix for control input changes, and Phi/F updater function.
+ *
+ * @tparam B_Type Type of the system input matrix.
+ * @tparam EKF_Type Type of the Extended Kalman Filter used for state
+ * estimation.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices used in MPC.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory used in
+ * MPC.
+ * @tparam Parameter_Type Type of the parameters used for updating the MPC.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in MPC (default
+ * is empty).
+ */
 template <typename B_Type, typename EKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
