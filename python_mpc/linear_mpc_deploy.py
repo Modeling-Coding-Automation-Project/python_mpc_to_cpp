@@ -594,8 +594,38 @@ class LinearMPC_Deploy:
         return deployed_file_names
 
     @staticmethod
-    def generate_LTV_MPC_NC_cpp_code(ltv_mpc_nc: LTV_MPC_NoConstraints,
-                                     file_name=None):
+    def generate_LTV_MPC_NC_cpp_code(
+            ltv_mpc_nc: LTV_MPC_NoConstraints, file_name=None):
+        """
+        Generates C++ header files for deploying a Linear Time-Varying Model
+          Predictive Control (LTV-MPC) system
+        without constraints, based on the provided Python LTV_MPC_NoConstraints object.
+        This function automates the translation of Python-based MPC model components
+          (such as Kalman filter,
+        prediction matrices, solver factors, and updater functions) into corresponding
+          C++ code files. The generated
+        files include parameter definitions, state space updaters,
+          prediction matrix updaters, and the main MPC
+        deployment header, all tailored to the structure and data types of the input Python object.
+        Args:
+            ltv_mpc_nc (LTV_MPC_NoConstraints): The Python object representing
+              the LTV MPC system without constraints.
+            file_name (str, optional): Custom base name for the generated C++ files.
+              If None, the caller's file name is used.
+        Returns:
+            list of str: List of generated C++ header file names.
+        Notes:
+            - The function inspects the caller's context to determine variable
+              and file names if not explicitly provided.
+            - It generates and writes multiple C++ header files, including parameter classes,
+              state space updaters,
+            prediction matrix updaters, and the main deployment header.
+            - The generated code is intended for use with a compatible C++ MPC deployment framework.
+            - The function relies on several helper classes and methods
+              (e.g., ControlDeploy, NumpyDeploy, LTVMatricesDeploy,
+            KalmanFilterDeploy) for code generation and file writing.
+        """
+
         parameters = ltv_mpc_nc.parameters_struct
         number_of_delay = ltv_mpc_nc.Number_of_Delay
 
@@ -879,6 +909,7 @@ class LinearMPC_Deploy:
     @staticmethod
     def generate_LTV_MPC_cpp_code(ltv_mpc: LTV_MPC_NoConstraints,
                                   file_name=None):
+
         parameters = ltv_mpc.parameters_struct
         number_of_delay = ltv_mpc.kalman_filter.Number_of_Delay
 
