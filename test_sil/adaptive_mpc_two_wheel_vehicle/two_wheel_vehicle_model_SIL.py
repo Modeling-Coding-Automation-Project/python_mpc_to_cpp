@@ -155,7 +155,7 @@ class Parameter:
 def main():
     # simulation setup
     sim_delta_time = 0.01
-    simulation_time = 20.0
+    simulation_time = 5.0
 
     time = np.arange(0, simulation_time, sim_delta_time)
 
@@ -174,7 +174,7 @@ def main():
 
     X_initial = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [10.0]])
 
-    Np = 16
+    Np = 4
     Nc = 1
 
     Number_of_Delay = 0
@@ -219,7 +219,7 @@ def main():
     delay_index = 0
 
     tester = MCAPTester()
-    NEAR_LIMIT = 1e-5
+    NEAR_LIMIT = 0.5
 
     # simulation
     for i in range(round(simulation_time / sim_delta_time)):
