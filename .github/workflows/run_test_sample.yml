@@ -41,5 +41,5 @@ jobs:
     - name: Run SIL tests
       run: |
         /opt/venv_py_MCAP/bin/python3 ./sample/adaptive_no_constraints/two_wheel_vehicle_model.py
-        g++ -std=c++11 -Wall -Werror -I ./mpc_utility -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/python_optimization -I ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility -I ./test_vs/MCAP_tester/include -o ./sample/app ./sample/adaptive_no_constraints/two_wheel_vehicle_model.cpp
+        g++ -std=c++11 -Wall -Werror -I ./ -I ./mpc_utility -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/python_optimization -I ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility -I ./test_vs/MCAP_tester/include -o ./sample/app ./sample/adaptive_no_constraints/two_wheel_vehicle_model.cpp
         ./sample/app
