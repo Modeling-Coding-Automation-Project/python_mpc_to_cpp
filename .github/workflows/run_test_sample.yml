@@ -1,0 +1,45 @@
+name: Run test sample
+
+on:
+  push:
+    branches: [ develop, feature/* ]
+
+jobs:
+
+  test_SIL:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        define:
+          - ""
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential
+        sudo apt install -y cmake
+        sudo apt install -y pybind11-dev
+        sudo apt install -y python3.12
+        sudo apt install -y python3.12-dev
+        sudo apt install -y python3.12-venv
+
+    - name: Set up Python environment
+      run: |
+        python3 -m venv /opt/venv_py_MCAP
+        /opt/venv_py_MCAP/bin/pip install --upgrade pip
+        /opt/venv_py_MCAP/bin/pip install --upgrade setuptools
+        /opt/venv_py_MCAP/bin/pip install numpy control pandas jupyter openpyxl sympy astor pybind11 networkx
+
+    - name: Run SIL tests
+      run: |
+        /opt/venv_py_MCAP/bin/python3 ./sample/adaptive_no_constraints/two_wheel_vehicle_model.py
+        g++ -std=c++11 -Wall -Werror -I ./mpc_utility -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/python_optimization -I ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility -I ./test_vs/MCAP_tester/include -o ./sample/app ./sample/adaptive_no_constraints/two_wheel_vehicle_model.cpp
+        ./sample/app
