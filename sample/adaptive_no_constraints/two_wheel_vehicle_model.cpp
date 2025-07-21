@@ -27,10 +27,11 @@ struct ReferenceSequence {
 ReferenceSequence create_reference(const std::vector<double> &time,
                                    double delta_time, double simulation_time) {
 
+  constexpr double PI = 3.14159265358979323846;
   const double vehicle_speed = 15.0;
-  const double curve_yaw_rate = M_PI / 5.0;
+  const double curve_yaw_rate = PI / 5.0;
   const double curve_timing = 2.0;
-  const double yaw_ref = M_PI;
+  const double yaw_ref = PI;
 
   const size_t time_size = time.size();
 
