@@ -224,7 +224,7 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"using X_Type = StateSpaceState_Type<{type_name}, STATE_SIZE>;\n\n"
 
-        code_text += f"using Y_Type = StateSpaceOutput_Type<{type_name}, OUTPUT_SIZE>;\n\n"
+        code_text += f"using U_Type = StateSpaceOutput_Type<{type_name}, INPUT_SIZE>;\n\n"
 
         code_text += f"using F_Type = {F_file_name_no_extension}::type;\n\n"
 
@@ -260,6 +260,12 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"  auto kalman_filter = {ekf_file_name_no_extension}::make();\n\n"
 
+        for i in range(ada_mpc_nc.kalman_filter.x_hat.shape[0]):
+            code_text += f"  kalman_filter.X_hat.template set<{i}, 0>(" + \
+                f"static_cast<{type_name}>({ada_mpc_nc.kalman_filter.x_hat[i, 0]}));\n"
+
+        code_text += "\n"
+
         code_text += f"  auto F = {F_file_name_no_extension}::make();\n\n"
 
         code_text += f"  auto Phi = {Phi_file_name_no_extension}::make();\n\n"
@@ -283,9 +289,14 @@ class AdaptiveMPC_Deploy:
             f"      X_Type, U_Type, Parameter_Type,\n" + \
             f"      Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;\n\n"
 
-        code_text += f"  auto adaptive_mpc_nc = make_AdaptiveMPC_NoConstraints(\n" + \
-            "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
-            "    Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);\n\n"
+        code_text += f"  auto adaptive_mpc_nc = make_AdaptiveMPC_NoConstraints<B_Type,\n" + \
+            f"      EKF_Type, PredictionMatrices_Type,\n" + \
+            f"      ReferenceTrajectory_Type, Parameter_Type,\n" + \
+            f"      SolverFactor_Type, Weight_U_Nc_Type,\n" + \
+            f"      X_Type, U_Type,\n" + \
+            f"      EmbeddedIntegratorStateSpace_Type>(\n" + \
+            f"      kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
+            f"      Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);\n\n"
 
         code_text += "  return adaptive_mpc_nc;\n\n"
 
