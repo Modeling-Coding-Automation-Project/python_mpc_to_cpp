@@ -21,19 +21,19 @@ constexpr std::size_t OUTPUT_SIZE =
 
 using Ref_Type = typename adaptive_mpc_two_wheel_vehicle_SIL_wrapper::Ref_Type;
 
-adaptive_mpc_two_wheel_vehicle_SIL_wrapper::type lmpc;
+adaptive_mpc_two_wheel_vehicle_SIL_wrapper::type ada_mpc;
 
 void initialize(void) {
-  lmpc = adaptive_mpc_two_wheel_vehicle_SIL_wrapper::make();
+  ada_mpc = adaptive_mpc_two_wheel_vehicle_SIL_wrapper::make();
 }
 
-void update_parameters(FLOAT Mmotor) {
+void update_parameters(FLOAT m) {
 
   two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter_Type
       controller_parameters;
-  controller_parameters.Mmotor = Mmotor;
+  controller_parameters.m = m;
 
-  lmpc.update_parameters(controller_parameters);
+  ada_mpc.update_parameters(controller_parameters);
 }
 
 py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
@@ -69,7 +69,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   }
 
   /* update */
-  auto U = lmpc.update_manipulation(ref, Y);
+  auto U = ada_mpc.update_manipulation(ref, Y);
 
   /* output U */
   py::array_t<FLOAT> result;
