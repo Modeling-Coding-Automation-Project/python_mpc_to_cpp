@@ -19,7 +19,7 @@ import copy
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
-from python_mpc.ltv_matrices_deploy import LTVMatricesDeploy
+from mpc_utility.ltv_matrices_deploy import LTVMatricesDeploy
 
 from external_libraries.MCAP_python_mpc.mpc_utility.linear_solver_utility import DU_U_Y_Limits
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
@@ -45,12 +45,9 @@ class LinearMPC_Deploy:
             Generates C++ code for an LTI MPC with constraints.
     """
 
-    def __init__(self):
-        pass
-
     @staticmethod
     def generate_LTI_MPC_NC_cpp_code(
-            lti_mpc_nc: LTI_MPC_NoConstraints, file_name=None, number_of_delay=0):
+            lti_mpc_nc: LTI_MPC_NoConstraints, file_name=None):
         """
         Generates C++ code for an LTI MPC without constraints.
         Args:
@@ -60,6 +57,8 @@ class LinearMPC_Deploy:
         Returns:
             list: A list of file names of the generated C++ code files.
         """
+        number_of_delay = lti_mpc_nc.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(lti_mpc_nc.kalman_filter.A.dtype.name)
@@ -85,8 +84,6 @@ class LinearMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = lti_mpc_nc.Number_of_Delay
 
         # %% code generation
         code_file_name = caller_file_name_without_ext + "_" + variable_name
@@ -234,7 +231,7 @@ class LinearMPC_Deploy:
 
     @staticmethod
     def generate_LTI_MPC_cpp_code(
-            lti_mpc: LTI_MPC, file_name=None, number_of_delay=0):
+            lti_mpc: LTI_MPC, file_name=None):
         """
         Generates C++ code for an LTI MPC with constraints.
         Args:
@@ -244,6 +241,8 @@ class LinearMPC_Deploy:
         Returns:
             list: A list of file names of the generated C++ code files.
         """
+        number_of_delay = lti_mpc.kalman_filter.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(lti_mpc.kalman_filter.A.dtype.name)
@@ -269,8 +268,6 @@ class LinearMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = lti_mpc.Number_of_Delay
 
         # %% code generation
         code_file_name = caller_file_name_without_ext + "_" + variable_name
@@ -597,10 +594,41 @@ class LinearMPC_Deploy:
         return deployed_file_names
 
     @staticmethod
-    def generate_LTV_MPC_NC_cpp_code(ltv_mpc_nc: LTV_MPC_NoConstraints,
-                                     parameters,
-                                     file_name=None,
-                                     number_of_delay=0):
+    def generate_LTV_MPC_NC_cpp_code(
+            ltv_mpc_nc: LTV_MPC_NoConstraints, file_name=None):
+        """
+        Generates C++ header files for deploying a Linear Time-Varying Model
+          Predictive Control (LTV-MPC) system
+        without constraints, based on the provided Python LTV_MPC_NoConstraints object.
+        This function automates the translation of Python-based MPC model components
+          (such as Kalman filter,
+        prediction matrices, solver factors, and updater functions) into corresponding
+          C++ code files. The generated
+        files include parameter definitions, state space updaters,
+          prediction matrix updaters, and the main MPC
+        deployment header, all tailored to the structure and data types of the input Python object.
+        Args:
+            ltv_mpc_nc (LTV_MPC_NoConstraints): The Python object representing
+              the LTV MPC system without constraints.
+            file_name (str, optional): Custom base name for the generated C++ files.
+              If None, the caller's file name is used.
+        Returns:
+            list of str: List of generated C++ header file names.
+        Notes:
+            - The function inspects the caller's context to determine variable
+              and file names if not explicitly provided.
+            - It generates and writes multiple C++ header files, including parameter classes,
+              state space updaters,
+            prediction matrix updaters, and the main deployment header.
+            - The generated code is intended for use with a compatible C++ MPC deployment framework.
+            - The function relies on several helper classes and methods
+              (e.g., ControlDeploy, NumpyDeploy, LTVMatricesDeploy,
+            KalmanFilterDeploy) for code generation and file writing.
+        """
+
+        parameters = ltv_mpc_nc.parameters_struct
+        number_of_delay = ltv_mpc_nc.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(ltv_mpc_nc.kalman_filter.A.dtype.name)
@@ -626,8 +654,6 @@ class LinearMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = ltv_mpc_nc.Number_of_Delay
 
         code_file_name = caller_file_name_without_ext + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
@@ -816,11 +842,11 @@ class LinearMPC_Deploy:
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
             "  Ref_Type, NP>;\n\n"
 
-        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter;\n\n"
+        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter_Type;\n\n"
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
-        code_text += f"using EmbeddedIntegratorSateSpace_Type =\n" + \
+        code_text += f"using EmbeddedIntegratorStateSpace_Type =\n" + \
             f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
 
         code_text += f"using type = LTV_MPC_NoConstraints_Type<\n" + \
@@ -855,10 +881,10 @@ class LinearMPC_Deploy:
         ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
-            f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
+            f"    EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
             f"    LTV_MPC_Phi_F_Updater_Function =\n" + \
             f"    {ltv_mpc_phi_f_updater_name}::LTV_MPC_Phi_F_Updater::update<\n" + \
-            f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
+            f"      EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
 
         code_text += f"  auto ltv_mpc_nc = make_LTV_MPC_NoConstraints(\n" + \
             "    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
@@ -882,9 +908,11 @@ class LinearMPC_Deploy:
 
     @staticmethod
     def generate_LTV_MPC_cpp_code(ltv_mpc: LTV_MPC_NoConstraints,
-                                  parameters,
-                                  file_name=None,
-                                  number_of_delay=0):
+                                  file_name=None):
+
+        parameters = ltv_mpc.parameters_struct
+        number_of_delay = ltv_mpc.kalman_filter.Number_of_Delay
+
         deployed_file_names = []
 
         ControlDeploy.restrict_data_type(ltv_mpc.kalman_filter.A.dtype.name)
@@ -910,8 +938,6 @@ class LinearMPC_Deploy:
                 0]
         else:
             caller_file_name_without_ext = file_name
-
-        number_of_delay = ltv_mpc.Number_of_Delay
 
         code_file_name = caller_file_name_without_ext + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
@@ -1223,11 +1249,11 @@ class LinearMPC_Deploy:
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
             "  Ref_Type, NP>;\n\n"
 
-        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter;\n\n"
+        code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter_Type;\n\n"
 
         code_text += f"using Weight_U_Nc_Type = {Weight_U_Nc_file_name_no_extension}::type;\n\n"
 
-        code_text += f"using EmbeddedIntegratorSateSpace_Type =\n" + \
+        code_text += f"using EmbeddedIntegratorStateSpace_Type =\n" + \
             f"  typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;\n\n"
 
         code_text += f"using type = LTV_MPC_Type<\n" + \
@@ -1321,10 +1347,10 @@ class LinearMPC_Deploy:
         ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
-            f"    EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
+            f"    EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
             f"    LTV_MPC_Phi_F_Updater_Function =\n" + \
             f"    {ltv_mpc_phi_f_updater_name}::LTV_MPC_Phi_F_Updater::update<\n" + \
-            f"      EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
+            f"      EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;\n\n"
 
         code_text += f"  auto ltv_mpc = make_LTV_MPC(\n" + \
             "    kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,\n" + \

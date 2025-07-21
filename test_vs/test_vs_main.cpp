@@ -5,6 +5,9 @@
 #include "python_mpc.hpp"
 
 #include "test_mpc_servo_motor_data.hpp"
+#include "test_mpc_two_wheel_vehicle_model_data.hpp"
+#include "test_Adaptive_MPC_Phi_F_Updater_Function.hpp"
+
 #include "MCAP_tester.hpp"
 
 using namespace Tester;
@@ -23,15 +26,15 @@ void check_MPC_PredictionMatrices(void) {
 
 
     /* 定義 */
-    constexpr std::size_t Np = 10;
-    constexpr std::size_t Nc = 2;
+    constexpr std::size_t NP = 10;
+    constexpr std::size_t NC = 2;
     constexpr std::size_t Number_Of_State = 3;
     constexpr std::size_t Number_Of_Input = 1;
     constexpr std::size_t Number_Of_Output = 1;
 
-    using F_Type = DenseMatrix_Type<T, (Np* Number_Of_Output), Number_Of_State>;
+    using F_Type = DenseMatrix_Type<T, (NP* Number_Of_Output), Number_Of_State>;
 
-    F_Type F = make_DenseMatrix<(Np * Number_Of_Output), Number_Of_State>(
+    F_Type F = make_DenseMatrix<(NP * Number_Of_Output), Number_Of_State>(
         static_cast<T>(0.7), static_cast<T>(0.2), static_cast<T>(1.0),
         static_cast<T>(1.13), static_cast<T>(0.5), static_cast<T>(1.0),
         static_cast<T>(1.341), static_cast<T>(0.826), static_cast<T>(1.0),
@@ -72,15 +75,15 @@ void check_MPC_PredictionMatrices(void) {
     );
 
     MPC_PredictionMatrices<F_Type, Phi_Type, 
-    Np, Nc, Number_Of_Input, Number_Of_State, Number_Of_Output> prediction_matrices(F, Phi);
+    NP, NC, Number_Of_Input, Number_Of_State, Number_Of_Output> prediction_matrices(F, Phi);
 
     MPC_PredictionMatrices_Type<F_Type, Phi_Type,
-        Np, Nc, Number_Of_Input, Number_Of_State, Number_Of_Output>
+        NP, NC, Number_Of_Input, Number_Of_State, Number_Of_Output>
         prediction_matrices_copy = prediction_matrices;
     MPC_PredictionMatrices_Type<F_Type, Phi_Type,
-        Np, Nc, Number_Of_Input, Number_Of_State, Number_Of_Output>
+        NP, NC, Number_Of_Input, Number_Of_State, Number_Of_Output>
         prediction_matrices_move = make_MPC_PredictionMatrices<F_Type, Phi_Type,
-        Np, Nc, Number_Of_Input, Number_Of_State, Number_Of_Output>();
+        NP, NC, Number_Of_Input, Number_Of_State, Number_Of_Output>();
         
     prediction_matrices_move = std::move(prediction_matrices_copy);
     prediction_matrices = prediction_matrices_move;
@@ -109,7 +112,7 @@ void check_MPC_ReferenceTrajectory(void) {
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
-    constexpr std::size_t Np = 3;
+    constexpr std::size_t NP = 3;
 
     auto Fx = make_DenseMatrix<9, 1>(
         static_cast<T>(0.5), static_cast<T>(0.1), static_cast<T>(0.2),
@@ -124,10 +127,10 @@ void check_MPC_ReferenceTrajectory(void) {
         static_cast<T>(0.7), static_cast<T>(0.8), static_cast<T>(0.9));
 
 
-    MPC_ReferenceTrajectory<decltype(ref_vector), Np> reference_trajectory(ref_vector);
-    MPC_ReferenceTrajectory<decltype(ref_vector), Np> reference_trajectory_copy(reference_trajectory);
-    MPC_ReferenceTrajectory_Type<decltype(ref_vector), Np> reference_trajectory_move =
-        make_MPC_ReferenceTrajectory<decltype(ref_vector), Np>();
+    MPC_ReferenceTrajectory<decltype(ref_vector), NP> reference_trajectory(ref_vector);
+    MPC_ReferenceTrajectory<decltype(ref_vector), NP> reference_trajectory_copy(reference_trajectory);
+    MPC_ReferenceTrajectory_Type<decltype(ref_vector), NP> reference_trajectory_move =
+        make_MPC_ReferenceTrajectory<decltype(ref_vector), NP>();
     reference_trajectory_move = std::move(reference_trajectory_copy);
     reference_trajectory = reference_trajectory_move;
 
@@ -142,10 +145,10 @@ void check_MPC_ReferenceTrajectory(void) {
         "check reference trajectory difference.");
 
 
-    MPC_ReferenceTrajectory<decltype(ref_trajectory), Np> reference_trajectory_2(ref_trajectory);
-    MPC_ReferenceTrajectory<decltype(ref_trajectory), Np> reference_trajectory_2_copy(reference_trajectory_2);
-    MPC_ReferenceTrajectory_Type<decltype(ref_trajectory), Np> reference_trajectory_2_move =
-        make_MPC_ReferenceTrajectory<decltype(ref_trajectory), Np>();
+    MPC_ReferenceTrajectory<decltype(ref_trajectory), NP> reference_trajectory_2(ref_trajectory);
+    MPC_ReferenceTrajectory<decltype(ref_trajectory), NP> reference_trajectory_2_copy(reference_trajectory_2);
+    MPC_ReferenceTrajectory_Type<decltype(ref_trajectory), NP> reference_trajectory_2_move =
+        make_MPC_ReferenceTrajectory<decltype(ref_trajectory), NP>();
     reference_trajectory_2_move = std::move(reference_trajectory_2_copy);
     reference_trajectory_2 = reference_trajectory_2_move;
 
@@ -175,8 +178,8 @@ void check_LTI_MPC_NoConstraints(void) {
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
-    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
-    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+    constexpr std::size_t NP = PythonMPC_ServoMotorData::NP;
+    constexpr std::size_t NC = PythonMPC_ServoMotorData::NC;
 
     constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
     constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
@@ -235,12 +238,12 @@ void check_LTI_MPC_NoConstraints(void) {
     auto Phi = PythonMPC_ServoMotorData::get_Phi<T>();
 
     MPC_PredictionMatrices<decltype(F), decltype(Phi),
-        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
+        NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
 
     auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
         static_cast<T>(1.0), static_cast<T>(0.0));
 
-    MPC_ReferenceTrajectory_Type<decltype(ref), Np> reference_trajectory(ref);
+    MPC_ReferenceTrajectory_Type<decltype(ref), NP> reference_trajectory(ref);
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
 
@@ -405,8 +408,8 @@ void check_LMPC_QP_Solver(void) {
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
-    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
-    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+    constexpr std::size_t NP = PythonMPC_ServoMotorData::NP;
+    constexpr std::size_t NC = PythonMPC_ServoMotorData::NC;
 
     constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
     //constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
@@ -414,7 +417,7 @@ void check_LMPC_QP_Solver(void) {
 
     constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_ServoMotorData::AUGMENTED_STATE_SIZE;
 
-    constexpr std::size_t NUMBER_OF_VARIABLES = INPUT_SIZE * Nc;
+    constexpr std::size_t NUMBER_OF_VARIABLES = INPUT_SIZE * NC;
 
     using U_Type = DenseMatrix_Type<T, INPUT_SIZE, 1>;
 
@@ -432,9 +435,9 @@ void check_LMPC_QP_Solver(void) {
 
     using Phi_Type = decltype(Phi);
 
-    using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE * Nc>;
+    using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE * NC>;
 
-    Weight_U_Nc_Type weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE * Nc>();
+    Weight_U_Nc_Type weight_U_NC = make_DiagMatrixIdentity<T, INPUT_SIZE * NC>();
 
     auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
         static_cast<T>(-101));
@@ -464,7 +467,7 @@ void check_LMPC_QP_Solver(void) {
         U_min_Type, U_max_Type,
         Y_min_Type, Y_max_Type> lti_mpc_qp_solver =
         make_LMPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
-            U, X_augmented, Phi, F, weight_U_Nc,
+            U, X_augmented, Phi, F, weight_U_NC,
             delta_U_min, delta_U_max, U_min, U_max, Y_min, Y_max);
 
 
@@ -522,12 +525,12 @@ void check_LMPC_QP_Solver(void) {
     /* 計算 */
     auto ref_vector = make_DenseMatrix<OUTPUT_SIZE, 1>(
         static_cast<T>(1), static_cast<T>(0));
-    MPC_ReferenceTrajectory<decltype(ref_vector), Np> reference_trajectory(ref_vector);
+    MPC_ReferenceTrajectory<decltype(ref_vector), NP> reference_trajectory(ref_vector);
 
     auto Y_min_Empty = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
     auto Y_max_Empty = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
 
-    weight_U_Nc = make_DiagMatrix<INPUT_SIZE* Nc>(
+    weight_U_NC = make_DiagMatrix<INPUT_SIZE* NC>(
         static_cast<T>(0.001), static_cast<T>(0.001)
     );
 
@@ -537,7 +540,7 @@ void check_LMPC_QP_Solver(void) {
         U_min_Type, U_max_Type,
         decltype(Y_min_Empty), decltype(Y_max_Empty)> qp_solver =
         make_LMPC_QP_Solver<NUMBER_OF_VARIABLES, OUTPUT_SIZE>(
-            U, X_augmented, Phi, F, weight_U_Nc,
+            U, X_augmented, Phi, F, weight_U_NC,
             delta_U_min, delta_U_max, U_min, U_max, Y_min_Empty, Y_max_Empty);
 
     auto delta_U = qp_solver.solve(Phi, F, reference_trajectory, X_augmented);
@@ -564,8 +567,8 @@ void check_LTI_MPC(void) {
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
-    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
-    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+    constexpr std::size_t NP = PythonMPC_ServoMotorData::NP;
+    constexpr std::size_t NC = PythonMPC_ServoMotorData::NC;
 
     constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
     constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
@@ -624,16 +627,16 @@ void check_LTI_MPC(void) {
     auto Phi = PythonMPC_ServoMotorData::get_Phi<T>();
 
     MPC_PredictionMatrices<decltype(F), decltype(Phi),
-        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
+        NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
 
     auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
         static_cast<T>(1.0), static_cast<T>(0.0));
 
-    MPC_ReferenceTrajectory_Type<decltype(ref), Np> reference_trajectory(ref);
+    MPC_ReferenceTrajectory_Type<decltype(ref), NP> reference_trajectory(ref);
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
 
-    auto Weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE * Nc>() * 
+    auto Weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE * NC>() * 
         static_cast<T>(0.001);
 
     auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
@@ -707,8 +710,8 @@ void check_LTV_MPC_NoConstraints(void) {
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
-    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
-    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+    constexpr std::size_t NP = PythonMPC_ServoMotorData::NP;
+    constexpr std::size_t NC = PythonMPC_ServoMotorData::NC;
 
     constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
     constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
@@ -756,10 +759,10 @@ void check_LTV_MPC_NoConstraints(void) {
         static_cast<T>(1.0)
     );
 
-    using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE* Nc>;
+    using Weight_U_Nc_Type = DiagMatrix_Type<T, INPUT_SIZE* NC>;
 
-    Weight_U_Nc_Type weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE* Nc>();
-    weight_U_Nc = weight_U_Nc * static_cast<T>(0.001);
+    Weight_U_Nc_Type weight_U_NC = make_DiagMatrixIdentity<T, INPUT_SIZE* NC>();
+    weight_U_NC = weight_U_NC * static_cast<T>(0.001);
 
     auto kalman_filter = make_LinearKalmanFilter(sys, Q, R);
     using LKF_Type = decltype(kalman_filter);
@@ -773,14 +776,14 @@ void check_LTV_MPC_NoConstraints(void) {
     using Phi_Type = decltype(Phi);
 
     using PredictionMatrices_Type = MPC_PredictionMatrices<decltype(F), decltype(Phi),
-        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;
+        NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;
 
     PredictionMatrices_Type prediction_matrices(F, Phi);
 
     auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
         static_cast<T>(1.0), static_cast<T>(0.0));
 
-    using ReferenceTrajectory_Type = MPC_ReferenceTrajectory<decltype(ref), Np>;
+    using ReferenceTrajectory_Type = MPC_ReferenceTrajectory<decltype(ref), NP>;
     ReferenceTrajectory_Type reference_trajectory(ref);
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
@@ -788,7 +791,7 @@ void check_LTV_MPC_NoConstraints(void) {
 
     using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
 
-    using EmbeddedIntegratorSateSpace_Type =
+    using EmbeddedIntegratorStateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
     MPC_StateSpace_Updater_Function_Object<
@@ -798,15 +801,15 @@ void check_LTV_MPC_NoConstraints(void) {
         Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
     LTV_MPC_Phi_F_Updater_Function_Object<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>
         LTV_MPC_Phi_F_Updater_Function =
         PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
-            EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
+            EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
 
     LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
         Parameter_Type, SolverFactor_Type> ltv_mpc = make_LTV_MPC_NoConstraints(
             kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
-            weight_U_Nc, MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
+            weight_U_NC, MPC_StateSpace_Updater_Function, LTV_MPC_Phi_F_Updater_Function);
 
     LTV_MPC_NoConstraints_Type<LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
         Parameter_Type, SolverFactor_Type> ltv_mpc_copy(ltv_mpc);
@@ -875,8 +878,8 @@ void check_LTV_MPC(void) {
     //const T NEAR_LIMIT_SOFT = 1.0e-2F;
 
     /* 定義 */
-    constexpr std::size_t Np = PythonMPC_ServoMotorData::Np;
-    constexpr std::size_t Nc = PythonMPC_ServoMotorData::Nc;
+    constexpr std::size_t NP = PythonMPC_ServoMotorData::NP;
+    constexpr std::size_t NC = PythonMPC_ServoMotorData::NC;
 
     constexpr std::size_t INPUT_SIZE = PythonMPC_ServoMotorData::INPUT_SIZE;
     constexpr std::size_t STATE_SIZE = PythonMPC_ServoMotorData::STATE_SIZE;
@@ -941,18 +944,18 @@ void check_LTV_MPC(void) {
     using Phi_Type = decltype(Phi);
 
     MPC_PredictionMatrices<decltype(F), decltype(Phi),
-        Np, Nc, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
+        NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE> prediction_matrices(F, Phi);
 
     auto ref = make_DenseMatrix<OUTPUT_SIZE, 1>(
         static_cast<T>(1.0), static_cast<T>(0.0));
 
-    MPC_ReferenceTrajectory_Type<decltype(ref), Np> reference_trajectory(ref);
+    MPC_ReferenceTrajectory_Type<decltype(ref), NP> reference_trajectory(ref);
 
     auto solver_factor = PythonMPC_ServoMotorData::get_solver_factor<T>();
 
     using Parameter_Type = PythonMPC_ServoMotorData::Parameter_Type<T>;
 
-    auto Weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE* Nc>()*
+    auto Weight_U_Nc = make_DiagMatrixIdentity<T, INPUT_SIZE* NC>()*
         static_cast<T>(0.001);
 
     auto delta_U_min = make_DenseMatrix<INPUT_SIZE, 1>(
@@ -968,7 +971,7 @@ void check_LTV_MPC(void) {
     auto Y_min = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
     auto Y_max = make_SparseMatrixEmpty<T, OUTPUT_SIZE, 1>();
 
-    using EmbeddedIntegratorSateSpace_Type =
+    using EmbeddedIntegratorStateSpace_Type =
         typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
 
     MPC_StateSpace_Updater_Function_Object<
@@ -978,10 +981,10 @@ void check_LTV_MPC(void) {
         Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
     LTV_MPC_Phi_F_Updater_Function_Object<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>
         LTV_MPC_Phi_F_Updater_Function =
         PythonMPC_ServoMotorData::ltv_mpc_phi_f_updater::LTV_MPC_Phi_F_Updater::update<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>;
 
     LTV_MPC<decltype(kalman_filter), decltype(prediction_matrices),
         decltype(reference_trajectory), Parameter_Type,
@@ -1064,6 +1067,158 @@ void check_LTV_MPC(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_Adaptive_MPC_NoConstraints(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
+    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+
+    /* 定義 */
+    constexpr std::size_t NP = PythonMPC_TwoWheelVehicleModelData::NP;
+    constexpr std::size_t NC = PythonMPC_TwoWheelVehicleModelData::NC;
+
+    constexpr std::size_t INPUT_SIZE = PythonMPC_TwoWheelVehicleModelData::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = PythonMPC_TwoWheelVehicleModelData::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = PythonMPC_TwoWheelVehicleModelData::OUTPUT_SIZE;
+
+    constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_TwoWheelVehicleModelData::AUGMENTED_STATE_SIZE;
+
+    using EKF_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::type<T>;
+
+    using A_Type = typename EKF_Type::A_Type;
+
+    using B_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_B::type<T>;
+
+    using C_Type = typename EKF_Type::C_Type;
+
+    using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
+
+    using Y_Type = StateSpaceOutput_Type<T, OUTPUT_SIZE>;
+
+    using U_Type = StateSpaceInput_Type<T, INPUT_SIZE>;
+
+    using F_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::type<T>;
+
+    using Phi_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::type<T>;
+
+    using SolverFactor_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::type<T>;
+
+    using PredictionMatrices_Type = MPC_PredictionMatrices_Type<
+        F_Type, Phi_Type, NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;
+
+    using Ref_Type = DenseMatrix_Type<T, OUTPUT_SIZE, 1>;
+
+    using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<
+        Ref_Type, NP>;
+
+    using Parameter_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf_parameter::Parameter_Type<T>;
+
+    using Weight_U_Nc_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::type<T>;
+
+    using EmbeddedIntegratorStateSpace_Type =
+        typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
+
+    auto kalman_filter = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::make<T>();
+    kalman_filter.X_hat.template set<0, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<1, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<2, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<3, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<4, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<5, 0>(static_cast<T>(10.0));
+
+    auto F = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::make<T>();
+
+    auto Phi = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::make<T>();
+
+    auto solver_factor = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::make<T>();
+
+    PredictionMatrices_Type prediction_matrices(F, Phi);
+
+    ReferenceTrajectory_Type reference_trajectory;
+
+    Weight_U_Nc_Type Weight_U_Nc = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::make<T>();
+
+    auto Adaptive_MPC_Phi_F_Updater_Function = get_adaptive_mpc_phi_f_updater_function<T>();
+
+    AdaptiveMPC_NoConstraints_Type<B_Type,
+        EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ada_mpc =
+        make_AdaptiveMPC_NoConstraints<B_Type, EKF_Type, PredictionMatrices_Type,
+            ReferenceTrajectory_Type, Parameter_Type,
+            SolverFactor_Type, Weight_U_Nc_Type,
+            X_Type, U_Type,
+            EmbeddedIntegratorStateSpace_Type>(
+    kalman_filter, prediction_matrices, reference_trajectory, solver_factor,
+    Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function);
+
+    AdaptiveMPC_NoConstraints_Type<B_Type,
+        EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ada_mpc_copy(ada_mpc);
+
+    AdaptiveMPC_NoConstraints_Type <B_Type,
+        EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+        Parameter_Type, SolverFactor_Type> ada_mpc_move = ada_mpc_copy;
+
+    ada_mpc = std::move(ada_mpc_move);
+
+    /* 代入チェック */
+    T F_19_10 = ada_mpc.get_F().template get<19, 10>();
+    T F_19_10_answer = static_cast<T>(1.0);
+
+    tester.expect_near(F_19_10, F_19_10_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, F(19, 10).");
+
+    T Phi_19_1 = ada_mpc.get_Phi().template get<19, 1>();
+    T Phi_19_1_answer = static_cast<T>(0.04);
+
+    tester.expect_near(Phi_19_1, Phi_19_1_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, Phi(19, 1).");
+
+    T solver_factor_1_19 = ada_mpc.get_solver_factor().template get <1, 19>();
+    T solver_factor_1_19_answer = static_cast<T>(0.3883477801943797);
+
+    tester.expect_near(solver_factor_1_19, solver_factor_1_19_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, solver_factor(1, 19).");
+
+    Parameter_Type parameter_test;
+    parameter_test.m = static_cast<T>(0.0);
+    ada_mpc.update_parameters(parameter_test);
+    parameter_test.m = static_cast<T>(2000);
+    ada_mpc.update_parameters(parameter_test);
+
+    /* 計算 */
+    Ref_Type ref;
+    ref(0, 0) = static_cast<T>(0.15);
+    ref(1, 0) = static_cast<T>(0.0);
+    ref(2, 0) = static_cast<T>(0.0);
+    ref(3, 0) = static_cast<T>(0.0);
+    ref(4, 0) = static_cast<T>(15.0);
+
+    Y_Type y_measured;
+    y_measured(0, 0) = static_cast<T>(0.1);
+    y_measured(1, 0) = static_cast<T>(0.0);
+    y_measured(2, 0) = static_cast<T>(0.0);
+    y_measured(3, 0) = static_cast<T>(0.0);
+    y_measured(4, 0) = static_cast<T>(10.0);
+
+    U_Type U_answer;
+    U_answer(0, 0) = static_cast<T>(0.0);
+    U_answer(1, 0) = static_cast<T>(4.85143464);
+
+    auto U = ada_mpc.update_manipulation(ref, y_measured);
+
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, update_manipulation, U.");
+
+
+    tester.throw_error_if_test_failed();
+}
+
 
 int main(void) {
 
@@ -1098,6 +1253,10 @@ int main(void) {
     check_LTV_MPC<double>();
 
     check_LTV_MPC<float>();
+
+    check_Adaptive_MPC_NoConstraints<double>();
+
+    check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;

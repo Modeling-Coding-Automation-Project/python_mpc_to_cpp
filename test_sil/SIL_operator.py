@@ -30,6 +30,8 @@ class CmakeGenerator:
 
         code_text += f"pybind11_add_module({SIL_lib_file_name} {SIL_cpp_file_name}.cpp)\n\n"
 
+        code_text += f"target_compile_options({SIL_lib_file_name} PRIVATE -Werror)\n\n"
+
         code_text += f"target_include_directories({SIL_lib_file_name} PRIVATE\n"
         code_text += "    ${CMAKE_SOURCE_DIR}/../../mpc_utility\n"
         code_text += "    ${CMAKE_SOURCE_DIR}/../../python_mpc\n"

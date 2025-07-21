@@ -23,8 +23,6 @@
 
 namespace PythonMPC {
 
-class SolverFactor_Empty {};
-
 namespace LMPC_Operation {
 
 /**
@@ -658,7 +656,8 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other) noexcept
+  LTI_MPC(LTI_MPC &&other)
+  noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
@@ -849,7 +848,7 @@ public:
                 "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
                 "NP)");
 
-  using EmbeddedIntegratorSateSpace_Type = typename EmbeddedIntegratorTypes<
+  using EmbeddedIntegratorStateSpace_Type = typename EmbeddedIntegratorTypes<
       typename LKF_Type::DiscreteStateSpace_Type::A_Type,
       typename LKF_Type::DiscreteStateSpace_Type::B_Type,
       typename LKF_Type::DiscreteStateSpace_Type::C_Type>::StateSpace_Type;
@@ -866,7 +865,7 @@ protected:
           Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
   using _LTV_MPC_Phi_F_Updater_Function_Object =
-      LTV_MPC_Phi_F_Updater_Function_Object<EmbeddedIntegratorSateSpace_Type,
+      LTV_MPC_Phi_F_Updater_Function_Object<EmbeddedIntegratorStateSpace_Type,
                                             Parameter_Type, Phi_Type, F_Type>;
 
   using SolverFactor_InvSolver_Left_Type =
@@ -888,11 +887,7 @@ public:
         _solver_factor(), _X_inner_model(), _U_latest(), _Y_store(),
         _solver_factor_inv_solver(), _Weight_U_Nc() {}
 
-  template <typename LKF_Type, typename PredictionMatrices_Type,
-            typename ReferenceTrajectory_Type,
-            typename SolverFactor_Type_In_Constructor,
-            typename _MPC_StateSpace_Updater_Function_Object,
-            typename _LTV_MPC_Phi_F_Updater_Function_Object>
+  template <typename SolverFactor_Type_In_Constructor>
   LTV_MPC_NoConstraints(
       const LKF_Type &kalman_filter,
       const PredictionMatrices_Type &prediction_matrices,
@@ -1240,7 +1235,7 @@ protected:
  * @tparam SolverFactor_Type_In Type of the solver factor (optional).
  * @tparam Weight_U_Nc_Type Type for the weight matrix for control input
  * changes.
- * @tparam EmbeddedIntegratorSateSpace_Type Type of the embedded integrator
+ * @tparam EmbeddedIntegratorStateSpace_Type Type of the embedded integrator
  * state space.
  * @return An instance of LTV_MPC_NoConstraints initialized with the provided
  * parameters.
@@ -1248,7 +1243,7 @@ protected:
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
           typename SolverFactor_Type_In, typename Weight_U_Nc_Type,
-          typename EmbeddedIntegratorSateSpace_Type>
+          typename EmbeddedIntegratorStateSpace_Type>
 inline auto make_LTV_MPC_NoConstraints(
     const LKF_Type &kalman_filter,
     const PredictionMatrices_Type &prediction_matrices,
@@ -1256,10 +1251,10 @@ inline auto make_LTV_MPC_NoConstraints(
     const SolverFactor_Type_In &solver_factor_in,
     const Weight_U_Nc_Type &Weight_U_Nc,
     MPC_StateSpace_Updater_Function_Object<Parameter_Type,
-                                           EmbeddedIntegratorSateSpace_Type>
+                                           EmbeddedIntegratorStateSpace_Type>
         &state_space_updater_function,
     LTV_MPC_Phi_F_Updater_Function_Object<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type,
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type,
         typename PredictionMatrices_Type::Phi_Type,
         typename PredictionMatrices_Type::F_Type> &phi_f_updater_function)
     -> LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
@@ -1404,7 +1399,8 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other) noexcept
+  LTV_MPC(LTV_MPC &&other)
+  noexcept
       : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, Parameter_Type,
                               SolverFactor_Type_In>(std::move(other)),
@@ -1470,7 +1466,7 @@ protected:
  * @tparam Parameter_Type Type of the parameters used in the MPC.
  * @tparam Weight_U_Nc_Type Type for the weight matrix for control input
  * changes.
- * @tparam EmbeddedIntegratorSateSpace_Type Type of the embedded integrator
+ * @tparam EmbeddedIntegratorStateSpace_Type Type of the embedded integrator
  * state space.
  * @tparam Delta_U_Min_Type Type for the minimum change in control input.
  * @tparam Delta_U_Max_Type Type for the maximum change in control input.
@@ -1484,7 +1480,7 @@ protected:
  */
 template <typename LKF_Type, typename PredictionMatrices_Type,
           typename ReferenceTrajectory_Type, typename Parameter_Type,
-          typename Weight_U_Nc_Type, typename EmbeddedIntegratorSateSpace_Type,
+          typename Weight_U_Nc_Type, typename EmbeddedIntegratorStateSpace_Type,
           typename Delta_U_Min_Type, typename Delta_U_Max_Type,
           typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
           typename Y_Max_Type,
@@ -1495,10 +1491,10 @@ inline auto make_LTV_MPC(
     const ReferenceTrajectory_Type &reference_trajectory,
     const Weight_U_Nc_Type &Weight_U_Nc,
     MPC_StateSpace_Updater_Function_Object<Parameter_Type,
-                                           EmbeddedIntegratorSateSpace_Type>
+                                           EmbeddedIntegratorStateSpace_Type>
         &state_space_updater_function,
     LTV_MPC_Phi_F_Updater_Function_Object<
-        EmbeddedIntegratorSateSpace_Type, Parameter_Type,
+        EmbeddedIntegratorStateSpace_Type, Parameter_Type,
         typename PredictionMatrices_Type::Phi_Type,
         typename PredictionMatrices_Type::F_Type> &phi_f_updater_function,
     const Delta_U_Min_Type &delta_U_min, const Delta_U_Max_Type &delta_U_max,

@@ -21,6 +21,8 @@
 
 namespace PythonMPC {
 
+class SolverFactor_Empty {};
+
 template <typename A_Type_In, typename B_Type_In, typename C_Type_In>
 struct EmbeddedIntegratorTypes {
 
@@ -200,67 +202,58 @@ using MPC_PredictionMatrices_Type =
 namespace MPC_ReferenceTrajectoryOperation {
 
 /**
- * @brief Calculates the difference between a reference value and a predicted
- * value for a specific index, and stores the result in the provided difference
- * container.
+ * @brief Calculates the difference between a reference trajectory and a
+ * predicted trajectory.
  *
- * This function is enabled only when ROWS > 1, and asserts at compile time that
- * ROWS == Np. It computes the difference between the reference value at
- * position (J, I) and the predicted value at the corresponding flattened index,
- * then sets this value in the 'dif' container.
+ * This function computes the difference for each element in the reference
+ * trajectory and the predicted trajectory, storing the results in the provided
+ * difference container. It uses template specialization to handle different
+ * matrix dimensions.
  *
- * @tparam ROWS Number of rows in the reference and prediction matrices (must be
- * > 1).
- * @tparam Np Prediction horizon length (must be equal to ROWS).
+ * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam Np Prediction horizon length.
  * @tparam I Row index for the operation.
  * @tparam J Column index for the operation.
  * @tparam Ref_Type Type of the reference matrix.
- * @tparam Fx_Type Type of the predicted matrix.
+ * @tparam In_Type Type of the predicted matrix.
  * @tparam Dif_Type Type of the difference container.
- * @param ref Reference matrix.
- * @param Fx Predicted matrix.
- * @param dif Container to store the computed difference.
  */
 template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
-          typename Ref_Type, typename Fx_Type, typename Dif_Type>
+          typename Ref_Type, typename In_Type, typename Dif_Type>
 inline typename std::enable_if<(ROWS > 1), void>::type
-calculate_each_dif(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
+calculate_each_dif(const Ref_Type &ref, const In_Type &In_Matrix,
+                   Dif_Type &dif) {
   static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
 
   dif.template set<(I * Ref_Type::COLS) + J, 0>(
       ref.template get<J, I>() -
-      Fx.template get<(I * Ref_Type::COLS) + J, 0>());
+      In_Matrix.template get<(I * Ref_Type::COLS) + J, 0>());
 }
 
 /**
- * @brief Calculates the difference between a reference value and a predicted
- * value for a specific index, and stores the result in the provided difference
- * container.
+ * @brief Specialization for the case when ROWS is 1.
  *
- * This function is enabled only when ROWS == 1. It computes the difference
- * between the reference value at position (J, 0) and the predicted value at the
- * corresponding flattened index, then sets this value in the 'dif' container.
+ * This specialization handles the case where ROWS is equal to 1, allowing for
+ * a different calculation method.
  *
- * @tparam ROWS Number of rows in the reference matrix (must be equal to 1).
- * @tparam Np Prediction horizon length (must be equal to 1).
+ * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam Np Prediction horizon length.
  * @tparam I Row index for the operation.
  * @tparam J Column index for the operation.
  * @tparam Ref_Type Type of the reference matrix.
- * @tparam Fx_Type Type of the predicted matrix.
+ * @tparam In_Type Type of the input matrix.
  * @tparam Dif_Type Type of the difference container.
- * @param ref Reference matrix.
- * @param Fx Predicted matrix.
- * @param dif Container to store the computed difference.
  */
 template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
-          typename Ref_Type, typename Fx_Type, typename Dif_Type>
+          typename Ref_Type, typename In_Type, typename Dif_Type>
 inline typename std::enable_if<(ROWS == 1), void>::type
-calculate_each_dif(const Ref_Type &ref, const Fx_Type &Fx, Dif_Type &dif) {
+calculate_each_dif(const Ref_Type &ref, const In_Type &In_Matrix,
+                   Dif_Type &dif) {
   static_assert(ROWS == 1, "ROWS must be equal to 1");
 
   dif.template set<(I * Ref_Type::COLS) + J, 0>(
       ref.template get<J, 0>() -
-      Fx.template get<(I * Ref_Type::COLS) + J, 0>());
+      In_Matrix.template get<(I * Ref_Type::COLS) + J, 0>());
 }
 
 // when J_idx < N
@@ -399,6 +392,190 @@ inline void calculate_dif(const Ref_Type &ref, const Fx_Type &Fx,
          (Np - 1)>::calculate(ref, Fx, dif);
 }
 
+/**
+ * @brief Calculates the reference trajectory by subtracting the output Y from
+ * the reference ref.
+ *
+ * This function computes the difference for each element in the reference
+ * trajectory and the output trajectory, storing the results in the provided
+ * reference next container. It uses template specialization to handle different
+ * matrix dimensions.
+ *
+ * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam Np Prediction horizon length.
+ * @tparam I Row index for the operation.
+ * @tparam J Column index for the operation.
+ * @tparam Ref_Type Type of the reference matrix.
+ * @tparam Y_Type Type of the output matrix.
+ */
+template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+          typename Ref_Type, typename Y_Type>
+inline typename std::enable_if<(ROWS > 1), void>::type
+calculate_each_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
+                         Ref_Type &ref_next) {
+  static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
+
+  ref_next.template set<J, I>(ref.template get<J, I>() -
+                              Y.template get<J, 0>());
+}
+
+/**
+ * @brief Specialization for the case when ROWS is 1.
+ *
+ * This specialization handles the case where ROWS is equal to 1, allowing for
+ * a different calculation method.
+ *
+ * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam Np Prediction horizon length.
+ * @tparam I Row index for the operation.
+ * @tparam J Column index for the operation.
+ * @tparam Ref_Type Type of the reference matrix.
+ * @tparam Y_Type Type of the output matrix.
+ */
+template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+          typename Ref_Type, typename Y_Type>
+inline typename std::enable_if<(ROWS == 1), void>::type
+calculate_each_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
+                         Ref_Type &ref_next) {
+  static_assert(ROWS == 1, "ROWS must be equal to 1");
+
+  ref_next.template set<J, 0>(ref.template get<J, 0>() -
+                              Y.template get<J, 0>());
+}
+
+// when J_idx < N
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t I,
+          std::size_t J_idx>
+struct RefSubY_Column {
+  /**
+   * @brief Calculates the reference sub Y for a specific column index and
+   * calls the next column recursively.
+   *
+   * This function calculates the reference sub Y for the specified column index
+   * J_idx and then recursively calls itself to calculate for the next column
+   * index (J_idx - 1).
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Y_Type Type of the output matrix.
+   * @tparam Np Prediction horizon length.
+   * @tparam I Row index for the operation.
+   * @tparam J_idx Current column index for the operation.
+   * @param ref Reference matrix.
+   * @param Y Output matrix.
+   * @param ref_next Container to store the computed reference sub Y.
+   */
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+
+    calculate_each_ref_sub_Y<Ref_Type::ROWS, Np, I, J_idx>(ref, Y, ref_next);
+
+    RefSubY_Column<Ref_Type, Y_Type, Np, I, J_idx - 1>::calculate(ref, Y,
+                                                                  ref_next);
+  }
+};
+
+// column recursion termination
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t I>
+struct RefSubY_Column<Ref_Type, Y_Type, Np, I, 0> {
+  /**
+   * @brief Calculates the reference sub Y for the first column index (0).
+   *
+   * This function calculates the reference sub Y for the first column index
+   * (0) and does not call itself recursively.
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Y_Type Type of the output matrix.
+   * @tparam Np Prediction horizon length.
+   * @param ref Reference matrix.
+   * @param Y Output matrix.
+   * @param ref_next Container to store the computed reference sub Y.
+   */
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+
+    calculate_each_ref_sub_Y<Ref_Type::ROWS, Np, I, 0>(ref, Y, ref_next);
+  }
+};
+
+// when I_idx < M
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t M,
+          std::size_t N, std::size_t I_idx>
+struct RefSubY_Row {
+  /**
+   * @brief Calculates the reference sub Y for a specific row index and calls
+   * the next row recursively.
+   *
+   * This function calculates the reference sub Y for the specified row index
+   * I_idx and then recursively calls itself to calculate for the next row index
+   * (I_idx - 1).
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Y_Type Type of the output matrix.
+   * @tparam Np Prediction horizon length.
+   * @tparam M Number of rows in the reference matrix.
+   * @tparam N Number of columns in the reference matrix.
+   * @tparam I_idx Current row index for the operation.
+   * @param ref Reference matrix.
+   * @param Y Output matrix.
+   * @param ref_next Container to store the computed reference sub Y.
+   */
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+    RefSubY_Column<Ref_Type, Y_Type, Np, I_idx, N - 1>::calculate(ref, Y,
+                                                                  ref_next);
+    RefSubY_Row<Ref_Type, Y_Type, Np, M, N, I_idx - 1>::calculate(ref, Y,
+                                                                  ref_next);
+  }
+};
+
+// row recursion termination
+template <typename Ref_Type, typename Y_Type, std::size_t Np, std::size_t M,
+          std::size_t N>
+struct RefSubY_Row<Ref_Type, Y_Type, Np, M, N, 0> {
+  /**
+   * @brief Calculates the reference sub Y for the first row index (0).
+   *
+   * This function calculates the reference sub Y for the first row index (0)
+   * and does not call itself recursively.
+   *
+   * @tparam Ref_Type Type of the reference matrix.
+   * @tparam Y_Type Type of the output matrix.
+   * @tparam Np Prediction horizon length.
+   * @param ref Reference matrix.
+   * @param Y Output matrix.
+   * @param ref_next Container to store the computed reference sub Y.
+   */
+  static void calculate(const Ref_Type &ref, const Y_Type &Y,
+                        Ref_Type &ref_next) {
+    RefSubY_Column<Ref_Type, Y_Type, Np, 0, N - 1>::calculate(ref, Y, ref_next);
+  }
+};
+
+/**
+ * @brief Calculates the reference sub Y by subtracting the output Y from the
+ * reference ref.
+ *
+ * This function computes the reference sub Y for each element in the reference
+ * trajectory and the output trajectory, storing the results in the provided
+ * reference next container. It uses the RefSubY_Row class to handle the
+ * row-wise calculations.
+ *
+ * @tparam Np Number of prediction steps.
+ * @tparam Number_Of_Output Number of outputs in the reference trajectory.
+ * @tparam Ref_Type Type of the reference matrix.
+ * @tparam Y_Type Type of the output matrix.
+ * @param ref Reference matrix.
+ * @param Y Output matrix.
+ * @param ref_next Container to store the computed reference sub Y.
+ */
+template <std::size_t Np, std::size_t Number_Of_Output, typename Ref_Type,
+          typename Y_Type>
+inline void calculate_ref_sub_Y(const Ref_Type &ref, const Y_Type &Y,
+                                Ref_Type &ref_next) {
+  RefSubY_Row<Ref_Type, Y_Type, Np, Np, Number_Of_Output, (Np - 1)>::calculate(
+      ref, Y, ref_next);
+}
+
 } // namespace MPC_ReferenceTrajectoryOperation
 
 /* MPC Reference Trajectory */
@@ -482,6 +659,26 @@ public:
         this->reference, Fx, dif);
 
     return dif;
+  }
+
+  /**
+   * @brief Sets the reference trajectory by subtracting the output Y from the
+   * reference ref.
+   *
+   * This function computes the reference sub Y for each element in the
+   * reference trajectory and the output trajectory, storing the results in the
+   * provided reference container.
+   *
+   * @tparam Y_Type Type of the output matrix.
+   * @param ref Reference matrix.
+   * @param Y Output matrix.
+   */
+  template <typename Y_Type>
+  inline auto set_reference_sub_Y(const Ref_Type &ref, const Y_Type &Y)
+      -> void {
+
+    MPC_ReferenceTrajectoryOperation::calculate_ref_sub_Y<NP, NUMBER_OF_OUTPUT>(
+        ref, Y, this->reference);
   }
 
 public:

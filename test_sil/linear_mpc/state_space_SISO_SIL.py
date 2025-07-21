@@ -1,7 +1,8 @@
 import os
 import sys
 sys.path.append(os.getcwd())
-sys.path.append(os.path.join(os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
+sys.path.append(os.path.join(
+    os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
 
 import numpy as np
 
@@ -77,7 +78,7 @@ def main():
         is_ref_trajectory=PATH_FOLLOWING)
 
     deployed_file_names = LinearMPC_Deploy.generate_LTI_MPC_NC_cpp_code(
-        lti_mpc, number_of_delay=Number_of_Delay)
+        lti_mpc)
 
     current_dir = os.path.dirname(__file__)
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)

@@ -18,6 +18,9 @@
     <ClCompile Include="test_vs_main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="test_Adaptive_MPC_Phi_F_Updater_Function.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MCAP_tester\include\MCAP_tester.hpp">
@@ -39,6 +42,15 @@
       <Filter>リソース ファイル</Filter>
     </ClInclude>
     <ClInclude Include="test_mpc_servo_motor_data.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\python_mpc\python_adaptive_mpc.hpp">
+      <Filter>リソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="test_mpc_two_wheel_vehicle_model_data.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="test_Adaptive_MPC_Phi_F_Updater_Function.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

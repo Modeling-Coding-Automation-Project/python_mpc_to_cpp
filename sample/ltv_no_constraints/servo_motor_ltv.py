@@ -198,11 +198,9 @@ def main():
                                     Np=Np, Nc=Nc,
                                     Weight_U=Weight_U, Weight_Y=Weight_Y)
 
-    # You can create cpp header which can easily define lti_mpc as C++ code
+    # You can create cpp header which can easily define MPC as C++ code
     deployed_file_names = LinearMPC_Deploy.generate_LTV_MPC_NC_cpp_code(
-        ltv_mpc,
-        parameters=controller_parameters,
-        number_of_delay=Number_of_Delay)
+        ltv_mpc)
     print(deployed_file_names)
 
     # %% simulation
