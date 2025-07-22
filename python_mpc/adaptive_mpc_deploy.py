@@ -114,8 +114,8 @@ class AdaptiveMPC_Deploy:
         exec(
             f"{B_matrix_name} = B_symbolic_SparseAvailable_list[0]")
         B_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({B_matrix_name}," +
-            " caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={B_matrix_name}, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(B_file_name)
         B_file_name_no_extension = B_file_name.split(".")[0]
@@ -195,7 +195,8 @@ class AdaptiveMPC_Deploy:
 
         exec(f"{variable_name}_F = ada_mpc_nc.prediction_matrices.F_ndarray")
         F_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
@@ -203,14 +204,16 @@ class AdaptiveMPC_Deploy:
         exec(
             f"{variable_name}_Phi = ada_mpc_nc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
         exec(f"{variable_name}_solver_factor = ada_mpc_nc.solver_factor")
         solver_factor_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_solver_factor, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -218,7 +221,8 @@ class AdaptiveMPC_Deploy:
 
         exec(f"{variable_name}_Weight_U_Nc = ada_mpc_nc.Weight_U_Nc")
         Weight_U_Nc_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Weight_U_Nc, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
