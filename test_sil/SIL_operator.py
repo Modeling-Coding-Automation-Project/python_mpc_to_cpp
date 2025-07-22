@@ -25,6 +25,7 @@ class CmakeGenerator:
 
         code_text += "set(CMAKE_CXX_STANDARD 11)\n"
         code_text += "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n\n"
+        code_text += "set(CMAKE_CXX_FLAGS_DEBUG \"-O0\")\n"
 
         code_text += "find_package(pybind11 REQUIRED)\n\n"
 
