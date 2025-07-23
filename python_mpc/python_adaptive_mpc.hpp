@@ -374,8 +374,11 @@ public:
   inline void update_solver_factor(const Phi_Type &Phi,
                                    const Weight_U_Nc_Type &Weight_U_Nc) {
 
-    this->_solver_factor = this->_solver_factor_inv_solver.solve(
-        PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc, Phi.transpose());
+    PythonNumpy::substitute_matrix(
+        this->_solver_factor,
+        this->_solver_factor_inv_solver.solve(
+            PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc,
+            Phi.transpose()));
   }
 
   /**
@@ -403,8 +406,8 @@ public:
    * @param ref The reference vector to be set.
    */
   template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference,
-                                  const Y_Type &Y) -> U_Type {
+  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
+      -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
@@ -508,8 +511,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto
-  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
 
     return this->_solver_factor *
            this->_reference_trajectory.calculate_dif(
