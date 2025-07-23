@@ -361,6 +361,24 @@ public:
   /* Function */
 
   /**
+   * @brief Updates the solver factor based on the current Phi and weight
+   * matrix for control input changes.
+   *
+   * This function recalculates the solver factor used in the MPC based on the
+   * provided Phi matrix and weight matrix for control input changes, which is
+   * essential for scaling the control inputs.
+   *
+   * @param Phi The current Phi matrix used in the MPC.
+   * @param Weight_U_Nc The weight matrix for control input changes.
+   */
+  inline void update_solver_factor(const Phi_Type &Phi,
+                                   const Weight_U_Nc_Type &Weight_U_Nc) {
+
+    this->_solver_factor = this->_solver_factor_inv_solver.solve(
+        PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc, Phi.transpose());
+  }
+
+  /**
    * @brief Updates the parameters of the Kalman filter used in the Adaptive
    * MPC.
    *
@@ -385,8 +403,8 @@ public:
    * @param ref The reference vector to be set.
    */
   template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
-      -> U_Type {
+  inline auto update_manipulation(const Ref_Type &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
@@ -398,6 +416,9 @@ public:
 
     this->_update_Phi_F_adaptive_runtime(X_compensated, this->_U_latest,
                                          this->_kalman_filter.parameters);
+
+    this->update_solver_factor(this->_prediction_matrices.Phi,
+                               this->_Weight_U_Nc);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto delta_Y = Y_compensated - this->_Y_store.get();
@@ -487,8 +508,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
-      -> U_Horizon_Type {
+  virtual inline auto
+  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
 
     return this->_solver_factor *
            this->_reference_trajectory.calculate_dif(
