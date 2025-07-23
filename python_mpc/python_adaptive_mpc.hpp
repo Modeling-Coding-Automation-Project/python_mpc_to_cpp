@@ -420,8 +420,8 @@ public:
     this->_update_Phi_F_adaptive_runtime(X_compensated, this->_U_latest,
                                          this->_kalman_filter.parameters);
 
-    this->update_solver_factor(this->_prediction_matrices.Phi,
-                               this->_Weight_U_Nc);
+    // this->update_solver_factor(this->_prediction_matrices.Phi,
+    //                            this->_Weight_U_Nc);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto delta_Y = Y_compensated - this->_Y_store.get();
