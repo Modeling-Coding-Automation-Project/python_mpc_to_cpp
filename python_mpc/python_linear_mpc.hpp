@@ -174,8 +174,8 @@ inline void solve_LMPC_No_Constraints(
  * @return The updated control input U.
  */
 template <typename U_Type>
-inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
-    -> U_Type {
+inline auto calculate_this_U(const U_Type &U_latest,
+                             const U_Type &delta_U) -> U_Type {
 
   auto U = U_latest + delta_U;
 
@@ -430,8 +430,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
-      -> U_Horizon_Type {
+  virtual inline auto
+  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 
@@ -481,8 +481,8 @@ protected:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto get_prediction_matrices() const
-      -> const PredictionMatrices_Type & {
+  inline auto
+  get_prediction_matrices() const -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -656,8 +656,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
@@ -688,8 +687,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto _solve(const _X_Augmented_Type &X_augmented)
-      -> _U_Horizon_Type override {
+  inline auto
+  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
@@ -1053,8 +1052,8 @@ public:
    * @return The updated control input vector.
    */
   template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
-      -> U_Type {
+  inline auto update_manipulation(const Ref_Type &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
@@ -1103,8 +1102,8 @@ public:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto get_prediction_matrices() const
-      -> const PredictionMatrices_Type & {
+  inline auto
+  get_prediction_matrices() const -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -1134,11 +1133,35 @@ protected:
   inline void _update_solver_factor(const Phi_Type &Phi,
                                     const Weight_U_Nc_Type &Weight_U_Nc) {
 
-    auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
+    // auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
 
-    PythonNumpy::substitute_matrix(
-        this->_solver_factor,
-        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
+    // PythonNumpy::substitute_matrix(
+    //     this->_solver_factor,
+    //     this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
+
+    // Augment A and Y as in Python
+    Weight_U_Nc_Type sqrt_Weight_U_Nc;
+    for (std::size_t i = 0; i < Weight_U_Nc_Type::COLS; ++i) {
+      sqrt_Weight_U_Nc[i] = Base::Math::sqrt(Weight_U_Nc[i]);
+    }
+
+    auto A_augmented =
+        PythonNumpy::concatenate_vertically(Phi, sqrt_Weight_U_Nc);
+
+    auto Upper_Identity = PythonNumpy::make_DiagMatrixIdentity<_T, Phi.COLS>();
+    auto Zero_Phi_Transpose =
+        PythonNumpy::make_SparseMatrixEmpty<_T, Phi.ROWS, Phi.COLS>();
+    auto Y_augmented =
+        PythonNumpy::concatenate_vertically(Upper_Identity, Zero_Phi_Transpose);
+
+    auto qr_solver = PythonNumpy::make_LinalgSolverQR<decltype(A_augmented)>();
+    qr_solver.solve(A_augmented);
+
+    auto Q_T_Y = PythonNumpy::ATranspose_mul_B(qr_solver.get_Q(), Y_augmented);
+
+    auto solver_factor = qr_solver.backward_substitution(Q_T_Y);
+
+    PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor);
   }
 
   /**
@@ -1170,8 +1193,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
-      -> U_Horizon_Type {
+  virtual inline auto
+  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 
@@ -1399,8 +1422,7 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other)
-  noexcept
+  LTV_MPC(LTV_MPC &&other) noexcept
       : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, Parameter_Type,
                               SolverFactor_Type_In>(std::move(other)),
@@ -1431,8 +1453,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto _solve(const _X_Augmented_Type &X_augmented)
-      -> _U_Horizon_Type override {
+  inline auto
+  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
