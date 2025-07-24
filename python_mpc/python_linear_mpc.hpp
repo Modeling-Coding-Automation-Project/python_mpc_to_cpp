@@ -1142,7 +1142,7 @@ protected:
     // Augment A and Y as in Python
     Weight_U_Nc_Type sqrt_Weight_U_Nc;
     for (std::size_t i = 0; i < Weight_U_Nc_Type::COLS; ++i) {
-      sqrt_Weight_U_Nc[i] = Base::Math::sqrt(Weight_U_Nc[i]);
+      sqrt_Weight_U_Nc.matrix[i] = Base::Math::sqrt(Weight_U_Nc.matrix[i]);
     }
 
     auto A_augmented =
