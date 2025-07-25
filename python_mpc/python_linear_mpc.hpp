@@ -174,8 +174,8 @@ inline void solve_LMPC_No_Constraints(
  * @return The updated control input U.
  */
 template <typename U_Type>
-inline auto calculate_this_U(const U_Type &U_latest,
-                             const U_Type &delta_U) -> U_Type {
+inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
+    -> U_Type {
 
   auto U = U_latest + delta_U;
 
@@ -224,14 +224,16 @@ public:
   static constexpr std::size_t NP = PredictionMatrices_Type::NP;
   static constexpr std::size_t NC = PredictionMatrices_Type::NC;
 
+  static constexpr std::size_t PREDICTION_SIZE = OUTPUT_SIZE * NP;
+  static constexpr std::size_t CONTROL_SIZE = INPUT_SIZE * NC;
+
   static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
 
   using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
   using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
   using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
 
-  using U_Horizon_Type =
-      PythonControl::StateSpaceInput_Type<_T, (INPUT_SIZE * NC)>;
+  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<_T, CONTROL_SIZE>;
   using X_Augmented_Type =
       PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
   using Y_Store_Type =
@@ -239,14 +241,13 @@ public:
 
   typedef typename std::conditional<
       std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
-      PythonNumpy::DenseMatrix_Type<_T, (INPUT_SIZE * NC), (OUTPUT_SIZE * NP)>,
+      PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
-  static_assert(SolverFactor_Type::COLS == (INPUT_SIZE * NC),
-                "SolverFactor_Type::COLS must be equal to (INPUT_SIZE * NC)");
-  static_assert(SolverFactor_Type::ROWS == (OUTPUT_SIZE * NP),
-                "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
-                "NP)");
+  static_assert(SolverFactor_Type::COLS == CONTROL_SIZE,
+                "SolverFactor_Type::COLS must be equal to CONTROL_SIZE");
+  static_assert(SolverFactor_Type::ROWS == PREDICTION_SIZE,
+                "SolverFactor_Type::ROWS must be equal to PREDICTION_SIZE");
 
 public:
   /* Constructor */
@@ -430,8 +431,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto
-  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 
@@ -481,8 +482,8 @@ protected:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto
-  get_prediction_matrices() const -> const PredictionMatrices_Type & {
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -687,8 +688,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto
-  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
+  inline auto _solve(const _X_Augmented_Type &X_augmented)
+      -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
@@ -823,14 +824,16 @@ public:
   static constexpr std::size_t NP = PredictionMatrices_Type::NP;
   static constexpr std::size_t NC = PredictionMatrices_Type::NC;
 
+  static constexpr std::size_t PREDICTION_SIZE = OUTPUT_SIZE * NP;
+  static constexpr std::size_t CONTROL_SIZE = INPUT_SIZE * NC;
+
   static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
 
   using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
   using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
   using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
 
-  using U_Horizon_Type =
-      PythonControl::StateSpaceInput_Type<_T, (INPUT_SIZE * NC)>;
+  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<_T, CONTROL_SIZE>;
   using X_Augmented_Type =
       PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
   using Y_Store_Type =
@@ -838,14 +841,13 @@ public:
 
   typedef typename std::conditional<
       std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
-      PythonNumpy::DenseMatrix_Type<_T, (INPUT_SIZE * NC), (OUTPUT_SIZE * NP)>,
+      PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
-  static_assert(SolverFactor_Type::COLS == (INPUT_SIZE * NC),
-                "SolverFactor_Type::COLS must be equal to (INPUT_SIZE * NC)");
-  static_assert(SolverFactor_Type::ROWS == (OUTPUT_SIZE * NP),
-                "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
-                "NP)");
+  static_assert(SolverFactor_Type::COLS == CONTROL_SIZE,
+                "SolverFactor_Type::COLS must be equal to CONTROL_SIZE");
+  static_assert(SolverFactor_Type::ROWS == PREDICTION_SIZE,
+                "SolverFactor_Type::ROWS must be equal to PREDICTION_SIZE");
 
   using EmbeddedIntegratorStateSpace_Type = typename EmbeddedIntegratorTypes<
       typename LKF_Type::DiscreteStateSpace_Type::A_Type,
@@ -855,7 +857,7 @@ public:
   using Phi_Type = typename PredictionMatrices_Type::Phi_Type;
   using F_Type = typename PredictionMatrices_Type::F_Type;
 
-  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<_T, (INPUT_SIZE * NC)>;
+  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<_T, CONTROL_SIZE>;
 
 protected:
   /* Type */
@@ -878,6 +880,15 @@ protected:
   using SolverFactor_InvSolver_Type =
       PythonNumpy::LinalgSolver_Type<SolverFactor_InvSolver_Left_Type,
                                      SolverFactor_InvSolver_Right_Type>;
+
+  using _Phi_v_Weight_U_Nc_Type =
+      PythonNumpy::ConcatenateVertically_Type<Phi_Type, Weight_U_Nc_Type>;
+
+  using _Prediction_Size_Identity_Type =
+      PythonNumpy::DiagMatrix_Type<_T, PREDICTION_SIZE>;
+
+  using _Zero_Phi_Transpose_Type =
+      PythonNumpy::SparseMatrixEmpty_Type<_T, Phi_Type::ROWS, PREDICTION_SIZE>;
 
 public:
   /* Constructor */
@@ -911,6 +922,9 @@ public:
                       SolverFactor_Type_In_Constructor::ROWS,
                   "SolverFactor_Type::ROW must be equal to "
                   "SolverFactor_Type_In_Constructor::ROW");
+
+    _Prediction_Size_Identity_Type prediction_size_identity =
+        PythonNumpy::make_DiagMatrixIdentity<_T, PREDICTION_SIZE>();
 
     // This is because the solver_factor_in can be different type from
     // "SolverFactor_Type".
@@ -1052,8 +1066,8 @@ public:
    * @return The updated control input vector.
    */
   template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference,
-                                  const Y_Type &Y) -> U_Type {
+  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
+      -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
@@ -1102,8 +1116,8 @@ public:
    *
    * @return A constant reference to the prediction matrices.
    */
-  inline auto
-  get_prediction_matrices() const -> const PredictionMatrices_Type & {
+  inline auto get_prediction_matrices() const
+      -> const PredictionMatrices_Type & {
     return this->_prediction_matrices;
   }
 
@@ -1133,35 +1147,37 @@ protected:
   inline void _update_solver_factor(const Phi_Type &Phi,
                                     const Weight_U_Nc_Type &Weight_U_Nc) {
 
-    // auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
+    auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
 
-    // PythonNumpy::substitute_matrix(
-    //     this->_solver_factor,
-    //     this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
+    PythonNumpy::substitute_matrix(
+        this->_solver_factor,
+        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
 
-    // Augment A and Y as in Python
     Weight_U_Nc_Type sqrt_Weight_U_Nc;
     for (std::size_t i = 0; i < Weight_U_Nc_Type::COLS; ++i) {
       sqrt_Weight_U_Nc.matrix[i] = Base::Math::sqrt(Weight_U_Nc.matrix[i]);
     }
 
-    auto A_augmented =
+    _Phi_v_Weight_U_Nc_Type A_augmented =
         PythonNumpy::concatenate_vertically(Phi, sqrt_Weight_U_Nc);
 
-    auto Upper_Identity = PythonNumpy::make_DiagMatrixIdentity<_T, Phi.COLS>();
-    auto Zero_Phi_Transpose =
-        PythonNumpy::make_SparseMatrixEmpty<_T, Phi.ROWS, Phi.COLS>();
-    auto Y_augmented =
-        PythonNumpy::concatenate_vertically(Upper_Identity, Zero_Phi_Transpose);
+    // auto Upper_Identity = PythonNumpy::make_DiagMatrixIdentity<_T,
+    // Phi.COLS>(); auto Zero_Phi_Transpose =
+    //     PythonNumpy::make_SparseMatrixEmpty<_T, Phi.ROWS, Phi.COLS>();
+    // auto Y_augmented =
+    //     PythonNumpy::concatenate_vertically(Upper_Identity,
+    //     Zero_Phi_Transpose);
 
-    auto qr_solver = PythonNumpy::make_LinalgSolverQR<decltype(A_augmented)>();
-    qr_solver.solve(A_augmented);
+    // auto qr_solver =
+    // PythonNumpy::make_LinalgSolverQR<decltype(A_augmented)>();
+    // qr_solver.solve(A_augmented);
 
-    auto Q_T_Y = PythonNumpy::ATranspose_mul_B(qr_solver.get_Q(), Y_augmented);
+    // auto Q_T_Y = PythonNumpy::ATranspose_mul_B(qr_solver.get_Q(),
+    // Y_augmented);
 
-    auto solver_factor = qr_solver.backward_substitution(Q_T_Y);
+    // auto solver_factor = qr_solver.backward_substitution(Q_T_Y);
 
-    PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor);
+    // PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor);
   }
 
   /**
@@ -1193,8 +1209,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto
-  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
 
     U_Horizon_Type delta_U;
 
@@ -1453,8 +1469,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto
-  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
+  inline auto _solve(const _X_Augmented_Type &X_augmented)
+      -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
