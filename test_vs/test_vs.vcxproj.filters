@@ -53,5 +53,8 @@
     <ClInclude Include="test_Adaptive_MPC_Phi_F_Updater_Function.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\python_mpc\python_mpc_common_operation.hpp">
+      <Filter>リソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
