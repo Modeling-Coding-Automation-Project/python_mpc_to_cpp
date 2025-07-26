@@ -374,11 +374,11 @@ public:
   inline void update_solver_factor(const Phi_Type &Phi,
                                    const Weight_U_Nc_Type &Weight_U_Nc) {
 
+    auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
+
     PythonNumpy::substitute_matrix(
         this->_solver_factor,
-        this->_solver_factor_inv_solver.solve(
-            PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc,
-            Phi.transpose()));
+        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
   }
 
   /**
@@ -420,8 +420,8 @@ public:
     this->_update_Phi_F_adaptive_runtime(X_compensated, this->_U_latest,
                                          this->_kalman_filter.parameters);
 
-    // this->update_solver_factor(this->_prediction_matrices.Phi,
-    //                            this->_Weight_U_Nc);
+    this->update_solver_factor(this->_prediction_matrices.Phi,
+                               this->_Weight_U_Nc);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto delta_Y = Y_compensated - this->_Y_store.get();
