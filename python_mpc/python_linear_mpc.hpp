@@ -882,19 +882,6 @@ protected:
       PythonNumpy::LinalgSolver_Type<SolverFactor_InvSolver_Left_Type,
                                      SolverFactor_InvSolver_Right_Type>;
 
-  using _Phi_v_Weight_U_Nc_Type =
-      PythonNumpy::ConcatenateVertically_Type<Phi_Type, Weight_U_Nc_Type>;
-
-  using _Prediction_Size_Identity_Type =
-      PythonNumpy::DiagMatrix_Type<_T, PREDICTION_SIZE>;
-
-  using _Zero_Phi_Transpose_Type =
-      PythonNumpy::SparseMatrixEmpty_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>;
-
-  using _Augmented_Phi_Size_Identity_Zero_Type =
-      PythonNumpy::ConcatenateVertically_Type<_Prediction_Size_Identity_Type,
-                                              _Zero_Phi_Transpose_Type>;
-
 public:
   /* Constructor */
   LTV_MPC_NoConstraints()
@@ -1154,30 +1141,6 @@ protected:
     PythonNumpy::substitute_matrix(
         this->_solver_factor,
         this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
-
-    Weight_U_Nc_Type sqrt_Weight_U_Nc;
-    for (std::size_t i = 0; i < Weight_U_Nc_Type::COLS; ++i) {
-      sqrt_Weight_U_Nc.matrix[i] = Base::Math::sqrt(Weight_U_Nc.matrix[i]);
-    }
-
-    _Phi_v_Weight_U_Nc_Type A_augmented =
-        PythonNumpy::concatenate_vertically(Phi, sqrt_Weight_U_Nc);
-
-    _Augmented_Phi_Size_Identity_Zero_Type augmented_phi_size_identity_zero;
-    CommonOperation::substitute_identity_elements<
-        _T, _Augmented_Phi_Size_Identity_Zero_Type, PREDICTION_SIZE>(
-        augmented_phi_size_identity_zero);
-
-    // auto qr_solver =
-    // PythonNumpy::make_LinalgSolverQR<decltype(A_augmented)>();
-    // qr_solver.solve(A_augmented);
-
-    // auto Q_T_Y = PythonNumpy::ATranspose_mul_B(qr_solver.get_Q(),
-    // Y_augmented);
-
-    // auto solver_factor = qr_solver.backward_substitution(Q_T_Y);
-
-    // PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor);
   }
 
   /**
