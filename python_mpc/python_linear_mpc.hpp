@@ -182,6 +182,27 @@ inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
   return U;
 }
 
+template <typename T, typename Matrix_Type, std::size_t Index>
+struct SubstituteIdentityElements {
+  static void apply(Matrix_Type &matrix) {
+    matrix.template set<Index, Index>(static_cast<T>(1));
+
+    SubstituteIdentityElements<T, Matrix_Type, Index - 1>::apply(matrix);
+  }
+};
+
+template <typename T, typename Matrix_Type>
+struct SubstituteIdentityElements<T, Matrix_Type, 0> {
+  static void apply(Matrix_Type &matrix) {
+    matrix.template set<0, 0>(static_cast<T>(1));
+  }
+};
+
+template <typename T, typename Matrix_Type, std::size_t Size>
+inline void substitute_identity_elements(Matrix_Type &matrix) {
+  SubstituteIdentityElements<T, Matrix_Type, Size - 1>::apply(matrix);
+}
+
 } // namespace LMPC_Operation
 
 /**
@@ -888,7 +909,11 @@ protected:
       PythonNumpy::DiagMatrix_Type<_T, PREDICTION_SIZE>;
 
   using _Zero_Phi_Transpose_Type =
-      PythonNumpy::SparseMatrixEmpty_Type<_T, Phi_Type::ROWS, PREDICTION_SIZE>;
+      PythonNumpy::SparseMatrixEmpty_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>;
+
+  using _Augmented_Phi_Size_Identity_Zero_Type =
+      PythonNumpy::ConcatenateVertically_Type<_Prediction_Size_Identity_Type,
+                                              _Zero_Phi_Transpose_Type>;
 
 public:
   /* Constructor */
@@ -923,8 +948,10 @@ public:
                   "SolverFactor_Type::ROW must be equal to "
                   "SolverFactor_Type_In_Constructor::ROW");
 
-    _Prediction_Size_Identity_Type prediction_size_identity =
-        PythonNumpy::make_DiagMatrixIdentity<_T, PREDICTION_SIZE>();
+    _Augmented_Phi_Size_Identity_Zero_Type augmented_phi_size_identity_zero;
+    LMPC_Operation::substitute_identity_elements<
+        _T, _Augmented_Phi_Size_Identity_Zero_Type, PREDICTION_SIZE>(
+        augmented_phi_size_identity_zero);
 
     // This is because the solver_factor_in can be different type from
     // "SolverFactor_Type".
