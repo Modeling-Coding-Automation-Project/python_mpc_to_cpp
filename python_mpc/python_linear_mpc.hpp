@@ -1136,6 +1136,10 @@ protected:
   inline void _update_solver_factor(const Phi_Type &Phi,
                                     const Weight_U_Nc_Type &Weight_U_Nc) {
 
+    // So far, "np.linalg.solve(Phi.T @ Phi + Weight_U_Nc, Phi.T)" is used.
+    // QR decomposition is preferred for better numerical stability, but it
+    // costs much memory footprint and calculation time.
+
     auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
 
     PythonNumpy::substitute_matrix(
