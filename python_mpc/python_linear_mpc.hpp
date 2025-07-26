@@ -203,6 +203,18 @@ inline void substitute_identity_elements(Matrix_Type &matrix) {
   SubstituteIdentityElements<T, Matrix_Type, Size - 1>::apply(matrix);
 }
 
+template <typename T, typename Augmented_Phi_Size_Identity_Zero_Type>
+inline auto create_augmented_phi_size_identity_zero(void)
+    -> Augmented_Phi_Size_Identity_Zero_Type {
+  Augmented_Phi_Size_Identity_Zero_Type augmented_phi_size_identity_zero;
+
+  substitute_identity_elements<T, Augmented_Phi_Size_Identity_Zero_Type,
+                               Augmented_Phi_Size_Identity_Zero_Type::ROWS>(
+      augmented_phi_size_identity_zero);
+
+  return augmented_phi_size_identity_zero;
+}
+
 } // namespace LMPC_Operation
 
 /**
@@ -948,11 +960,6 @@ public:
                   "SolverFactor_Type::ROW must be equal to "
                   "SolverFactor_Type_In_Constructor::ROW");
 
-    _Augmented_Phi_Size_Identity_Zero_Type augmented_phi_size_identity_zero;
-    LMPC_Operation::substitute_identity_elements<
-        _T, _Augmented_Phi_Size_Identity_Zero_Type, PREDICTION_SIZE>(
-        augmented_phi_size_identity_zero);
-
     // This is because the solver_factor_in can be different type from
     // "SolverFactor_Type".
     PythonNumpy::substitute_matrix(this->_solver_factor, solver_factor_in);
@@ -1188,12 +1195,10 @@ protected:
     _Phi_v_Weight_U_Nc_Type A_augmented =
         PythonNumpy::concatenate_vertically(Phi, sqrt_Weight_U_Nc);
 
-    // auto Upper_Identity = PythonNumpy::make_DiagMatrixIdentity<_T,
-    // Phi.COLS>(); auto Zero_Phi_Transpose =
-    //     PythonNumpy::make_SparseMatrixEmpty<_T, Phi.ROWS, Phi.COLS>();
-    // auto Y_augmented =
-    //     PythonNumpy::concatenate_vertically(Upper_Identity,
-    //     Zero_Phi_Transpose);
+    _Augmented_Phi_Size_Identity_Zero_Type augmented_phi_size_identity_zero;
+    LMPC_Operation::substitute_identity_elements<
+        _T, _Augmented_Phi_Size_Identity_Zero_Type, PREDICTION_SIZE>(
+        augmented_phi_size_identity_zero);
 
     // auto qr_solver =
     // PythonNumpy::make_LinalgSolverQR<decltype(A_augmented)>();
