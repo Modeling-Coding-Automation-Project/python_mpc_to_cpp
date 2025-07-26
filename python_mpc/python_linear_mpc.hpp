@@ -14,6 +14,7 @@
 #define __PYTHON_LINEAR_MPC_HPP__
 
 #include "mpc_utility.hpp"
+#include "python_mpc_common_operation.hpp"
 
 #include "python_control.hpp"
 #include "python_numpy.hpp"
@@ -180,39 +181,6 @@ inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
   auto U = U_latest + delta_U;
 
   return U;
-}
-
-template <typename T, typename Matrix_Type, std::size_t Index>
-struct SubstituteIdentityElements {
-  static void apply(Matrix_Type &matrix) {
-    matrix.template set<Index, Index>(static_cast<T>(1));
-
-    SubstituteIdentityElements<T, Matrix_Type, Index - 1>::apply(matrix);
-  }
-};
-
-template <typename T, typename Matrix_Type>
-struct SubstituteIdentityElements<T, Matrix_Type, 0> {
-  static void apply(Matrix_Type &matrix) {
-    matrix.template set<0, 0>(static_cast<T>(1));
-  }
-};
-
-template <typename T, typename Matrix_Type, std::size_t Size>
-inline void substitute_identity_elements(Matrix_Type &matrix) {
-  SubstituteIdentityElements<T, Matrix_Type, Size - 1>::apply(matrix);
-}
-
-template <typename T, typename Augmented_Phi_Size_Identity_Zero_Type>
-inline auto create_augmented_phi_size_identity_zero(void)
-    -> Augmented_Phi_Size_Identity_Zero_Type {
-  Augmented_Phi_Size_Identity_Zero_Type augmented_phi_size_identity_zero;
-
-  substitute_identity_elements<T, Augmented_Phi_Size_Identity_Zero_Type,
-                               Augmented_Phi_Size_Identity_Zero_Type::ROWS>(
-      augmented_phi_size_identity_zero);
-
-  return augmented_phi_size_identity_zero;
 }
 
 } // namespace LMPC_Operation
@@ -1196,7 +1164,7 @@ protected:
         PythonNumpy::concatenate_vertically(Phi, sqrt_Weight_U_Nc);
 
     _Augmented_Phi_Size_Identity_Zero_Type augmented_phi_size_identity_zero;
-    LMPC_Operation::substitute_identity_elements<
+    CommonOperation::substitute_identity_elements<
         _T, _Augmented_Phi_Size_Identity_Zero_Type, PREDICTION_SIZE>(
         augmented_phi_size_identity_zero);
 
