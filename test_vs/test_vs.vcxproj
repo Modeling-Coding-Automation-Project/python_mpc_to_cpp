@@ -142,7 +142,6 @@
     <ClInclude Include="..\python_mpc\python_adaptive_mpc.hpp" />
     <ClInclude Include="..\python_mpc\python_linear_mpc.hpp" />
     <ClInclude Include="..\python_mpc\python_mpc.hpp" />
-    <ClInclude Include="..\python_mpc\python_mpc_common_operation.hpp" />
     <ClInclude Include="MCAP_tester\include\MCAP_tester.hpp" />
     <ClInclude Include="test_Adaptive_MPC_Phi_F_Updater_Function.hpp" />
     <ClInclude Include="test_mpc_servo_motor_data.hpp" />

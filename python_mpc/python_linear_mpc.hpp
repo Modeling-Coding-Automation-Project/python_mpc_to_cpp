@@ -14,7 +14,6 @@
 #define __PYTHON_LINEAR_MPC_HPP__
 
 #include "mpc_utility.hpp"
-#include "python_mpc_common_operation.hpp"
 
 #include "python_control.hpp"
 #include "python_numpy.hpp"
