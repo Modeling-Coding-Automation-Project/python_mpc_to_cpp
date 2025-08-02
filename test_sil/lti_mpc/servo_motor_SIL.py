@@ -155,7 +155,7 @@ def main():
 
         tester.expect_near(
             U, U_cpp, NEAR_LIMIT,
-            "Linear MPC servo motor SIL, check update.")
+            "LTI MPC servo motor SIL, check update.")
 
     tester.throw_error_if_test_failed()
 

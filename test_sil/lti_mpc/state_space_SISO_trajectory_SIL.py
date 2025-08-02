@@ -84,8 +84,8 @@ def main():
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)
     generator.build_SIL_code()
 
-    from test_sil.linear_mpc import LinearMpcSIL
-    LinearMpcSIL.initialize()
+    from test_sil.lti_mpc import LtiMpcSIL
+    LtiMpcSIL.initialize()
 
     # %% simulation
     t_sim = 1.0
@@ -130,11 +130,11 @@ def main():
         ref = get_reference_signal(input_signal, i, Np)
         U = lti_mpc.update(ref, y_measured)
 
-        U_cpp = LinearMpcSIL.update(ref, y_measured)
+        U_cpp = LtiMpcSIL.update(ref, y_measured)
 
         tester.expect_near(
             U, U_cpp, NEAR_LIMIT,
-            "Linear MPC state space SISO SIL, check update.")
+            "LTI MPC state space SISO SIL, check update.")
 
     tester.throw_error_if_test_failed()
 
