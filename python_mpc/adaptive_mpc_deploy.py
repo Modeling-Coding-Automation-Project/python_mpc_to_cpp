@@ -20,7 +20,9 @@ import copy
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
+
 from mpc_utility.adaptive_matrices_deploy import AdaptiveMatricesDeploy
+from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
 
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC_NoConstraints
 
@@ -193,26 +195,38 @@ class AdaptiveMPC_Deploy:
             raise ValueError(
                 "No parameter file found in EKF deployment files.")
 
+        # create F
+        F_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ada_mpc_nc.prediction_matrices.F_SparseAvailable)
         exec(f"{variable_name}_F = ada_mpc_nc.prediction_matrices.F_ndarray")
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
+            "SparseAvailable=F_SparseAvailable, " +
             "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
 
+        # create Phi
+        Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ada_mpc_nc.prediction_matrices.Phi_SparseAvailable)
         exec(
             f"{variable_name}_Phi = ada_mpc_nc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
+            "SparseAvailable=Phi_SparseAvailable, " +
             "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
+        # create solver_factor
+        solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ada_mpc_nc.solver_factor_SparseAvailable)
         exec(f"{variable_name}_solver_factor = ada_mpc_nc.solver_factor")
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
+            "SparseAvailable=solver_factor_SparseAvailable, " +
             "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
