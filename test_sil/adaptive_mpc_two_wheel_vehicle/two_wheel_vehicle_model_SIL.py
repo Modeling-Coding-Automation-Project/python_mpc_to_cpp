@@ -76,12 +76,7 @@ def create_model(delta_time: float):
     ])
     fxu: sp.Matrix = X + fxu_continuous * delta_time
 
-    print("State Function (fxu):")
-    sp.pprint(fxu)
-
     hx = sp.Matrix([[X[0]], [X[1]], [X[2]], [X[3]], [X[5]]])
-    print("Measurement Function (hx):")
-    sp.pprint(hx)
 
     # derive Jacobian
     fxu_jacobian_X = fxu.jacobian(X)
