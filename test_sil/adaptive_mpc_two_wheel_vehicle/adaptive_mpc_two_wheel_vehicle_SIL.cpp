@@ -83,9 +83,33 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
 }
 
 PYBIND11_MODULE(AdaptiveMpcTwoWheelVehicleSIL, m) {
+  py::class_<two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter>(
+      m, "Parameter")
+      .def(py::init<>())
+      .def_readwrite(
+          "m", &two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter::m)
+      .def_readwrite(
+          "l_f",
+          &two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter::l_f)
+      .def_readwrite(
+          "l_r",
+          &two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter::l_r)
+      .def_readwrite(
+          "I", &two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter::I)
+      .def_readwrite(
+          "K_f",
+          &two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter::K_f)
+      .def_readwrite(
+          "K_r",
+          &two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter::K_r);
+
   m.def("initialize", &initialize, "initialize linear MPC");
   m.def("update_manipulation", &update_manipulation,
         "update MPC with ref and output");
-  m.def("update_parameters", &update_parameters,
-        "update MPC parameters with Mmotor");
+
+  m.def(
+      "update_parameters",
+      [](const two_wheel_vehicle_model_SIL_ada_mpc_ekf_parameter::Parameter
+             &param) { ada_mpc.update_parameters(param); },
+      "update MPC parameters with Parameter struct");
 }
