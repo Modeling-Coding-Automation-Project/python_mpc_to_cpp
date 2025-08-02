@@ -155,7 +155,7 @@ class Parameter:
 def main():
     # simulation setup
     sim_delta_time = 0.01
-    simulation_time = 5.0
+    simulation_time = 20.0
 
     time = np.arange(0, simulation_time, sim_delta_time)
 
