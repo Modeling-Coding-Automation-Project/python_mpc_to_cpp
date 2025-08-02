@@ -809,15 +809,15 @@ namespace two_wheel_vehicle_model_mpc_embedded_integrator_state_space_updater {
 template <typename T, typename A_Updater_Output_Type>
 class A_Updater {
 public:
-    static inline auto update(T m, T l_f, T l_r, T I, T K_f, T K_r, T r, T accel, T theta, T V, T beta, T px, T py, T delta) -> A_Updater_Output_Type {
-        static_cast<void>(accel);
+    static inline auto update(T m, T l_f, T l_r, T I, T K_f, T K_r, T beta, T theta, T delta, T r, T px, T accel, T V, T py) -> A_Updater_Output_Type {
         static_cast<void>(px);
+        static_cast<void>(accel);
         static_cast<void>(py);
 
-        return A_Updater::sympy_function(r, theta, V, delta, beta, K_r, m, K_f, I, l_r, l_f);
+        return A_Updater::sympy_function(beta, l_f, r, m, delta, K_r, V, I, theta, l_r, K_f);
     }
 
-    static inline auto sympy_function(T r, T theta, T V, T delta, T beta, T K_r, T m, T K_f, T I, T l_r, T l_f) -> A_Updater_Output_Type {
+    static inline auto sympy_function(T beta, T l_f, T r, T m, T delta, T K_r, T V, T I, T theta, T l_r, T K_f) -> A_Updater_Output_Type {
         A_Updater_Output_Type result;
 
         T x0 = static_cast<T>(0.01) * sin(theta);
@@ -834,9 +834,9 @@ public:
 
         T x6 = -x4 - x5;
 
-        T x7 = 1 / V;
+        T x7 = static_cast<T>(1) / V;
 
-        T x8 = 1 / I;
+        T x8 = static_cast<T>(1) / I;
 
         T x9 = static_cast<T>(0.02) * x8;
 
@@ -1002,26 +1002,27 @@ public:
         return result;
     }
 
+
 };
 
 template <typename T, typename B_Updater_Output_Type>
 class B_Updater {
 public:
-    static inline auto update(T m, T l_f, T l_r, T I, T K_f, T K_r, T theta, T py, T accel, T r, T delta, T px, T V, T beta) -> B_Updater_Output_Type {
+    static inline auto update(T m, T l_f, T l_r, T I, T K_f, T K_r, T beta, T theta, T delta, T r, T px, T accel, T V, T py) -> B_Updater_Output_Type {
         static_cast<void>(l_r);
         static_cast<void>(K_r);
-        static_cast<void>(theta);
-        static_cast<void>(py);
-        static_cast<void>(accel);
-        static_cast<void>(r);
-        static_cast<void>(delta);
-        static_cast<void>(px);
         static_cast<void>(beta);
+        static_cast<void>(theta);
+        static_cast<void>(delta);
+        static_cast<void>(r);
+        static_cast<void>(px);
+        static_cast<void>(accel);
+        static_cast<void>(py);
 
-        return B_Updater::sympy_function(m, I, l_f, V, K_f);
+        return B_Updater::sympy_function(I, l_f, m, V, K_f);
     }
 
-    static inline auto sympy_function(T m, T I, T l_f, T V, T K_f) -> B_Updater_Output_Type {
+    static inline auto sympy_function(T I, T l_f, T m, T V, T K_f) -> B_Updater_Output_Type {
         B_Updater_Output_Type result;
 
         T x0 = static_cast<T>(0.02) * K_f;
@@ -1054,26 +1055,27 @@ public:
         return result;
     }
 
+
 };
 
 template <typename T, typename C_Updater_Output_Type>
 class C_Updater {
 public:
-    static inline auto update(T m, T l_f, T l_r, T I, T K_f, T K_r, T theta, T py, T accel, T r, T delta, T px, T V, T beta) -> C_Updater_Output_Type {
+    static inline auto update(T m, T l_f, T l_r, T I, T K_f, T K_r, T beta, T theta, T delta, T r, T px, T accel, T V, T py) -> C_Updater_Output_Type {
         static_cast<void>(m);
         static_cast<void>(l_f);
         static_cast<void>(l_r);
         static_cast<void>(I);
         static_cast<void>(K_f);
         static_cast<void>(K_r);
-        static_cast<void>(theta);
-        static_cast<void>(py);
-        static_cast<void>(accel);
-        static_cast<void>(r);
-        static_cast<void>(delta);
-        static_cast<void>(px);
-        static_cast<void>(V);
         static_cast<void>(beta);
+        static_cast<void>(theta);
+        static_cast<void>(delta);
+        static_cast<void>(r);
+        static_cast<void>(px);
+        static_cast<void>(accel);
+        static_cast<void>(V);
+        static_cast<void>(py);
 
         return C_Updater::sympy_function();
     }
@@ -1140,6 +1142,7 @@ public:
         return result;
     }
 
+
 };
 
 template <typename T>
@@ -1162,11 +1165,11 @@ public:
         T delta = U.template get<0, 0>();
         T accel = U.template get<1, 0>();
 
-        auto A = A_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::A_Type>::update(m, l_f, l_r, I, K_f, K_r, theta, py, accel, r, delta, px, V, beta);
+        auto A = A_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::A_Type>::update(m, l_f, l_r, I, K_f, K_r, beta, theta, delta, r, px, accel, V, py);
 
-        auto B = B_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::B_Type>::update(m, l_f, l_r, I, K_f, K_r, theta, py, accel, r, delta, px, V, beta);
+        auto B = B_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::B_Type>::update(m, l_f, l_r, I, K_f, K_r, beta, theta, delta, r, px, accel, V, py);
 
-        auto C = C_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::C_Type>::update(m, l_f, l_r, I, K_f, K_r, theta, py, accel, r, delta, px, V, beta);
+        auto C = C_Updater<T, typename EmbeddedIntegrator_Updater_Output_Type::C_Type>::update(m, l_f, l_r, I, K_f, K_r, beta, theta, delta, r, px, accel, V, py);
 
         output.A = A;
         output.B = B;
