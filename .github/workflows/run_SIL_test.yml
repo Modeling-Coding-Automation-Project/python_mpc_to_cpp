@@ -2,7 +2,7 @@ name: Run SIL test
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, feature/* ]
 
 jobs:
 
@@ -40,9 +40,10 @@ jobs:
 
     - name: Run SIL tests
       run: |
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/linear_mpc/state_space_SISO_SIL.py
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/linear_mpc/state_space_SISO_trajectory_SIL.py
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/linear_mpc/servo_motor_SIL.py
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/linear_mpc/servo_motor_constraints_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/state_space_SISO_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/state_space_SISO_trajectory_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/servo_motor_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/servo_motor_constraints_SIL.py
         /opt/venv_py_MCAP/bin/python3 ./test_sil/servo_motor_ltv_mpc/servo_motor_LTV_SIL.py
         /opt/venv_py_MCAP/bin/python3 ./test_sil/servo_motor_ltv_mpc_constraints/servo_motor_LTV_constraints_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/adaptive_mpc_two_wheel_vehicle/two_wheel_vehicle_model_SIL.py
