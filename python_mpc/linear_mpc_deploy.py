@@ -19,7 +19,9 @@ import copy
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
+
 from mpc_utility.ltv_matrices_deploy import LTVMatricesDeploy
+from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
 
 from external_libraries.MCAP_python_mpc.mpc_utility.linear_solver_utility import DU_U_Y_Limits
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
@@ -100,28 +102,37 @@ class LinearMPC_Deploy:
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
         # create F code
+        F_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc_nc.prediction_matrices.F_SparseAvailable)
         exec(f"{variable_name}_F = lti_mpc_nc.prediction_matrices.F_ndarray")
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
+            "SparseAvailable=F_SparseAvailable, " +
             "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
 
         # create Phi code
+        Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc_nc.prediction_matrices.Phi_SparseAvailable)
         exec(
             f"{variable_name}_Phi = lti_mpc_nc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
+            "SparseAvailable=Phi_SparseAvailable, " +
             "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
         # create solver_factor code
+        solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc_nc.solver_factor_SparseAvailable)
         exec(f"{variable_name}_solver_factor = lti_mpc_nc.solver_factor")
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
+            "SparseAvailable=solver_factor_SparseAvailable, " +
             "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
