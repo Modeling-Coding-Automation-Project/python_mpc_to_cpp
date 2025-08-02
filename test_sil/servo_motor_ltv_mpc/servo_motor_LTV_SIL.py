@@ -259,7 +259,13 @@ def main():
             controller_parameters.Mmotor = 250.0
 
             ltv_mpc.update_parameters(controller_parameters)
-            ServoMotorLtvMpcSIL.update_parameters(controller_parameters.Mmotor)
+
+            # update SIL parameters
+            sil_parameters = ServoMotorLtvMpcSIL.Parameter()
+            for key, value in vars(controller_parameters).items():
+                setattr(sil_parameters, key, value)
+
+            ServoMotorLtvMpcSIL.update_parameters(sil_parameters)
 
             MPC_updated = True
 
