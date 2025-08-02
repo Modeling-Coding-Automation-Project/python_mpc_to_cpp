@@ -1075,8 +1075,8 @@ void check_Adaptive_MPC_NoConstraints(void) {
 
     MCAPTester<T> tester;
 
-    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
-    //const T NEAR_LIMIT_SOFT = 1.0e-2F;
+    // There is a Floating point Numerical instability problem.
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0);
 
     /* 定義 */
     constexpr std::size_t NP = PythonMPC_TwoWheelVehicleModelData::NP;
@@ -1256,8 +1256,7 @@ int main(void) {
 
     check_Adaptive_MPC_NoConstraints<double>();
 
-    // There is a Floating point Numerical instability problem.
-    //check_Adaptive_MPC_NoConstraints<float>();
+    check_Adaptive_MPC_NoConstraints<float>();
 
 
     return 0;
