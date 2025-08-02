@@ -22,6 +22,20 @@
         }
       ],
       "preLaunchTask": "Build Active C++ File"
+    },
+    {
+      "name": "Run without Debug Active C++ File",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/${fileBasenameNoExtension}",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "preLaunchTask": "Build without Debug Active C++ File",
+      "noDebug": true
     }
   ]
 }
