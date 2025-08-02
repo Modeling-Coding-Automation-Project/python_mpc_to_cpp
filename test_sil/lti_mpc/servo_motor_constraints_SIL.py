@@ -105,8 +105,8 @@ def main():
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)
     generator.build_SIL_code()
 
-    from test_sil.linear_mpc import LinearMpcSIL
-    LinearMpcSIL.initialize()
+    from test_sil.lti_mpc import LtiMpcSIL
+    LtiMpcSIL.initialize()
 
     # %% simulation
     t_sim = 20.0
@@ -160,11 +160,11 @@ def main():
         ref = np.array([[input_signal[i, 0]], [0.0]])
         U = lti_mpc.update(ref, y_measured)
 
-        U_cpp = LinearMpcSIL.update(ref, y_measured)
+        U_cpp = LtiMpcSIL.update(ref, y_measured)
 
         tester.expect_near(
             U, U_cpp, NEAR_LIMIT,
-            "Linear MPC servo motor constraints SIL, check update.")
+            "LTI MPC servo motor constraints SIL, check update.")
 
     tester.throw_error_if_test_failed()
 

@@ -19,7 +19,9 @@ import copy
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
+
 from mpc_utility.ltv_matrices_deploy import LTVMatricesDeploy
+from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
 
 from external_libraries.MCAP_python_mpc.mpc_utility.linear_solver_utility import DU_U_Y_Limits
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
@@ -100,26 +102,38 @@ class LinearMPC_Deploy:
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
         # create F code
+        F_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc_nc.prediction_matrices.F_SparseAvailable)
         exec(f"{variable_name}_F = lti_mpc_nc.prediction_matrices.F_ndarray")
         F_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
+            "SparseAvailable=F_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
 
         # create Phi code
+        Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc_nc.prediction_matrices.Phi_SparseAvailable)
         exec(
             f"{variable_name}_Phi = lti_mpc_nc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
+            "SparseAvailable=Phi_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
         # create solver_factor code
+        solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc_nc.solver_factor_SparseAvailable)
         exec(f"{variable_name}_solver_factor = lti_mpc_nc.solver_factor")
         solver_factor_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_solver_factor, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
+            "SparseAvailable=solver_factor_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -284,25 +298,37 @@ class LinearMPC_Deploy:
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
         # create F code
+        F_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc.prediction_matrices.F_SparseAvailable)
         exec(f"{variable_name}_F = lti_mpc.prediction_matrices.F_ndarray")
         F_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
+            "SparseAvailable=F_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
 
         # create Phi code
+        Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc.prediction_matrices.Phi_SparseAvailable)
         exec(f"{variable_name}_Phi = lti_mpc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
+            "SparseAvailable=Phi_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
         # create solver_factor code
+        solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
+            lti_mpc.solver_factor_SparseAvailable)
         exec(f"{variable_name}_solver_factor = lti_mpc.solver_factor")
         solver_factor_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_solver_factor, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
+            "SparseAvailable=solver_factor_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -311,7 +337,8 @@ class LinearMPC_Deploy:
         # create Weight_U_Nc code
         exec(f"{variable_name}_Weight_U_Nc = lti_mpc.Weight_U_Nc")
         Weight_U_Nc_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Weight_U_Nc, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
@@ -368,7 +395,8 @@ class LinearMPC_Deploy:
             delta_U_min, dtype=delta_U_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_min = delta_U_min")
         delta_U_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_min, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_min, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(delta_U_min_file_name)
         delta_U_min_file_name_no_extension = delta_U_min_file_name .split(".")[
@@ -379,7 +407,8 @@ class LinearMPC_Deploy:
             delta_U_max, dtype=delta_U_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_max = delta_U_max")
         delta_U_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_max, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_max, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(delta_U_max_file_name)
         delta_U_max_file_name_no_extension = delta_U_max_file_name .split(".")[
@@ -389,7 +418,8 @@ class LinearMPC_Deploy:
         U_min = np.array(U_min, dtype=U_min_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_U_min = U_min")
         U_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_min, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_min, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(U_min_file_name)
         U_min_file_name_no_extension = U_min_file_name .split(".")[0]
@@ -398,7 +428,8 @@ class LinearMPC_Deploy:
         U_max = np.array(U_max, dtype=U_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_U_max = U_max")
         U_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_max, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_max, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(U_max_file_name)
         U_max_file_name_no_extension = U_max_file_name .split(".")[0]
@@ -407,7 +438,8 @@ class LinearMPC_Deploy:
         Y_min = np.array(Y_min, dtype=Y_min_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_Y_min = Y_min")
         Y_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_min, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_min, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Y_min_file_name)
         Y_min_file_name_no_extension = Y_min_file_name .split(".")[0]
@@ -416,7 +448,8 @@ class LinearMPC_Deploy:
         Y_max = np.array(Y_max, dtype=Y_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_Y_max = Y_max")
         Y_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_max, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_max, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Y_max_file_name)
         Y_max_file_name_no_extension = Y_max_file_name .split(".")[0]
@@ -746,24 +779,39 @@ class LinearMPC_Deploy:
 
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
+        # create F
+        F_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ltv_mpc_nc.prediction_matrices.F_SparseAvailable)
         exec(f"{variable_name}_F = ltv_mpc_nc.prediction_matrices.F_ndarray")
         F_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
+            "SparseAvailable=F_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
 
+        # create Phi
+        Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ltv_mpc_nc.prediction_matrices.Phi_SparseAvailable)
         exec(
             f"{variable_name}_Phi = ltv_mpc_nc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
+            "SparseAvailable=Phi_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
+        # create solver_factor
+        solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ltv_mpc_nc.solver_factor_SparseAvailable)
         exec(f"{variable_name}_solver_factor = ltv_mpc_nc.solver_factor")
         solver_factor_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_solver_factor, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
+            "SparseAvailable=solver_factor_SparseAvailable, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -771,7 +819,8 @@ class LinearMPC_Deploy:
 
         exec(f"{variable_name}_Weight_U_Nc = ltv_mpc_nc.Weight_U_Nc")
         Weight_U_Nc_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Weight_U_Nc, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
@@ -1030,24 +1079,39 @@ class LinearMPC_Deploy:
 
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
+        # create F
+        F_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ltv_mpc.prediction_matrices.F_SparseAvailable)
         exec(f"{variable_name}_F = ltv_mpc.prediction_matrices.F_ndarray")
         F_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_F, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
+            f"SparseAvailable=F_SparseAvailable, " +
+            f"file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
 
+        # create Phi
+        Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ltv_mpc.prediction_matrices.Phi_SparseAvailable)
         exec(
             f"{variable_name}_Phi = ltv_mpc.prediction_matrices.Phi_ndarray")
         Phi_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Phi, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
+            f"SparseAvailable=Phi_SparseAvailable, " +
+            f"file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
 
+        # create solver_factor
+        solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
+            ltv_mpc.solver_factor_SparseAvailable)
         exec(f"{variable_name}_solver_factor = ltv_mpc.solver_factor")
         solver_factor_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_solver_factor, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
+            f"SparseAvailable=solver_factor_SparseAvailable, " +
+            f"file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -1055,7 +1119,8 @@ class LinearMPC_Deploy:
 
         exec(f"{variable_name}_Weight_U_Nc = ltv_mpc.Weight_U_Nc")
         Weight_U_Nc_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Weight_U_Nc, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
+            f"file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
@@ -1112,7 +1177,8 @@ class LinearMPC_Deploy:
             delta_U_min, dtype=delta_U_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_min = delta_U_min")
         delta_U_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_min, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_min, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(delta_U_min_file_name)
         delta_U_min_file_name_no_extension = delta_U_min_file_name .split(".")[
@@ -1123,7 +1189,8 @@ class LinearMPC_Deploy:
             delta_U_max, dtype=delta_U_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_max = delta_U_max")
         delta_U_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_delta_U_max, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_max, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(delta_U_max_file_name)
         delta_U_max_file_name_no_extension = delta_U_max_file_name .split(".")[
@@ -1133,7 +1200,8 @@ class LinearMPC_Deploy:
         U_min = np.array(U_min, dtype=U_min_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_U_min = U_min")
         U_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_min, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_min, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(U_min_file_name)
         U_min_file_name_no_extension = U_min_file_name .split(".")[0]
@@ -1142,7 +1210,8 @@ class LinearMPC_Deploy:
         U_max = np.array(U_max, dtype=U_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_U_max = U_max")
         U_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_U_max, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_max, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(U_max_file_name)
         U_max_file_name_no_extension = U_max_file_name .split(".")[0]
@@ -1151,7 +1220,8 @@ class LinearMPC_Deploy:
         Y_min = np.array(Y_min, dtype=Y_min_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_Y_min = Y_min")
         Y_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_min, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_min, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Y_min_file_name)
         Y_min_file_name_no_extension = Y_min_file_name .split(".")[0]
@@ -1160,7 +1230,8 @@ class LinearMPC_Deploy:
         Y_max = np.array(Y_max, dtype=Y_max_values.dtype).reshape(-1, 1)
         exec(f"{variable_name}_Y_max = Y_max")
         Y_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code({variable_name}_Y_max, caller_file_name_without_ext)")
+            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_max, " +
+            "file_name=caller_file_name_without_ext)")
 
         deployed_file_names.append(Y_max_file_name)
         Y_max_file_name_no_extension = Y_max_file_name .split(".")[0]

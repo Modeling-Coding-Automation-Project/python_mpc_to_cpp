@@ -361,6 +361,31 @@ public:
   /* Function */
 
   /**
+   * @brief Updates the solver factor based on the current Phi and weight
+   * matrix for control input changes.
+   *
+   * This function recalculates the solver factor used in the MPC based on the
+   * provided Phi matrix and weight matrix for control input changes, which is
+   * essential for scaling the control inputs.
+   *
+   * @param Phi The current Phi matrix used in the MPC.
+   * @param Weight_U_Nc The weight matrix for control input changes.
+   */
+  inline void update_solver_factor(const Phi_Type &Phi,
+                                   const Weight_U_Nc_Type &Weight_U_Nc) {
+
+    // So far, "np.linalg.solve(Phi.T @ Phi + Weight_U_Nc, Phi.T)" is used.
+    // QR decomposition is preferred for better numerical stability, but it
+    // costs much memory footprint and calculation time.
+
+    auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
+
+    PythonNumpy::substitute_matrix(
+        this->_solver_factor,
+        this->_solver_factor_inv_solver.solve(Phi_T_Phi_W, Phi.transpose()));
+  }
+
+  /**
    * @brief Updates the parameters of the Kalman filter used in the Adaptive
    * MPC.
    *
@@ -398,6 +423,9 @@ public:
 
     this->_update_Phi_F_adaptive_runtime(X_compensated, this->_U_latest,
                                          this->_kalman_filter.parameters);
+
+    this->update_solver_factor(this->_prediction_matrices.Phi,
+                               this->_Weight_U_Nc);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto delta_Y = Y_compensated - this->_Y_store.get();

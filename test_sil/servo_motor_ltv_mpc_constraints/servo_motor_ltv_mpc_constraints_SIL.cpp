@@ -27,15 +27,6 @@ void initialize(void) {
   lmpc = servo_motor_ltv_mpc_constraints_SIL_wrapper::make();
 }
 
-void update_parameters(FLOAT Mmotor) {
-
-  servo_motor_LTV_constraints_SIL_parameters::Parameter_Type
-      controller_parameters;
-  controller_parameters.Mmotor = Mmotor;
-
-  lmpc.update_parameters(controller_parameters);
-}
-
 py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
                                        py::array_t<FLOAT> Y_in) {
 
@@ -83,9 +74,45 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
 }
 
 PYBIND11_MODULE(ServoMotorLtvMpcConstraintsSIL, m) {
+  py::class_<servo_motor_LTV_constraints_SIL_parameters::Parameter>(m,
+                                                                    "Parameter")
+      .def(py::init<>())
+      .def_readwrite(
+          "Lshaft",
+          &servo_motor_LTV_constraints_SIL_parameters::Parameter::Lshaft)
+      .def_readwrite(
+          "dshaft",
+          &servo_motor_LTV_constraints_SIL_parameters::Parameter::dshaft)
+      .def_readwrite(
+          "shaftrho",
+          &servo_motor_LTV_constraints_SIL_parameters::Parameter::shaftrho)
+      .def_readwrite("G",
+                     &servo_motor_LTV_constraints_SIL_parameters::Parameter::G)
+      .def_readwrite(
+          "Mmotor",
+          &servo_motor_LTV_constraints_SIL_parameters::Parameter::Mmotor)
+      .def_readwrite(
+          "Rmotor",
+          &servo_motor_LTV_constraints_SIL_parameters::Parameter::Rmotor)
+      .def_readwrite(
+          "Bmotor",
+          &servo_motor_LTV_constraints_SIL_parameters::Parameter::Bmotor)
+      .def_readwrite("R",
+                     &servo_motor_LTV_constraints_SIL_parameters::Parameter::R)
+      .def_readwrite("Kt",
+                     &servo_motor_LTV_constraints_SIL_parameters::Parameter::Kt)
+      .def_readwrite(
+          "Bload",
+          &servo_motor_LTV_constraints_SIL_parameters::Parameter::Bload);
+
   m.def("initialize", &initialize, "initialize linear MPC");
   m.def("update_manipulation", &update_manipulation,
         "update MPC with ref and output");
-  m.def("update_parameters", &update_parameters,
-        "update MPC parameters with Mmotor");
+
+  m.def(
+      "update_parameters",
+      [](const servo_motor_LTV_constraints_SIL_parameters::Parameter &param) {
+        lmpc.update_parameters(param);
+      },
+      "update MPC parameters with Parameter struct");
 }

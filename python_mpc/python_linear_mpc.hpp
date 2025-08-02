@@ -224,14 +224,16 @@ public:
   static constexpr std::size_t NP = PredictionMatrices_Type::NP;
   static constexpr std::size_t NC = PredictionMatrices_Type::NC;
 
+  static constexpr std::size_t PREDICTION_SIZE = OUTPUT_SIZE * NP;
+  static constexpr std::size_t CONTROL_SIZE = INPUT_SIZE * NC;
+
   static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
 
   using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
   using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
   using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
 
-  using U_Horizon_Type =
-      PythonControl::StateSpaceInput_Type<_T, (INPUT_SIZE * NC)>;
+  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<_T, CONTROL_SIZE>;
   using X_Augmented_Type =
       PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
   using Y_Store_Type =
@@ -239,14 +241,13 @@ public:
 
   typedef typename std::conditional<
       std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
-      PythonNumpy::DenseMatrix_Type<_T, (INPUT_SIZE * NC), (OUTPUT_SIZE * NP)>,
+      PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
-  static_assert(SolverFactor_Type::COLS == (INPUT_SIZE * NC),
-                "SolverFactor_Type::COLS must be equal to (INPUT_SIZE * NC)");
-  static_assert(SolverFactor_Type::ROWS == (OUTPUT_SIZE * NP),
-                "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
-                "NP)");
+  static_assert(SolverFactor_Type::COLS == CONTROL_SIZE,
+                "SolverFactor_Type::COLS must be equal to CONTROL_SIZE");
+  static_assert(SolverFactor_Type::ROWS == PREDICTION_SIZE,
+                "SolverFactor_Type::ROWS must be equal to PREDICTION_SIZE");
 
 public:
   /* Constructor */
@@ -656,8 +657,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, SolverFactor_Type_In>(
             std::move(other)),
@@ -824,14 +824,16 @@ public:
   static constexpr std::size_t NP = PredictionMatrices_Type::NP;
   static constexpr std::size_t NC = PredictionMatrices_Type::NC;
 
+  static constexpr std::size_t PREDICTION_SIZE = OUTPUT_SIZE * NP;
+  static constexpr std::size_t CONTROL_SIZE = INPUT_SIZE * NC;
+
   static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
 
   using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
   using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
   using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
 
-  using U_Horizon_Type =
-      PythonControl::StateSpaceInput_Type<_T, (INPUT_SIZE * NC)>;
+  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<_T, CONTROL_SIZE>;
   using X_Augmented_Type =
       PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
   using Y_Store_Type =
@@ -839,14 +841,13 @@ public:
 
   typedef typename std::conditional<
       std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
-      PythonNumpy::DenseMatrix_Type<_T, (INPUT_SIZE * NC), (OUTPUT_SIZE * NP)>,
+      PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
-  static_assert(SolverFactor_Type::COLS == (INPUT_SIZE * NC),
-                "SolverFactor_Type::COLS must be equal to (INPUT_SIZE * NC)");
-  static_assert(SolverFactor_Type::ROWS == (OUTPUT_SIZE * NP),
-                "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
-                "NP)");
+  static_assert(SolverFactor_Type::COLS == CONTROL_SIZE,
+                "SolverFactor_Type::COLS must be equal to CONTROL_SIZE");
+  static_assert(SolverFactor_Type::ROWS == PREDICTION_SIZE,
+                "SolverFactor_Type::ROWS must be equal to PREDICTION_SIZE");
 
   using EmbeddedIntegratorStateSpace_Type = typename EmbeddedIntegratorTypes<
       typename LKF_Type::DiscreteStateSpace_Type::A_Type,
@@ -856,7 +857,7 @@ public:
   using Phi_Type = typename PredictionMatrices_Type::Phi_Type;
   using F_Type = typename PredictionMatrices_Type::F_Type;
 
-  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<_T, (INPUT_SIZE * NC)>;
+  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<_T, CONTROL_SIZE>;
 
 protected:
   /* Type */
@@ -1134,6 +1135,10 @@ protected:
   inline void _update_solver_factor(const Phi_Type &Phi,
                                     const Weight_U_Nc_Type &Weight_U_Nc) {
 
+    // So far, "np.linalg.solve(Phi.T @ Phi + Weight_U_Nc, Phi.T)" is used.
+    // QR decomposition is preferred for better numerical stability, but it
+    // costs much memory footprint and calculation time.
+
     auto Phi_T_Phi_W = PythonNumpy::ATranspose_mul_B(Phi, Phi) + Weight_U_Nc;
 
     PythonNumpy::substitute_matrix(
@@ -1399,8 +1404,7 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other)
-  noexcept
+  LTV_MPC(LTV_MPC &&other) noexcept
       : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                               ReferenceTrajectory_Type, Parameter_Type,
                               SolverFactor_Type_In>(std::move(other)),

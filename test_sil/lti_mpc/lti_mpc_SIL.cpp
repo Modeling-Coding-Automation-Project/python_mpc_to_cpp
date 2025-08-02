@@ -1,4 +1,4 @@
-#include "linear_mpc_SIL_wrapper.hpp"
+#include "lti_mpc_SIL_wrapper.hpp"
 #include "python_control.hpp"
 
 #include <pybind11/numpy.h>
@@ -6,17 +6,17 @@
 
 namespace py = pybind11;
 
-using FLOAT = typename linear_mpc_SIL_wrapper::type::Value_Type;
+using FLOAT = typename lti_mpc_SIL_wrapper::type::Value_Type;
 
-constexpr std::size_t INPUT_SIZE = linear_mpc_SIL_wrapper::INPUT_SIZE;
-constexpr std::size_t STATE_SIZE = linear_mpc_SIL_wrapper::STATE_SIZE;
-constexpr std::size_t OUTPUT_SIZE = linear_mpc_SIL_wrapper::OUTPUT_SIZE;
+constexpr std::size_t INPUT_SIZE = lti_mpc_SIL_wrapper::INPUT_SIZE;
+constexpr std::size_t STATE_SIZE = lti_mpc_SIL_wrapper::STATE_SIZE;
+constexpr std::size_t OUTPUT_SIZE = lti_mpc_SIL_wrapper::OUTPUT_SIZE;
 
-using Ref_Type = typename linear_mpc_SIL_wrapper::Ref_Type;
+using Ref_Type = typename lti_mpc_SIL_wrapper::Ref_Type;
 
-linear_mpc_SIL_wrapper::type lmpc;
+lti_mpc_SIL_wrapper::type lmpc;
 
-void initialize(void) { lmpc = linear_mpc_SIL_wrapper::make(); }
+void initialize(void) { lmpc = lti_mpc_SIL_wrapper::make(); }
 
 py::array_t<FLOAT> update(py::array_t<FLOAT> ref_in, py::array_t<FLOAT> Y_in) {
 
@@ -63,7 +63,7 @@ py::array_t<FLOAT> update(py::array_t<FLOAT> ref_in, py::array_t<FLOAT> Y_in) {
   return result;
 }
 
-PYBIND11_MODULE(LinearMpcSIL, m) {
+PYBIND11_MODULE(LtiMpcSIL, m) {
   m.def("initialize", &initialize, "initialize linear MPC");
   m.def("update", &update, "update MPC with ref and output");
 }

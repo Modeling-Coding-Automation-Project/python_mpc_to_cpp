@@ -200,12 +200,16 @@ class MatrixUpdaterToCppVisitor(ast.NodeVisitor):
             unused_args = [
                 arg for arg in update_args if arg not in sympy_func_args]
 
+            self.indent += "    "
             for arg in unused_args:
                 self.cpp_code += f"{self.indent}static_cast<void>({arg});\n"
+            self.indent = self.indent[:-4]
             self.cpp_code += "\n"
 
         if node.name == "sympy_function":
-            self.cpp_code += f"{self.indent}    {ret_type} result;\n\n"
+            self.indent += "    "
+            self.cpp_code += f"{self.indent}{ret_type} result;\n\n"
+            self.indent = self.indent[:-4]
 
         # function body
         self.indent += "    "
@@ -247,11 +251,11 @@ class MatrixUpdaterToCppVisitor(ast.NodeVisitor):
             return_code = np_array_extractor.convert_to_cpp()
             self.SparseAvailable = np_array_extractor.SparseAvailable
             return_code = return_code.replace(
-                "\n", "\n" + self.indent + "    ")
-            self.cpp_code += self.indent + "    " + return_code + "\n"
-            self.cpp_code += self.indent + "    return result;\n"
+                "\n", "\n" + self.indent)
+            self.cpp_code += self.indent + return_code + "\n"
+            self.cpp_code += self.indent + "return result;\n"
         else:
-            self.cpp_code += self.indent + "    return " + return_code + ";\n"
+            self.cpp_code += self.indent + "return " + return_code + ";\n"
 
     def visit_Assign(self, node):
         """

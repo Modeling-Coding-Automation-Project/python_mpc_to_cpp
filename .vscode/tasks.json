@@ -4,11 +4,12 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build Active File",
+      "label": "Build Active C++ File",
       "type": "shell",
       "command": "/usr/bin/g++",
       "args": [
         "-g",
+        "-O0",
         "-std=c++11",
         "-I${workspaceFolder}",
         "-I${workspaceFolder}/mpc_utility",
@@ -29,7 +30,7 @@
         "isDefault": true
       },
       "problemMatcher": ["$gcc"],
-      "detail": "Build the active C++ file"
+      "detail": "Build Active C++ File"
     }
   ]
 }
