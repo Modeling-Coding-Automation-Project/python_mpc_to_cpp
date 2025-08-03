@@ -24,8 +24,9 @@ class CmakeGenerator:
         code_text += f"project({SIL_lib_file_name})\n\n"
 
         code_text += "set(CMAKE_CXX_STANDARD 11)\n"
-        code_text += "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n\n"
-        code_text += "set(CMAKE_CXX_FLAGS_DEBUG \"-O0\")\n"
+        code_text += "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n"
+        code_text += "set(CMAKE_CXX_FLAGS_RELEASE \"-O2\")\n"
+        code_text += "set(CMAKE_CXX_FLAGS_RELEASE \"${CMAKE_CXX_FLAGS_RELEASE} -flto=auto\")\n\n"
 
         code_text += "find_package(pybind11 REQUIRED)\n\n"
 
@@ -93,8 +94,11 @@ class SIL_CodeGenerator:
         subprocess.run(f"rm -rf {build_folder}", shell=True)
         subprocess.run(f"mkdir -p {build_folder}", shell=True)
         subprocess.run(
-            f"cmake -S {self.SIL_folder} -B {build_folder}", shell=True)
-        subprocess.run(f"make -C {build_folder}", shell=True)
+            f"cmake -S {self.SIL_folder} -B {build_folder} -DCMAKE_BUILD_TYPE=Release",
+            shell=True
+        )
+        subprocess.run(
+            f"cmake --build {build_folder} --config Release", shell=True)
 
         subprocess.run(
             f"mv {build_folder}/{generated_file_name}.*so {self.SIL_folder}", shell=True)
