@@ -169,7 +169,7 @@ def main():
 
     X_initial = np.array([[0.0], [0.0], [0.0], [0.0], [0.0], [10.0]])
 
-    Np = 4
+    Np = 16
     Nc = 1
 
     Number_of_Delay = 0
