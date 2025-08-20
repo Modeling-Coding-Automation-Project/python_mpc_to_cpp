@@ -259,7 +259,8 @@ class LinearMPC_Deploy:
 
         deployed_file_names = []
 
-        ControlDeploy.restrict_data_type(lti_mpc.kalman_filter.A.dtype.name)
+        data_type = lti_mpc.kalman_filter.A.dtype
+        ControlDeploy.restrict_data_type(data_type.name)
 
         type_name = NumpyDeploy.check_dtype(lti_mpc.kalman_filter.A)
 
@@ -393,7 +394,7 @@ class LinearMPC_Deploy:
         # create Limits code
         delta_U_min = copy.deepcopy(delta_U_min_active_set)
         delta_U_min = np.array(
-            delta_U_min, dtype=delta_U_max_values.dtype).reshape(-1, 1)
+            delta_U_min, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_min = delta_U_min")
         delta_U_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_min, " +
@@ -405,7 +406,7 @@ class LinearMPC_Deploy:
 
         delta_U_max = copy.deepcopy(delta_U_max_active_set)
         delta_U_max = np.array(
-            delta_U_max, dtype=delta_U_max_values.dtype).reshape(-1, 1)
+            delta_U_max, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_max = delta_U_max")
         delta_U_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_max, " +
@@ -416,7 +417,7 @@ class LinearMPC_Deploy:
             0]
 
         U_min = copy.deepcopy(U_min_active_set)
-        U_min = np.array(U_min, dtype=U_min_values.dtype).reshape(-1, 1)
+        U_min = np.array(U_min, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_U_min = U_min")
         U_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_min, " +
@@ -426,7 +427,7 @@ class LinearMPC_Deploy:
         U_min_file_name_no_extension = U_min_file_name .split(".")[0]
 
         U_max = copy.deepcopy(U_max_active_set)
-        U_max = np.array(U_max, dtype=U_max_values.dtype).reshape(-1, 1)
+        U_max = np.array(U_max, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_U_max = U_max")
         U_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_max, " +
@@ -436,7 +437,7 @@ class LinearMPC_Deploy:
         U_max_file_name_no_extension = U_max_file_name .split(".")[0]
 
         Y_min = copy.deepcopy(Y_min_active_set)
-        Y_min = np.array(Y_min, dtype=Y_min_values.dtype).reshape(-1, 1)
+        Y_min = np.array(Y_min, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_Y_min = Y_min")
         Y_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_min, " +
@@ -446,7 +447,7 @@ class LinearMPC_Deploy:
         Y_min_file_name_no_extension = Y_min_file_name .split(".")[0]
 
         Y_max = copy.deepcopy(Y_max_active_set)
-        Y_max = np.array(Y_max, dtype=Y_max_values.dtype).reshape(-1, 1)
+        Y_max = np.array(Y_max, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_Y_max = Y_max")
         Y_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_max, " +
@@ -965,7 +966,8 @@ class LinearMPC_Deploy:
 
         deployed_file_names = []
 
-        ControlDeploy.restrict_data_type(ltv_mpc.kalman_filter.A.dtype.name)
+        data_type = ltv_mpc.kalman_filter.A.dtype.name
+        ControlDeploy.restrict_data_type(data_type)
 
         type_name = NumpyDeploy.check_dtype(ltv_mpc.kalman_filter.A)
 
@@ -1176,7 +1178,7 @@ class LinearMPC_Deploy:
         # Limits code
         delta_U_min = copy.deepcopy(delta_U_min_active_set)
         delta_U_min = np.array(
-            delta_U_min, dtype=delta_U_max_values.dtype).reshape(-1, 1)
+            delta_U_min, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_min = delta_U_min")
         delta_U_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_min, " +
@@ -1188,7 +1190,7 @@ class LinearMPC_Deploy:
 
         delta_U_max = copy.deepcopy(delta_U_max_active_set)
         delta_U_max = np.array(
-            delta_U_max, dtype=delta_U_max_values.dtype).reshape(-1, 1)
+            delta_U_max, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_delta_U_max = delta_U_max")
         delta_U_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_max, " +
@@ -1199,7 +1201,7 @@ class LinearMPC_Deploy:
             0]
 
         U_min = copy.deepcopy(U_min_active_set)
-        U_min = np.array(U_min, dtype=U_min_values.dtype).reshape(-1, 1)
+        U_min = np.array(U_min, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_U_min = U_min")
         U_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_min, " +
@@ -1209,7 +1211,7 @@ class LinearMPC_Deploy:
         U_min_file_name_no_extension = U_min_file_name .split(".")[0]
 
         U_max = copy.deepcopy(U_max_active_set)
-        U_max = np.array(U_max, dtype=U_max_values.dtype).reshape(-1, 1)
+        U_max = np.array(U_max, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_U_max = U_max")
         U_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_max, " +
@@ -1219,7 +1221,7 @@ class LinearMPC_Deploy:
         U_max_file_name_no_extension = U_max_file_name .split(".")[0]
 
         Y_min = copy.deepcopy(Y_min_active_set)
-        Y_min = np.array(Y_min, dtype=Y_min_values.dtype).reshape(-1, 1)
+        Y_min = np.array(Y_min, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_Y_min = Y_min")
         Y_min_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_min, " +
@@ -1229,7 +1231,7 @@ class LinearMPC_Deploy:
         Y_min_file_name_no_extension = Y_min_file_name .split(".")[0]
 
         Y_max = copy.deepcopy(Y_max_active_set)
-        Y_max = np.array(Y_max, dtype=Y_max_values.dtype).reshape(-1, 1)
+        Y_max = np.array(Y_max, dtype=data_type).reshape(-1, 1)
         exec(f"{variable_name}_Y_max = Y_max")
         Y_max_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_max, " +
