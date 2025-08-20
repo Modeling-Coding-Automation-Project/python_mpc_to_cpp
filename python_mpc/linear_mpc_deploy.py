@@ -345,46 +345,47 @@ class LinearMPC_Deploy:
             0]
 
         # Limits code
+        U_size = lti_mpc.qp_solver.U_size
+        Y_size = lti_mpc.qp_solver.Y_size
+
         delta_U_min_values = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
+        delta_U_min_active_set = np.zeros((U_size, 1), dtype=bool)
         if delta_U_min_values is not None:
-            delta_U_min_active_set = np.zeros(
-                np.size(delta_U_min_values), dtype=bool)
             for i in range(len(delta_U_min_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
                     delta_U_min_active_set[i] = True
 
         delta_U_max_values = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
+        delta_U_max_active_set = np.zeros((U_size, 1), dtype=bool)
         if delta_U_max_values is not None:
-            delta_U_max_active_set = np.zeros(
-                np.size(delta_U_max_values), dtype=bool)
             for i in range(len(delta_U_max_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active(i):
                     delta_U_max_active_set[i] = True
 
         U_min_values = lti_mpc.qp_solver.DU_U_Y_Limits.U_min
+        U_min_active_set = np.zeros((U_size, 1), dtype=bool)
         if U_min_values is not None:
-            U_min_active_set = np.zeros(np.size(U_min_values), dtype=bool)
             for i in range(len(U_min_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active(i):
                     U_min_active_set[i] = True
 
         U_max_values = lti_mpc.qp_solver.DU_U_Y_Limits.U_max
+        U_max_active_set = np.zeros((U_size, 1), dtype=bool)
         if U_max_values is not None:
-            U_max_active_set = np.zeros(np.size(U_max_values), dtype=bool)
             for i in range(len(U_max_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active(i):
                     U_max_active_set[i] = True
 
         Y_min_values = lti_mpc.qp_solver.DU_U_Y_Limits.Y_min
+        Y_min_active_set = np.zeros((Y_size, 1), dtype=bool)
         if Y_min_values is not None:
-            Y_min_active_set = np.zeros(np.size(Y_min_values), dtype=bool)
             for i in range(len(Y_min_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active(i):
                     Y_min_active_set[i] = True
 
         Y_max_values = lti_mpc.qp_solver.DU_U_Y_Limits.Y_max
+        Y_max_active_set = np.zeros((Y_size, 1), dtype=bool)
         if Y_max_values is not None:
-            Y_max_active_set = np.zeros(np.size(Y_max_values), dtype=bool)
             for i in range(len(Y_max_values)):
                 if lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active(i):
                     Y_max_active_set[i] = True
@@ -1127,45 +1128,46 @@ class LinearMPC_Deploy:
             0]
 
         # %% create limits code
+        U_size = ltv_mpc.qp_solver.U_size
+        Y_size = ltv_mpc.qp_solver.Y_size
+
         delta_U_min_values = ltv_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
-        delta_U_min_active_set = np.zeros(
-            np.size(delta_U_min_values), dtype=bool)
+        delta_U_min_active_set = np.zeros((U_size, 1), dtype=bool)
         if delta_U_min_values is not None:
             for i in range(len(delta_U_min_values)):
                 if ltv_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
                     delta_U_min_active_set[i] = True
 
         delta_U_max_values = ltv_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
-        delta_U_max_active_set = np.zeros(
-            np.size(delta_U_max_values), dtype=bool)
+        delta_U_max_active_set = np.zeros((U_size, 1), dtype=bool)
         if delta_U_max_values is not None:
             for i in range(len(delta_U_max_values)):
                 if ltv_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active(i):
                     delta_U_max_active_set[i] = True
 
         U_min_values = ltv_mpc.qp_solver.DU_U_Y_Limits.U_min
-        U_min_active_set = np.zeros(np.size(U_min_values), dtype=bool)
+        U_min_active_set = np.zeros((U_size, 1), dtype=bool)
         if U_min_values is not None:
             for i in range(len(U_min_values)):
                 if ltv_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active(i):
                     U_min_active_set[i] = True
 
         U_max_values = ltv_mpc.qp_solver.DU_U_Y_Limits.U_max
-        U_max_active_set = np.zeros(np.size(U_max_values), dtype=bool)
+        U_max_active_set = np.zeros((U_size, 1), dtype=bool)
         if U_max_values is not None:
             for i in range(len(U_max_values)):
                 if ltv_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active(i):
                     U_max_active_set[i] = True
 
         Y_min_values = ltv_mpc.qp_solver.DU_U_Y_Limits.Y_min
-        Y_min_active_set = np.zeros(np.size(Y_min_values), dtype=bool)
+        Y_min_active_set = np.zeros((Y_size, 1), dtype=bool)
         if Y_min_values is not None:
             for i in range(len(Y_min_values)):
                 if ltv_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active(i):
                     Y_min_active_set[i] = True
 
         Y_max_values = ltv_mpc.qp_solver.DU_U_Y_Limits.Y_max
-        Y_max_active_set = np.zeros(np.size(Y_max_values), dtype=bool)
+        Y_max_active_set = np.zeros((Y_size, 1), dtype=bool)
         if Y_max_values is not None:
             for i in range(len(Y_max_values)):
                 if ltv_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active(i):
