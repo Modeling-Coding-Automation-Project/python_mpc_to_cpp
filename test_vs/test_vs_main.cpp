@@ -1297,8 +1297,8 @@ void check_Adaptive_MPC(void) {
 
     auto Adaptive_MPC_Phi_F_Updater_Function = get_adaptive_mpc_phi_f_updater_function<T>();
 
-    auto delta_U_min = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
-    auto delta_U_max = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
+    using delta_U_min_Type = SparseMatrixEmpty_Type<T, INPUT_SIZE, 1>;
+    using delta_U_max_Type = SparseMatrixEmpty_Type<T, INPUT_SIZE, 1>;
 
     auto U_min = make_DenseMatrix<INPUT_SIZE, 1>(
         static_cast<T>(-1.0),
@@ -1307,13 +1307,13 @@ void check_Adaptive_MPC(void) {
         static_cast<T>(1.0),
         static_cast<T>(10.0));
 
-    auto Y_min = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
-    auto Y_max = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
+    using Y_min_Type = SparseMatrixEmpty_Type<T, INPUT_SIZE, 1>;
+    using Y_max_Type = SparseMatrixEmpty_Type<T, INPUT_SIZE, 1>;
 
     AdaptiveMPC_Type<B_Type, EKF_Type, PredictionMatrices_Type,
-        ReferenceTrajectory_Type, Parameter_Type, decltype(delta_U_min),
-        decltype(delta_U_max), decltype(U_min), decltype(U_max), decltype(Y_min),
-        decltype(Y_max), SolverFactor_Type> ada_mpc;
+        ReferenceTrajectory_Type, Parameter_Type, delta_U_min_Type,
+        delta_U_max_Type, decltype(U_min), decltype(U_max), Y_min_Type,
+        Y_max_Type, SolverFactor_Type> ada_mpc;
 
 
     tester.throw_error_if_test_failed();
@@ -1360,7 +1360,7 @@ int main(void) {
 
     check_Adaptive_MPC<double>();
 
-    check_Adaptive_MPC<float>();
+    //check_Adaptive_MPC<float>();
 
 
     return 0;

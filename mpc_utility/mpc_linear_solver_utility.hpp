@@ -947,7 +947,7 @@ struct Calculate_M_Gamma_U_Min_Condition<M_Type, Gamma_Type, U_min_Matrix_Type,
     M.access(initial_position + I, I) =
         static_cast<typename M_Type::Value_Type>(-1.0);
     gamma.access(initial_position + I, 0) =
-        -U_matrix.template get<I, 0>() + U.template get<0, I>();
+        -U_matrix.template get<I, 0>() + U.template get<I, 0>();
     set_count += 1;
   }
 };
@@ -1135,7 +1135,7 @@ struct Calculate_M_Gamma_U_Max_Condition<M_Type, Gamma_Type, U_max_Matrix_Type,
     M.access(initial_position + I, I) =
         static_cast<typename M_Type::Value_Type>(1.0);
     gamma.access(initial_position + I, 0) =
-        U_matrix.template get<I, 0>() - U.template get<0, I>();
+        U_matrix.template get<I, 0>() - U.template get<I, 0>();
     set_count += 1;
   }
 };
@@ -2087,8 +2087,8 @@ public:
    *
    * @return The number of delta U constraints.
    */
-  inline auto
-  get_number_of_Y_constraints_prediction_offset(void) const -> std::size_t {
+  inline auto get_number_of_Y_constraints_prediction_offset(void) const
+      -> std::size_t {
     return this->_Y_constraints_prediction_offset;
   }
 
