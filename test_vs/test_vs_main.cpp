@@ -1228,7 +1228,7 @@ void check_Adaptive_MPC(void) {
     MCAPTester<T> tester;
 
     // There is a Floating point Numerical instability problem.
-    // constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0);
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0);
 
     /* 定義 */
     constexpr std::size_t NP = PythonMPC_TwoWheelVehicleModelData::NP;
@@ -1329,6 +1329,67 @@ void check_Adaptive_MPC(void) {
             U_min, U_max, Y_min, Y_max,
             solver_factor);
 
+    AdaptiveMPC_Type<B_Type, EKF_Type, PredictionMatrices_Type,
+        ReferenceTrajectory_Type, Parameter_Type, decltype(delta_U_min),
+        decltype(delta_U_max), decltype(U_min), decltype(U_max), decltype(Y_min),
+        decltype(Y_max), SolverFactor_Type> ada_mpc_copy(ada_mpc);
+
+    AdaptiveMPC_Type <B_Type, EKF_Type, PredictionMatrices_Type,
+        ReferenceTrajectory_Type, Parameter_Type, decltype(delta_U_min),
+        decltype(delta_U_max), decltype(U_min), decltype(U_max), decltype(Y_min),
+        decltype(Y_max), SolverFactor_Type> ada_mpc_move = ada_mpc_copy;
+
+    ada_mpc = std::move(ada_mpc_move);
+
+    /* 代入チェック */
+    T F_19_10 = ada_mpc.get_F().template get<19, 10>();
+    T F_19_10_answer = static_cast<T>(1.0);
+
+    tester.expect_near(F_19_10, F_19_10_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, F(19, 10).");
+
+    T Phi_19_1 = ada_mpc.get_Phi().template get<19, 1>();
+    T Phi_19_1_answer = static_cast<T>(0.04);
+
+    tester.expect_near(Phi_19_1, Phi_19_1_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, Phi(19, 1).");
+
+    T solver_factor_1_19 = ada_mpc.get_solver_factor().template get <1, 19>();
+    T solver_factor_1_19_answer = static_cast<T>(0.3883477801943797);
+
+    tester.expect_near(solver_factor_1_19, solver_factor_1_19_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, solver_factor(1, 19).");
+
+    Parameter_Type parameter_test;
+    parameter_test.m = static_cast<T>(0.0);
+    ada_mpc.update_parameters(parameter_test);
+    parameter_test.m = static_cast<T>(2000);
+    ada_mpc.update_parameters(parameter_test);
+
+    /* 計算 */
+    Ref_Type ref;
+    ref(0, 0) = static_cast<T>(0.15);
+    ref(1, 0) = static_cast<T>(0.0);
+    ref(2, 0) = static_cast<T>(0.0);
+    ref(3, 0) = static_cast<T>(0.0);
+    ref(4, 0) = static_cast<T>(15.0);
+
+    Y_Type y_measured;
+    y_measured(0, 0) = static_cast<T>(0.1);
+    y_measured(1, 0) = static_cast<T>(0.0);
+    y_measured(2, 0) = static_cast<T>(0.0);
+    y_measured(3, 0) = static_cast<T>(0.0);
+    y_measured(4, 0) = static_cast<T>(10.0);
+
+    U_Type U_answer;
+    U_answer(0, 0) = static_cast<T>(0.0);
+    U_answer(1, 0) = static_cast<T>(4.85143464);
+
+    auto U = ada_mpc.update_manipulation(ref, y_measured);
+
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC, update_manipulation, U.");
+
 
     tester.throw_error_if_test_failed();
 }
@@ -1374,7 +1435,7 @@ int main(void) {
 
     check_Adaptive_MPC<double>();
 
-    //check_Adaptive_MPC<float>();
+    check_Adaptive_MPC<float>();
 
 
     return 0;
