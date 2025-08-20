@@ -1,8 +1,8 @@
 /**
- * @file two_wheel_vehicle_model.cpp
+ * @file two_wheel_vehicle_model_constraints.cpp
  *
  * @brief Simulation of a two-wheel vehicle model with adaptive MPC (Model
- * Predictive Control) and no constraints.
+ * Predictive Control) and constraints.
  *
  * This program simulates the motion of a two-wheel vehicle using an adaptive
  * MPC controller. The reference trajectory is generated to include a straight
@@ -22,8 +22,9 @@
 #include <vector>
 
 /* CAUTION */
-// You need to run "two_wheel_vehicle_model.py" before running this code.
-#include "two_wheel_vehicle_model_ada_mpc.hpp"
+// You need to run "two_wheel_vehicle_model_constraints.py" before running this
+// code.
+#include "two_wheel_vehicle_model_constraints_ada_mpc.hpp"
 
 #include "python_control.hpp"
 #include "python_mpc.hpp"
@@ -125,15 +126,16 @@ int main(void) {
 
   /* Define MPC */
   constexpr std::size_t STATE_SIZE =
-      two_wheel_vehicle_model_ada_mpc::STATE_SIZE;
+      two_wheel_vehicle_model_constraints_ada_mpc::STATE_SIZE;
   constexpr std::size_t INPUT_SIZE =
-      two_wheel_vehicle_model_ada_mpc::INPUT_SIZE;
+      two_wheel_vehicle_model_constraints_ada_mpc::INPUT_SIZE;
   constexpr std::size_t OUTPUT_SIZE =
-      two_wheel_vehicle_model_ada_mpc::OUTPUT_SIZE;
+      two_wheel_vehicle_model_constraints_ada_mpc::OUTPUT_SIZE;
 
-  auto ada_mpc_nc = two_wheel_vehicle_model_ada_mpc::make();
+  auto ada_mpc_nc = two_wheel_vehicle_model_constraints_ada_mpc::make();
 
-  two_wheel_vehicle_model_ada_mpc_ekf_parameter::Parameter_Type parameters;
+  two_wheel_vehicle_model_constraints_ada_mpc_ekf_parameter::Parameter_Type
+      parameters;
 
   StateSpaceState_Type<double, STATE_SIZE> X;
   X.template set<0, 0>(static_cast<double>(0.0));
@@ -146,17 +148,17 @@ int main(void) {
   StateSpaceInput_Type<double, INPUT_SIZE> U;
   StateSpaceOutput_Type<double, OUTPUT_SIZE> Y;
 
-  two_wheel_vehicle_model_ada_mpc::Ref_Type ref;
+  two_wheel_vehicle_model_constraints_ada_mpc::Ref_Type ref;
   ReferenceSequence reference_sequence =
       create_reference(time, DELTA_TIME, SIMULATION_TIME);
 
   /* Simulation */
   for (std::size_t sim_step = 0; sim_step < MAX_STEP; ++sim_step) {
     /* system response */
-    X = two_wheel_vehicle_model_ada_mpc_ekf_state_function::function(
-        X, U, parameters);
-    Y = two_wheel_vehicle_model_ada_mpc_ekf_measurement_function::function(
-        X, parameters);
+    X = two_wheel_vehicle_model_constraints_ada_mpc_ekf_state_function::
+        function(X, U, parameters);
+    Y = two_wheel_vehicle_model_constraints_ada_mpc_ekf_measurement_function::
+        function(X, parameters);
 
     /* controller */
     ref(0, 0) = reference_sequence.x_sequence[sim_step];

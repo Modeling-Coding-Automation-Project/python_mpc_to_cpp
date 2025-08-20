@@ -615,6 +615,228 @@ using AdaptiveMPC_NoConstraints_Type =
                               ReferenceTrajectory_Type, Parameter_Type,
                               SolverFactor_Type_In>;
 
+/* Adaptive MPC */
+
+/**
+ * @brief Adaptive Model Predictive Control (MPC) class with constraints.
+ *
+ * This class extends AdaptiveMPC_NoConstraints to support constraints on
+ * delta-U, U, and Y via a QP solver. The Phi/F matrices are updated at
+ * runtime using the provided updater function, similar to the no-constraints
+ * version, but optimization is solved with LMPC_QP_Solver.
+ *
+ * @tparam B_Type Type of the system input matrix B.
+ * @tparam EKF_Type Type of the EKF used for state estimation.
+ * @tparam PredictionMatrices_Type Type holding Phi and F.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory.
+ * @tparam Parameter_Type Type of adaptive parameters.
+ * @tparam Delta_U_Min_Type Type for min delta-U constraints.
+ * @tparam Delta_U_Max_Type Type for max delta-U constraints.
+ * @tparam U_Min_Type Type for min U constraints.
+ * @tparam U_Max_Type Type for max U constraints.
+ * @tparam Y_Min_Type Type for min Y constraints.
+ * @tparam Y_Max_Type Type for max Y constraints.
+ * @tparam SolverFactor_Type_In Optional solver-factor type.
+ */
+template <typename B_Type, typename EKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+class AdaptiveMPC
+    : public AdaptiveMPC_NoConstraints<
+          B_Type, EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
+          Parameter_Type, SolverFactor_Type_In> {
+
+protected:
+  using _AdaptiveMPC_NoConstraints_Type =
+      AdaptiveMPC_NoConstraints<B_Type, EKF_Type, PredictionMatrices_Type,
+                                ReferenceTrajectory_Type, Parameter_Type,
+                                SolverFactor_Type_In>;
+
+  using _U_Horizon_Type =
+      typename _AdaptiveMPC_NoConstraints_Type::U_Horizon_Type;
+  using _X_Augmented_Type =
+      typename _AdaptiveMPC_NoConstraints_Type::X_Augmented_Type;
+  using _Weight_U_Nc_Type =
+      typename _AdaptiveMPC_NoConstraints_Type::Weight_U_Nc_Type;
+
+  using _Solver_Type = LMPC_QP_Solver_Type<
+      _U_Horizon_Type::COLS, _AdaptiveMPC_NoConstraints_Type::OUTPUT_SIZE,
+      typename _AdaptiveMPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
+      typename PredictionMatrices_Type::Phi_Type,
+      typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
+      Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+      Y_Max_Type>;
+
+  using _Adaptive_MPC_Phi_F_Updater_Function_Object =
+      typename _AdaptiveMPC_NoConstraints_Type::
+          _Adaptive_MPC_Phi_F_Updater_Function_Object;
+
+public:
+  /* Constructor */
+  AdaptiveMPC() : _AdaptiveMPC_NoConstraints_Type(), _solver() {}
+
+  template <typename SolverFactor_Type>
+  AdaptiveMPC(
+      const EKF_Type &kalman_filter,
+      const PredictionMatrices_Type &prediction_matrices,
+      const ReferenceTrajectory_Type &reference_trajectory,
+      const _Weight_U_Nc_Type &Weight_U_Nc,
+      _Adaptive_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function,
+      const Delta_U_Min_Type &delta_U_min, const Delta_U_Max_Type &delta_U_max,
+      const U_Min_Type &U_min, const U_Max_Type &U_max, const Y_Min_Type &Y_min,
+      const Y_Max_Type &Y_max, const SolverFactor_Type &solver_factor_in)
+      : _AdaptiveMPC_NoConstraints_Type(kalman_filter, prediction_matrices,
+                                        reference_trajectory, solver_factor_in,
+                                        Weight_U_Nc, phi_f_updater_function),
+        _solver() {
+
+    auto X_augmented = PythonNumpy::concatenate_vertically(
+        this->_X_inner_model, this->_Y_store.get());
+
+    this->_solver =
+        make_LMPC_QP_Solver<_U_Horizon_Type::COLS,
+                            _AdaptiveMPC_NoConstraints_Type::OUTPUT_SIZE>(
+            this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
+            this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
+            U_min, U_max, Y_min, Y_max);
+  }
+
+  /* Copy Constructor */
+  AdaptiveMPC(const AdaptiveMPC &other)
+      : _AdaptiveMPC_NoConstraints_Type(other), _solver(other._solver) {}
+
+  AdaptiveMPC &operator=(const AdaptiveMPC &other) {
+    if (this != &other) {
+      this->_AdaptiveMPC_NoConstraints_Type::operator=(other);
+      this->_solver = other._solver;
+    }
+    return *this;
+  }
+
+  /* Move Constructor */
+  AdaptiveMPC(AdaptiveMPC &&other) noexcept
+      : _AdaptiveMPC_NoConstraints_Type(std::move(other)),
+        _solver(std::move(other._solver)) {}
+
+  AdaptiveMPC &operator=(AdaptiveMPC &&other) noexcept {
+    if (this != &other) {
+      this->_AdaptiveMPC_NoConstraints_Type::operator=(std::move(other));
+      this->_solver = std::move(other._solver);
+    }
+    return *this;
+  }
+
+protected:
+  /* Function */
+
+  /**
+   * @brief Solves the adaptive MPC optimization problem for the given augmented
+   * state.
+   *
+   * This method updates the solver's constraints based on the latest control
+   * input, the current augmented state, and the prediction matrices. It then
+   * solves the optimization problem to compute the optimal change in control
+   * input (delta_U) over the prediction horizon, given the reference trajectory
+   * and current state.
+   *
+   * @param X_augmented The current augmented state vector.
+   * @return _U_Horizon_Type The computed optimal change in control input over
+   * the horizon.
+   */
+  inline auto _solve(const _X_Augmented_Type &X_augmented)
+      -> _U_Horizon_Type override {
+
+    this->_solver.update_constraints(this->_U_latest, X_augmented,
+                                     this->_prediction_matrices.Phi,
+                                     this->_prediction_matrices.F);
+
+    auto delta_U = this->_solver.solve(
+        this->_prediction_matrices.Phi, this->_prediction_matrices.F,
+        this->_reference_trajectory, X_augmented);
+
+    return delta_U;
+  }
+
+protected:
+  /* Variables */
+  _Solver_Type _solver;
+};
+
+/* make Adaptive MPC */
+
+/**
+ * @brief Factory function to create an instance of AdaptiveMPC.
+ *
+ * This function initializes the AdaptiveMPC class with the provided Kalman
+ * filter, prediction matrices, reference trajectory, weight matrix for control
+ * input changes, Phi/F updater function, constraints, and solver factor.
+ *
+ * @tparam B_Type Type of the system input matrix.
+ * @tparam EKF_Type Type of the Extended Kalman Filter used for state
+ * estimation.
+ * @tparam PredictionMatrices_Type Type of the prediction matrices used in MPC.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory used in
+ * MPC.
+ * @tparam Parameter_Type Type of the parameters used for updating the MPC.
+ * @tparam Delta_U_Min_Type Type for min delta-U constraints.
+ * @tparam Delta_U_Max_Type Type for max delta-U constraints.
+ * @tparam U_Min_Type Type for min U constraints.
+ * @tparam U_Max_Type Type for max U constraints.
+ * @tparam Y_Min_Type Type for min Y constraints.
+ * @tparam Y_Max_Type Type for max Y constraints.
+ * @tparam SolverFactor_Type_In Type of the solver factor used in MPC (default
+ * is empty).
+ */
+template <typename B_Type, typename EKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type, typename SolverFactor_Type_In,
+          typename Weight_U_Nc_Type, typename X_Type, typename U_Type,
+          typename EmbeddedIntegratorStateSpace_Type>
+inline auto make_AdaptiveMPC(
+    const EKF_Type &kalman_filter,
+    const PredictionMatrices_Type &prediction_matrices,
+    const ReferenceTrajectory_Type &reference_trajectory,
+    const Weight_U_Nc_Type &Weight_U_Nc,
+    Adaptive_MPC_Phi_F_Updater_Function_Object<
+        X_Type, U_Type, Parameter_Type,
+        typename PredictionMatrices_Type::Phi_Type,
+        typename PredictionMatrices_Type::F_Type,
+        EmbeddedIntegratorStateSpace_Type> &phi_f_updater_function,
+    const Delta_U_Min_Type &delta_U_min, const Delta_U_Max_Type &delta_U_max,
+    const U_Min_Type &U_min, const U_Max_Type &U_max, const Y_Min_Type &Y_min,
+    const Y_Max_Type &Y_max, const SolverFactor_Type_In &solver_factor_in)
+    -> AdaptiveMPC<B_Type, EKF_Type, PredictionMatrices_Type,
+                   ReferenceTrajectory_Type, Parameter_Type, Delta_U_Min_Type,
+                   Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                   Y_Max_Type, SolverFactor_Type_In> {
+
+  return AdaptiveMPC<B_Type, EKF_Type, PredictionMatrices_Type,
+                     ReferenceTrajectory_Type, Parameter_Type, Delta_U_Min_Type,
+                     Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                     Y_Max_Type, SolverFactor_Type_In>(
+      kalman_filter, prediction_matrices, reference_trajectory, Weight_U_Nc,
+      phi_f_updater_function, delta_U_min, delta_U_max, U_min, U_max, Y_min,
+      Y_max, solver_factor_in);
+}
+
+/* Adaptive MPC Type */
+template <typename B_Type, typename EKF_Type, typename PredictionMatrices_Type,
+          typename ReferenceTrajectory_Type, typename Parameter_Type,
+          typename Delta_U_Min_Type, typename Delta_U_Max_Type,
+          typename U_Min_Type, typename U_Max_Type, typename Y_Min_Type,
+          typename Y_Max_Type,
+          typename SolverFactor_Type_In = SolverFactor_Empty>
+using AdaptiveMPC_Type =
+    AdaptiveMPC<B_Type, EKF_Type, PredictionMatrices_Type,
+                ReferenceTrajectory_Type, Parameter_Type, Delta_U_Min_Type,
+                Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
+                Y_Max_Type, SolverFactor_Type_In>;
+
 } // namespace PythonMPC
 
 #endif // __PYTHON_ADAPTIVE_MPC_HPP__

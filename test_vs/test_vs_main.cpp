@@ -1219,6 +1219,181 @@ void check_Adaptive_MPC_NoConstraints(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_Adaptive_MPC(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    // There is a Floating point Numerical instability problem.
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0);
+
+    /* 定義 */
+    constexpr std::size_t NP = PythonMPC_TwoWheelVehicleModelData::NP;
+    constexpr std::size_t NC = PythonMPC_TwoWheelVehicleModelData::NC;
+
+    constexpr std::size_t INPUT_SIZE = PythonMPC_TwoWheelVehicleModelData::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = PythonMPC_TwoWheelVehicleModelData::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = PythonMPC_TwoWheelVehicleModelData::OUTPUT_SIZE;
+
+    constexpr std::size_t AUGMENTED_STATE_SIZE = PythonMPC_TwoWheelVehicleModelData::AUGMENTED_STATE_SIZE;
+
+    using EKF_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::type<T>;
+
+    using A_Type = typename EKF_Type::A_Type;
+
+    using B_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_B::type<T>;
+
+    using C_Type = typename EKF_Type::C_Type;
+
+    using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
+
+    using Y_Type = StateSpaceOutput_Type<T, OUTPUT_SIZE>;
+
+    using U_Type = StateSpaceInput_Type<T, INPUT_SIZE>;
+
+    using F_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::type<T>;
+
+    using Phi_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::type<T>;
+
+    using SolverFactor_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::type<T>;
+
+    using PredictionMatrices_Type = MPC_PredictionMatrices_Type<
+        F_Type, Phi_Type, NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;
+
+    using Ref_Type = DenseMatrix_Type<T, OUTPUT_SIZE, 1>;
+
+    using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<
+        Ref_Type, NP>;
+
+    using Parameter_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf_parameter::Parameter_Type<T>;
+
+    using Weight_U_Nc_Type = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::type<T>;
+
+    using EmbeddedIntegratorStateSpace_Type =
+        typename EmbeddedIntegratorTypes<A_Type, B_Type, C_Type>::StateSpace_Type;
+
+    auto kalman_filter = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_ekf::make<T>();
+    kalman_filter.X_hat.template set<0, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<1, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<2, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<3, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<4, 0>(static_cast<T>(0.0));
+    kalman_filter.X_hat.template set<5, 0>(static_cast<T>(10.0));
+
+    auto F = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_F::make<T>();
+
+    auto Phi = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Phi::make<T>();
+
+    auto solver_factor = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_solver_factor::make<T>();
+
+    PredictionMatrices_Type prediction_matrices(F, Phi);
+
+    ReferenceTrajectory_Type reference_trajectory;
+
+    Weight_U_Nc_Type Weight_U_Nc = PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ada_mpc_Weight_U_Nc::make<T>();
+
+    auto Adaptive_MPC_Phi_F_Updater_Function = get_adaptive_mpc_phi_f_updater_function<T>();
+
+
+    auto delta_U_min = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
+    auto delta_U_max = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
+
+    auto U_min = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(-1.0),
+        static_cast<T>(-10.0));
+    auto U_max = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(1.0),
+        static_cast<T>(10.0));
+
+    auto Y_min = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
+    auto Y_max = make_SparseMatrixEmpty<T, INPUT_SIZE, 1>();
+
+    AdaptiveMPC_Type<B_Type, EKF_Type, PredictionMatrices_Type,
+        ReferenceTrajectory_Type, Parameter_Type, decltype(delta_U_min),
+        decltype(delta_U_max), decltype(U_min), decltype(U_max), decltype(Y_min),
+        decltype(Y_max), SolverFactor_Type> ada_mpc = make_AdaptiveMPC<
+        B_Type, EKF_Type, PredictionMatrices_Type,
+        ReferenceTrajectory_Type, Parameter_Type,
+        decltype(delta_U_min), decltype(delta_U_max),
+        decltype(U_min), decltype(U_max), decltype(Y_min),
+        decltype(Y_max), SolverFactor_Type,
+        Weight_U_Nc_Type, X_Type, U_Type,
+        EmbeddedIntegratorStateSpace_Type>(
+            kalman_filter,
+            prediction_matrices, reference_trajectory,
+            Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function,
+            delta_U_min, delta_U_max,
+            U_min, U_max, Y_min, Y_max,
+            solver_factor);
+
+    AdaptiveMPC_Type<B_Type, EKF_Type, PredictionMatrices_Type,
+        ReferenceTrajectory_Type, Parameter_Type, decltype(delta_U_min),
+        decltype(delta_U_max), decltype(U_min), decltype(U_max), decltype(Y_min),
+        decltype(Y_max), SolverFactor_Type> ada_mpc_copy(ada_mpc);
+
+    AdaptiveMPC_Type <B_Type, EKF_Type, PredictionMatrices_Type,
+        ReferenceTrajectory_Type, Parameter_Type, decltype(delta_U_min),
+        decltype(delta_U_max), decltype(U_min), decltype(U_max), decltype(Y_min),
+        decltype(Y_max), SolverFactor_Type> ada_mpc_move = ada_mpc_copy;
+
+    ada_mpc = std::move(ada_mpc_move);
+
+    /* 代入チェック */
+    T F_19_10 = ada_mpc.get_F().template get<19, 10>();
+    T F_19_10_answer = static_cast<T>(1.0);
+
+    tester.expect_near(F_19_10, F_19_10_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, F(19, 10).");
+
+    T Phi_19_1 = ada_mpc.get_Phi().template get<19, 1>();
+    T Phi_19_1_answer = static_cast<T>(0.04);
+
+    tester.expect_near(Phi_19_1, Phi_19_1_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, Phi(19, 1).");
+
+    T solver_factor_1_19 = ada_mpc.get_solver_factor().template get <1, 19>();
+    T solver_factor_1_19_answer = static_cast<T>(0.3883477801943797);
+
+    tester.expect_near(solver_factor_1_19, solver_factor_1_19_answer, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC No Constraints, solver_factor(1, 19).");
+
+    Parameter_Type parameter_test;
+    parameter_test.m = static_cast<T>(0.0);
+    ada_mpc.update_parameters(parameter_test);
+    parameter_test.m = static_cast<T>(2000);
+    ada_mpc.update_parameters(parameter_test);
+
+    /* 計算 */
+    Ref_Type ref;
+    ref(0, 0) = static_cast<T>(0.15);
+    ref(1, 0) = static_cast<T>(0.0);
+    ref(2, 0) = static_cast<T>(0.0);
+    ref(3, 0) = static_cast<T>(0.0);
+    ref(4, 0) = static_cast<T>(15.0);
+
+    Y_Type y_measured;
+    y_measured(0, 0) = static_cast<T>(0.1);
+    y_measured(1, 0) = static_cast<T>(0.0);
+    y_measured(2, 0) = static_cast<T>(0.0);
+    y_measured(3, 0) = static_cast<T>(0.0);
+    y_measured(4, 0) = static_cast<T>(10.0);
+
+    U_Type U_answer;
+    U_answer(0, 0) = static_cast<T>(0.0);
+    U_answer(1, 0) = static_cast<T>(4.85143464);
+
+    auto U = ada_mpc.update_manipulation(ref, y_measured);
+
+    tester.expect_near(U.matrix.data, U_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check Adaptive MPC, update_manipulation, U.");
+
+
+    tester.throw_error_if_test_failed();
+}
+
 
 int main(void) {
 
@@ -1257,6 +1432,10 @@ int main(void) {
     check_Adaptive_MPC_NoConstraints<double>();
 
     check_Adaptive_MPC_NoConstraints<float>();
+
+    check_Adaptive_MPC<double>();
+
+    check_Adaptive_MPC<float>();
 
 
     return 0;

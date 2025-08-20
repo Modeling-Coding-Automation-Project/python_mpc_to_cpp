@@ -641,16 +641,11 @@ public:
 
   /* Copy Constructor */
   LTI_MPC(const LTI_MPC &other)
-      : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
-                              ReferenceTrajectory_Type, SolverFactor_Type_In>(
-            other),
-        _solver(other._solver) {}
+      : _LTI_MPC_NoConstraints_Type(other), _solver(other._solver) {}
 
   LTI_MPC &operator=(const LTI_MPC &other) {
     if (this != &other) {
-      this->LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
-                                  ReferenceTrajectory_Type,
-                                  SolverFactor_Type_In>::operator=(other);
+      this->_LTI_MPC_NoConstraints_Type::operator=(other);
       this->_solver = other._solver;
     }
     return *this;
@@ -658,16 +653,12 @@ public:
 
   /* Move Constructor */
   LTI_MPC(LTI_MPC &&other) noexcept
-      : LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
-                              ReferenceTrajectory_Type, SolverFactor_Type_In>(
-            std::move(other)),
+      : _LTI_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 
   LTI_MPC &operator=(LTI_MPC &&other) noexcept {
     if (this != &other) {
-      this->LTI_MPC_NoConstraints<
-          LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-          SolverFactor_Type_In>::operator=(std::move(other));
+      this->_LTI_MPC_NoConstraints_Type::operator=(std::move(other));
       this->_solver = std::move(other._solver);
     }
     return *this;
@@ -1388,16 +1379,11 @@ public:
 
   /* Copy Constructor */
   LTV_MPC(const LTV_MPC &other)
-      : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
-                              ReferenceTrajectory_Type, Parameter_Type,
-                              SolverFactor_Type_In>(other),
-        _solver(other._solver) {}
+      : _LTV_MPC_NoConstraints_Type(other), _solver(other._solver) {}
 
   LTV_MPC &operator=(const LTV_MPC &other) {
     if (this != &other) {
-      this->LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
-                                  ReferenceTrajectory_Type, Parameter_Type,
-                                  SolverFactor_Type_In>::operator=(other);
+      this->_LTV_MPC_NoConstraints_Type::operator=(other);
       this->_solver = other._solver;
     }
     return *this;
@@ -1405,16 +1391,12 @@ public:
 
   /* Move Constructor */
   LTV_MPC(LTV_MPC &&other) noexcept
-      : LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
-                              ReferenceTrajectory_Type, Parameter_Type,
-                              SolverFactor_Type_In>(std::move(other)),
+      : _LTV_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 
   LTV_MPC &operator=(LTV_MPC &&other) noexcept {
     if (this != &other) {
-      this->LTV_MPC_NoConstraints<
-          LKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,
-          Parameter_Type, SolverFactor_Type_In>::operator=(std::move(other));
+      this->_LTV_MPC_NoConstraints_Type::operator=(std::move(other));
       this->_solver = std::move(other._solver);
     }
     return *this;
