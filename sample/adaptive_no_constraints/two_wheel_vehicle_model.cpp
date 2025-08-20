@@ -1,5 +1,6 @@
 /**
  * @file two_wheel_vehicle_model.cpp
+ *
  * @brief Simulation of a two-wheel vehicle model with adaptive MPC (Model
  * Predictive Control) and no constraints.
  *

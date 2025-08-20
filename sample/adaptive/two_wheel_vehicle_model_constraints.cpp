@@ -1,3 +1,21 @@
+/**
+ * @file two_wheel_vehicle_model_constraints.cpp
+ *
+ * @brief Simulation of a two-wheel vehicle model with adaptive MPC (Model
+ * Predictive Control) and constraints.
+ *
+ * This program simulates the motion of a two-wheel vehicle using an adaptive
+ * MPC controller. The reference trajectory is generated to include a straight
+ * segment followed by a curve, and the controller attempts to track this
+ * reference using the vehicle model.
+ *
+ * Usage:
+ * - Compile and run after generating the required model files from Python.
+ * - Outputs the measured states and control inputs at each simulation step.
+ *
+ * @note This code assumes the existence of generated C++ headers and types from
+ * the Python modeling pipeline.
+ */
 #include <algorithm>
 #include <cmath>
 #include <iostream>

@@ -381,7 +381,35 @@ class AdaptiveMPC_Deploy:
     def generate_Adaptive_MPC_cpp_code(
             ada_mpc: AdaptiveMPC,
             file_name=None):
+        """
+        Generates C++ header files for deploying an Adaptive Model Predictive Controller (MPC) based on the provided
+        AdaptiveMPC Python object. The function extracts all necessary matrices, parameters, and configuration from the
+        ada_mpc instance, generates corresponding C++ code for each component (such as Kalman filter, prediction matrices,
+        constraints, and updater functions), and writes them to header files. The main integration header file is also
+        generated, which includes all required components and defines the C++ types and factory function for the Adaptive MPC.
 
+        Args:
+            ada_mpc (AdaptiveMPC): The AdaptiveMPC Python object containing all controller parameters, matrices, and
+                configuration required for code generation.
+            file_name (str, optional): The base name for the generated files. If None, the caller's filename and the
+                variable name of ada_mpc are used to construct the file names.
+
+        Returns:
+            List[str]: A list of file names (with extensions) of all generated C++ header files, including the main
+                integration header and all supporting component headers.
+
+        Raises:
+            ValueError: If no parameter file is found in the generated EKF deployment files.
+
+        Notes:
+            - The function inspects the caller's frame to determine the variable name of ada_mpc if file_name is not provided.
+            - Uses several helper classes and functions (e.g., NumpyDeploy, KalmanFilterDeploy, AdaptiveMatricesDeploy,
+                ControlDeploy) to generate C++ code for matrices and controller components.
+            - Handles the generation of code for system matrices, Kalman filter, prediction matrices, solver factors,
+                weight matrices, and all input/output constraints.
+            - The generated C++ code is intended for use with a specific C++ MPC framework that expects certain types and
+                factory functions.
+        """
         parameters = ada_mpc.kalman_filter.Parameters
         number_of_delay = ada_mpc.kalman_filter.Number_of_Delay
 

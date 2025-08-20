@@ -1,3 +1,15 @@
+"""
+File: two_wheel_vehicle_model_constraints.py
+
+This script implements and simulates an adaptive Model Predictive Control (MPC)
+system for a two-wheel vehicle model with constraints.
+The vehicle dynamics are symbolically derived using SymPy,
+including the state-space and measurement models and their Jacobians.
+The simulation runs a closed-loop control scenario,
+where the MPC tracks a reference trajectory for vehicle position and speed.
+The code also visualizes the results using a custom plotter,
+allowing analysis of the controller's performance over time.
+"""
 import os
 import sys
 sys.path.append(os.getcwd())
