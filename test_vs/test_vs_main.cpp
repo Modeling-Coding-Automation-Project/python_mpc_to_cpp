@@ -1219,6 +1219,23 @@ void check_Adaptive_MPC_NoConstraints(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_Adaptive_MPC(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    // There is a Floating point Numerical instability problem.
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0);
+
+
+
+
+    tester.throw_error_if_test_failed();
+}
+
 
 int main(void) {
 
@@ -1257,6 +1274,10 @@ int main(void) {
     check_Adaptive_MPC_NoConstraints<double>();
 
     check_Adaptive_MPC_NoConstraints<float>();
+
+    check_Adaptive_MPC<double>();
+
+    check_Adaptive_MPC<float>();
 
 
     return 0;
