@@ -856,9 +856,10 @@ class AdaptiveMPC_Deploy:
             f"      Y_Max_Type, SolverFactor_Type, Weight_U_Nc_Type,\n" + \
             f"      X_Type, U_Type,\n" + \
             f"      EmbeddedIntegratorStateSpace_Type>(\n" + \
-            f"      kalman_filter, prediction_matrices, reference_trajectory, solver_factor,\n" + \
-            f"      Weight_U_Nc, delta_U_min, delta_U_max, U_min, U_max, Y_min,\n" + \
-            f"      Y_max, Adaptive_MPC_Phi_F_Updater_Function);\n\n"
+            f"      kalman_filter, prediction_matrices, reference_trajectory,\n" + \
+            f"      Weight_U_Nc, Adaptive_MPC_Phi_F_Updater_Function,\n" + \
+            f"      delta_U_min, delta_U_max, U_min, U_max, Y_min,\n" + \
+            f"      Y_max, solver_factor);\n\n"
 
         code_text += "  return adaptive_mpc;\n\n"
 
