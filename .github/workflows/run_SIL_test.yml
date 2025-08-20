@@ -2,7 +2,7 @@ name: Run SIL test
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, feature/* ]
 
 jobs:
 
@@ -47,3 +47,4 @@ jobs:
         /opt/venv_py_MCAP/bin/python3 ./test_sil/servo_motor_ltv_mpc/servo_motor_LTV_SIL.py
         /opt/venv_py_MCAP/bin/python3 ./test_sil/servo_motor_ltv_mpc_constraints/servo_motor_LTV_constraints_SIL.py
         /opt/venv_py_MCAP/bin/python3 ./test_sil/adaptive_mpc_two_wheel_vehicle/two_wheel_vehicle_model_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/adaptive_mpc_two_wheel_vehicle_constraints/two_wheel_vehicle_model_constraints_SIL.py
