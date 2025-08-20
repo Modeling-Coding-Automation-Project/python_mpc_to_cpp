@@ -160,7 +160,7 @@ class AdaptiveMPC_Deploy:
             ada_mpc_nc.state_space_initializer.Adaptive_MPC_Phi_F_updater_file_name
         Adaptive_MPC_Phi_F_updater_name_no_extension = \
             Adaptive_MPC_Phi_F_updater_file_name.split(".")[0]
-        Adaptive_MPC_Phi_F_updater_cpp_name = Adaptive_MPC_Phi_F_updater_name_no_extension + ".hpp"
+        Adaptive_MPC_Phi_F_updater_hpp_name = Adaptive_MPC_Phi_F_updater_name_no_extension + ".hpp"
 
         Adaptive_MPC_Phi_F_updater_code = \
             AdaptiveMatricesDeploy.generate_adaptive_mpc_phi_f_updater_cpp_code(
@@ -168,10 +168,10 @@ class AdaptiveMPC_Deploy:
                 embedded_integrator_updater_cpp_name,
                 prediction_matrices_updater_cpp_name)
 
-        Adaptive_MPC_Phi_F_updater_cpp_name_ext = ControlDeploy.write_to_file(
-            Adaptive_MPC_Phi_F_updater_code, Adaptive_MPC_Phi_F_updater_cpp_name)
+        Adaptive_MPC_Phi_F_updater_hpp_name_ext = ControlDeploy.write_to_file(
+            Adaptive_MPC_Phi_F_updater_code, Adaptive_MPC_Phi_F_updater_hpp_name)
 
-        deployed_file_names.append(Adaptive_MPC_Phi_F_updater_cpp_name_ext)
+        deployed_file_names.append(Adaptive_MPC_Phi_F_updater_hpp_name_ext)
 
         # %% create EKF, F, Phi, solver_factor, Weight_U_Nc code
         exec(f"{variable_name}_ekf = ada_mpc_nc.kalman_filter")
@@ -258,7 +258,7 @@ class AdaptiveMPC_Deploy:
         code_text += f"#include \"{solver_factor_file_name}\"\n"
         code_text += f"#include \"{Weight_U_Nc_file_name}\"\n"
         code_text += f"#include \"{parameter_code_file_name}\"\n"
-        code_text += f"#include \"{Adaptive_MPC_Phi_F_updater_cpp_name}\"\n\n"
+        code_text += f"#include \"{Adaptive_MPC_Phi_F_updater_hpp_name}\"\n\n"
 
         code_text += "#include \"python_mpc.hpp\"\n\n"
 
@@ -345,14 +345,11 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"  Weight_U_Nc_Type Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
-        adaptive_mpc_phi_f_updater_name = caller_file_name_without_ext + \
-            "_adaptive_mpc_phi_f_updater"
-
         code_text += f"  Adaptive_MPC_Phi_F_Updater_Function_Object<\n" + \
             f"    X_Type, U_Type, Parameter_Type,\n" + \
             f"    Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>\n" + \
             f"    Adaptive_MPC_Phi_F_Updater_Function =\n" + \
-            f"    {adaptive_mpc_phi_f_updater_name}::Adaptive_MPC_Phi_F_Updater::update<\n" + \
+            f"    {Adaptive_MPC_Phi_F_updater_name_no_extension}::Adaptive_MPC_Phi_F_Updater::update<\n" + \
             f"      X_Type, U_Type, Parameter_Type,\n" + \
             f"      Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;\n\n"
 
@@ -471,7 +468,7 @@ class AdaptiveMPC_Deploy:
             ada_mpc.state_space_initializer.Adaptive_MPC_Phi_F_updater_file_name
         Adaptive_MPC_Phi_F_updater_name_no_extension = \
             Adaptive_MPC_Phi_F_updater_file_name.split(".")[0]
-        Adaptive_MPC_Phi_F_updater_cpp_name = Adaptive_MPC_Phi_F_updater_name_no_extension + ".hpp"
+        Adaptive_MPC_Phi_F_updater_hpp_name = Adaptive_MPC_Phi_F_updater_name_no_extension + ".hpp"
 
         Adaptive_MPC_Phi_F_updater_code = \
             AdaptiveMatricesDeploy.generate_adaptive_mpc_phi_f_updater_cpp_code(
@@ -479,10 +476,10 @@ class AdaptiveMPC_Deploy:
                 embedded_integrator_updater_cpp_name,
                 prediction_matrices_updater_cpp_name)
 
-        Adaptive_MPC_Phi_F_updater_cpp_name_ext = ControlDeploy.write_to_file(
-            Adaptive_MPC_Phi_F_updater_code, Adaptive_MPC_Phi_F_updater_cpp_name)
+        Adaptive_MPC_Phi_F_updater_hpp_name_ext = ControlDeploy.write_to_file(
+            Adaptive_MPC_Phi_F_updater_code, Adaptive_MPC_Phi_F_updater_hpp_name)
 
-        deployed_file_names.append(Adaptive_MPC_Phi_F_updater_cpp_name_ext)
+        deployed_file_names.append(Adaptive_MPC_Phi_F_updater_hpp_name_ext)
 
         # %% create EKF, F, Phi, solver_factor, Weight_U_Nc code
         exec(f"{variable_name}_ekf = ada_mpc.kalman_filter")
@@ -680,7 +677,14 @@ class AdaptiveMPC_Deploy:
         code_text += f"#include \"{solver_factor_file_name}\"\n"
         code_text += f"#include \"{Weight_U_Nc_file_name}\"\n"
         code_text += f"#include \"{parameter_code_file_name}\"\n"
-        code_text += f"#include \"{Adaptive_MPC_Phi_F_updater_cpp_name}\"\n\n"
+        code_text += f"#include \"{Adaptive_MPC_Phi_F_updater_hpp_name}\"\n\n"
+
+        code_text += f"#include \"{delta_U_min_file_name}\"\n"
+        code_text += f"#include \"{delta_U_max_file_name}\"\n"
+        code_text += f"#include \"{U_min_file_name}\"\n"
+        code_text += f"#include \"{U_max_file_name}\"\n"
+        code_text += f"#include \"{Y_min_file_name}\"\n"
+        code_text += f"#include \"{Y_max_file_name}\"\n\n"
 
         code_text += "#include \"python_mpc.hpp\"\n\n"
 
@@ -837,18 +841,15 @@ class AdaptiveMPC_Deploy:
 
         code_text += f"  Weight_U_Nc_Type Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
-        adaptive_mpc_phi_f_updater_name = caller_file_name_without_ext + \
-            "_adaptive_mpc_phi_f_updater"
-
         code_text += f"  Adaptive_MPC_Phi_F_Updater_Function_Object<\n" + \
             f"    X_Type, U_Type, Parameter_Type,\n" + \
             f"    Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>\n" + \
             f"    Adaptive_MPC_Phi_F_Updater_Function =\n" + \
-            f"    {adaptive_mpc_phi_f_updater_name}::Adaptive_MPC_Phi_F_Updater::update<\n" + \
+            f"    {Adaptive_MPC_Phi_F_updater_name_no_extension}::Adaptive_MPC_Phi_F_Updater::update<\n" + \
             f"      X_Type, U_Type, Parameter_Type,\n" + \
             f"      Phi_Type, F_Type, EmbeddedIntegratorStateSpace_Type>;\n\n"
 
-        code_text += f"  auto adaptive_mpc = make_AdaptiveMPC_NoConstraints<B_Type,\n" + \
+        code_text += f"  auto adaptive_mpc = make_AdaptiveMPC<B_Type,\n" + \
             f"      EKF_Type, PredictionMatrices_Type,\n" + \
             f"      ReferenceTrajectory_Type, Parameter_Type, Delta_U_Min_Type,\n" + \
             f"      Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,\n" + \
