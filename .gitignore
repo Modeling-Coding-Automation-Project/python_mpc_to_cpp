@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Windows app
 *.exe
+
+# build directory
+build/
