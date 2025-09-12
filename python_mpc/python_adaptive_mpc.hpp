@@ -560,7 +560,7 @@ protected:
   _Adaptive_MPC_Phi_F_Updater_Function_Object _phi_f_updater_function;
 };
 
-/* make LTV MPC No Constraints */
+/* make Adaptive MPC No Constraints */
 
 /**
  * @brief Factory function to create an instance of AdaptiveMPC_NoConstraints.
