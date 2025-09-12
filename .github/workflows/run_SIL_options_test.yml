@@ -1,4 +1,4 @@
-name: Run SIL test
+name: Run SIL for options test
 
 on:
   push:
@@ -47,18 +47,8 @@ jobs:
 
         '
     - name: Run SIL tests
-      run: '/opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/state_space_SISO_SIL.py
+      run: '/opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/state_space_SISO_trajectory_SIL.py
 
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/servo_motor_SIL.py
-
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/servo_motor_constraints_SIL.py
-
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/servo_motor_ltv_mpc/servo_motor_LTV_SIL.py
-
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/servo_motor_ltv_mpc_constraints/servo_motor_LTV_constraints_SIL.py
-
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/adaptive_mpc_two_wheel_vehicle/two_wheel_vehicle_model_SIL.py
-
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/adaptive_mpc_two_wheel_vehicle_constraints/two_wheel_vehicle_model_constraints_SIL.py
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/adaptive_mpc_two_wheel_vehicle_constraints_delay/two_wheel_vehicle_model_constraints_delay_SIL.py
 
         '

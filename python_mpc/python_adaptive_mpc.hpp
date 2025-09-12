@@ -42,21 +42,21 @@ namespace AdaptiveMPC_Operation {
  * @tparam X_Type Type of the state vector.
  * @tparam Y_Type Type of the output vector.
  * @tparam Y_Store_Type Type of the delayed output storage.
- * @tparam LKF_Type Type of the Kalman filter used in Adaptive MPC.
+ * @tparam EKF_Type Type of the Kalman filter used in Adaptive MPC.
  */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
-          typename Y_Store_Type, typename LKF_Type>
+          typename Y_Store_Type, typename EKF_Type>
 inline typename std::enable_if<(Number_Of_Delay > 0), void>::type
 compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
                      Y_Type &Y_out, Y_Store_Type &Y_store,
-                     LKF_Type &kalman_filter) {
+                     EKF_Type &kalman_filter) {
 
   static_cast<void>(X_in);
 
   Y_Type Y_measured = Y_in;
 
   X_out = kalman_filter.get_x_hat_without_delay();
-  auto Y = kalman_filter.state_space.C * X_out;
+  auto Y = kalman_filter.calculate_measurement_function(X_out);
 
   Y_store.push(Y);
   auto Y_diff = Y_measured - Y_store.get();
@@ -75,14 +75,14 @@ compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
  * @tparam X_Type Type of the state vector.
  * @tparam Y_Type Type of the output vector.
  * @tparam Y_Store_Type Type of the delayed output storage (not used here).
- * @tparam LKF_Type Type of the Kalman filter (not used here).
+ * @tparam EKF_Type Type of the Kalman filter (not used here).
  */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
-          typename Y_Store_Type, typename LKF_Type>
+          typename Y_Store_Type, typename EKF_Type>
 inline typename std::enable_if<(Number_Of_Delay == 0), void>::type
 compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
                      Y_Type &Y_out, Y_Store_Type &Y_store,
-                     LKF_Type &kalman_filter) {
+                     EKF_Type &kalman_filter) {
 
   static_cast<void>(kalman_filter);
 
@@ -560,7 +560,7 @@ protected:
   _Adaptive_MPC_Phi_F_Updater_Function_Object _phi_f_updater_function;
 };
 
-/* make LTV MPC No Constraints */
+/* make Adaptive MPC No Constraints */
 
 /**
  * @brief Factory function to create an instance of AdaptiveMPC_NoConstraints.
