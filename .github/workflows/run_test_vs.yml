@@ -4,7 +4,6 @@ on:
   push:
     branches:
     - develop
-    - update-submodule-20250921
 
 jobs:
   test_vs:
