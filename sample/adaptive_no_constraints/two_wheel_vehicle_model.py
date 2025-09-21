@@ -192,7 +192,7 @@ def main():
 
     ada_mpc = AdaptiveMPC_NoConstraints(
         delta_time=sim_delta_time,
-        X=X, U=U, Y=Y,
+        X=X, U=U,
         X_initial=X_initial,
         fxu=fxu, fxu_jacobian_X=fxu_jacobian_X,
         fxu_jacobian_U=fxu_jacobian_U,
