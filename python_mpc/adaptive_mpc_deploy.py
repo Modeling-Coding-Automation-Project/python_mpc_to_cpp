@@ -14,8 +14,6 @@ sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 
 import inspect
-import numpy as np
-import copy
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
@@ -23,11 +21,10 @@ from external_libraries.python_control_to_cpp.python_control.kalman_filter_deplo
 
 from mpc_utility.adaptive_matrices_deploy import AdaptiveMatricesDeploy
 from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
+from python_mpc.common_mpc_deploy import MinMaxCodeGenerator
 
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC_NoConstraints
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC
-
-TOL = 1e-30
 
 
 class AdaptiveMPC_Deploy:
@@ -583,112 +580,96 @@ class AdaptiveMPC_Deploy:
         U_size = ada_mpc.qp_solver.U_size
         Y_size = ada_mpc.qp_solver.Y_size
 
-        delta_U_min_values = ada_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
-        delta_U_min_active_set = np.zeros((U_size, 1), dtype=bool)
-        if delta_U_min_values is not None:
-            for i in range(len(delta_U_min_values)):
-                if ada_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
-                    delta_U_min_active_set[i] = True
+        delta_U_min_code_generator = MinMaxCodeGenerator(
+            min_max_array=ada_mpc.qp_solver.DU_U_Y_Limits.delta_U_min,
+            min_max_name="delta_U_min",
+            size=U_size)
+        delta_U_min_code_generator.generate_active_set(
+            is_active_function=ada_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active)
 
-        delta_U_max_values = ada_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
-        delta_U_max_active_set = np.zeros((U_size, 1), dtype=bool)
-        if delta_U_max_values is not None:
-            for i in range(len(delta_U_max_values)):
-                if ada_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active(i):
-                    delta_U_max_active_set[i] = True
+        delta_U_max_code_generator = MinMaxCodeGenerator(
+            min_max_array=ada_mpc.qp_solver.DU_U_Y_Limits.delta_U_max,
+            min_max_name="delta_U_max",
+            size=U_size)
+        delta_U_max_code_generator.generate_active_set(
+            is_active_function=ada_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_max_active)
 
-        U_min_values = ada_mpc.qp_solver.DU_U_Y_Limits.U_min
-        U_min_active_set = np.zeros((U_size, 1), dtype=bool)
-        if U_min_values is not None:
-            for i in range(len(U_min_values)):
-                if ada_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active(i):
-                    U_min_active_set[i] = True
+        U_min_code_generator = MinMaxCodeGenerator(
+            min_max_array=ada_mpc.qp_solver.DU_U_Y_Limits.U_min,
+            min_max_name="U_min",
+            size=U_size)
+        U_min_code_generator.generate_active_set(
+            is_active_function=ada_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active)
 
-        U_max_values = ada_mpc.qp_solver.DU_U_Y_Limits.U_max
-        U_max_active_set = np.zeros((U_size, 1), dtype=bool)
-        if U_max_values is not None:
-            for i in range(len(U_max_values)):
-                if ada_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active(i):
-                    U_max_active_set[i] = True
+        U_max_code_generator = MinMaxCodeGenerator(
+            min_max_array=ada_mpc.qp_solver.DU_U_Y_Limits.U_max,
+            min_max_name="U_max",
+            size=U_size)
+        U_max_code_generator.generate_active_set(
+            is_active_function=ada_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active)
 
-        Y_min_values = ada_mpc.qp_solver.DU_U_Y_Limits.Y_min
-        Y_min_active_set = np.zeros((Y_size, 1), dtype=bool)
-        if Y_min_values is not None:
-            for i in range(len(Y_min_values)):
-                if ada_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active(i):
-                    Y_min_active_set[i] = True
+        Y_min_code_generator = MinMaxCodeGenerator(
+            min_max_array=ada_mpc.qp_solver.DU_U_Y_Limits.Y_min,
+            min_max_name="Y_min",
+            size=Y_size)
+        Y_min_code_generator.generate_active_set(
+            is_active_function=ada_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active)
 
-        Y_max_values = ada_mpc.qp_solver.DU_U_Y_Limits.Y_max
-        Y_max_active_set = np.zeros((Y_size, 1), dtype=bool)
-        if Y_max_values is not None:
-            for i in range(len(Y_max_values)):
-                if ada_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active(i):
-                    Y_max_active_set[i] = True
+        Y_max_code_generator = MinMaxCodeGenerator(
+            min_max_array=ada_mpc.qp_solver.DU_U_Y_Limits.Y_max,
+            min_max_name="Y_max",
+            size=Y_size)
+        Y_max_code_generator.generate_active_set(
+            is_active_function=ada_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active)
 
         # Limits code
-        delta_U_min = copy.deepcopy(delta_U_min_active_set)
-        delta_U_min = np.array(
-            delta_U_min, dtype=data_type).reshape(-1, 1)
-        exec(f"{variable_name}_delta_U_min = delta_U_min")
-        delta_U_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_min, " +
-            "file_name=caller_file_name_without_ext)")
-
+        delta_U_min_file_name, delta_U_min_file_name_no_extension = \
+            delta_U_min_code_generator.create_limits_code(
+                data_type=data_type,
+                variable_name=variable_name,
+                caller_file_name_without_ext=caller_file_name_without_ext
+            )
         deployed_file_names.append(delta_U_min_file_name)
-        delta_U_min_file_name_no_extension = delta_U_min_file_name .split(".")[
-            0]
 
-        delta_U_max = copy.deepcopy(delta_U_max_active_set)
-        delta_U_max = np.array(
-            delta_U_max, dtype=data_type).reshape(-1, 1)
-        exec(f"{variable_name}_delta_U_max = delta_U_max")
-        delta_U_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_max, " +
-            "file_name=caller_file_name_without_ext)")
-
+        delta_U_max_file_name, delta_U_max_file_name_no_extension = \
+            delta_U_max_code_generator.create_limits_code(
+                data_type=data_type,
+                variable_name=variable_name,
+                caller_file_name_without_ext=caller_file_name_without_ext
+            )
         deployed_file_names.append(delta_U_max_file_name)
-        delta_U_max_file_name_no_extension = delta_U_max_file_name .split(".")[
-            0]
 
-        U_min = copy.deepcopy(U_min_active_set)
-        U_min = np.array(U_min, dtype=data_type).reshape(-1, 1)
-        exec(f"{variable_name}_U_min = U_min")
-        U_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_min, " +
-            "file_name=caller_file_name_without_ext)")
-
+        U_min_file_name, U_min_file_name_no_extension = \
+            U_min_code_generator.create_limits_code(
+                data_type=data_type,
+                variable_name=variable_name,
+                caller_file_name_without_ext=caller_file_name_without_ext
+            )
         deployed_file_names.append(U_min_file_name)
-        U_min_file_name_no_extension = U_min_file_name .split(".")[0]
 
-        U_max = copy.deepcopy(U_max_active_set)
-        U_max = np.array(U_max, dtype=data_type).reshape(-1, 1)
-        exec(f"{variable_name}_U_max = U_max")
-        U_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_U_max, " +
-            "file_name=caller_file_name_without_ext)")
-
+        U_max_file_name, U_max_file_name_no_extension = \
+            U_max_code_generator.create_limits_code(
+                data_type=data_type,
+                variable_name=variable_name,
+                caller_file_name_without_ext=caller_file_name_without_ext
+            )
         deployed_file_names.append(U_max_file_name)
-        U_max_file_name_no_extension = U_max_file_name .split(".")[0]
 
-        Y_min = copy.deepcopy(Y_min_active_set)
-        Y_min = np.array(Y_min, dtype=data_type).reshape(-1, 1)
-        exec(f"{variable_name}_Y_min = Y_min")
-        Y_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_min, " +
-            "file_name=caller_file_name_without_ext)")
-
+        Y_min_file_name, Y_min_file_name_no_extension = \
+            Y_min_code_generator.create_limits_code(
+                data_type=data_type,
+                variable_name=variable_name,
+                caller_file_name_without_ext=caller_file_name_without_ext
+            )
         deployed_file_names.append(Y_min_file_name)
-        Y_min_file_name_no_extension = Y_min_file_name .split(".")[0]
 
-        Y_max = copy.deepcopy(Y_max_active_set)
-        Y_max = np.array(Y_max, dtype=data_type).reshape(-1, 1)
-        exec(f"{variable_name}_Y_max = Y_max")
-        Y_max_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Y_max, " +
-            "file_name=caller_file_name_without_ext)")
-
+        Y_max_file_name, Y_max_file_name_no_extension = \
+            Y_max_code_generator.create_limits_code(
+                data_type=data_type,
+                variable_name=variable_name,
+                caller_file_name_without_ext=caller_file_name_without_ext
+            )
         deployed_file_names.append(Y_max_file_name)
-        Y_max_file_name_no_extension = Y_max_file_name .split(".")[0]
 
         # %% main code generation
         code_text = ""
@@ -808,59 +789,20 @@ class AdaptiveMPC_Deploy:
         code_text += f"  auto solver_factor = {solver_factor_file_name_no_extension}::make();\n\n"
 
         # limits
-        code_text += f"  auto delta_U_min = {delta_U_min_file_name_no_extension}::make();\n\n"
-        if delta_U_min is not None and np.linalg.norm(delta_U_min_active_set) > TOL:
-            for i in range(len(delta_U_min)):
-                if delta_U_min_active_set[i]:
-                    code_text += f"  delta_U_min.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({delta_U_min_values[i, 0]})"
-                    code_text += ");\n"
-            code_text += "\n"
+        code_text = delta_U_min_code_generator.write_limits_code(
+            code_text, type_name)
+        code_text = delta_U_max_code_generator.write_limits_code(
+            code_text, type_name)
 
-        code_text += f"  auto delta_U_max = {delta_U_max_file_name_no_extension}::make();\n\n"
-        if delta_U_max is not None and np.linalg.norm(delta_U_max_active_set) > TOL:
-            for i in range(len(delta_U_max)):
-                if delta_U_max_active_set[i]:
-                    code_text += f"  delta_U_max.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({delta_U_max_values[i, 0]})"
-                    code_text += ");\n"
-            code_text += "\n"
+        code_text = U_min_code_generator.write_limits_code(
+            code_text, type_name)
+        code_text = U_max_code_generator.write_limits_code(
+            code_text, type_name)
 
-        code_text += f"  auto U_min = {U_min_file_name_no_extension}::make();\n\n"
-        if U_min is not None and np.linalg.norm(U_min_active_set) > TOL:
-            for i in range(len(U_min)):
-                if U_min_active_set[i]:
-                    code_text += f"  U_min.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({U_min_values[i, 0]})"
-                    code_text += ");\n"
-            code_text += "\n"
-
-        code_text += f"  auto U_max = {U_max_file_name_no_extension}::make();\n\n"
-        if U_max is not None and np.linalg.norm(U_max_active_set) > TOL:
-            for i in range(len(U_max)):
-                if U_max_active_set[i]:
-                    code_text += f"  U_max.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({U_max_values[i, 0]})"
-                    code_text += ");\n"
-            code_text += "\n"
-
-        code_text += f"  auto Y_min = {Y_min_file_name_no_extension}::make();\n\n"
-        if Y_min is not None and np.linalg.norm(Y_min_active_set) > TOL:
-            for i in range(len(Y_min)):
-                if Y_min_active_set[i]:
-                    code_text += f"  Y_min.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({Y_min_values[i, 0]})"
-                    code_text += ");\n"
-            code_text += "\n"
-
-        code_text += f"  auto Y_max = {Y_max_file_name_no_extension}::make();\n\n"
-        if Y_max is not None and np.linalg.norm(Y_max_active_set) > TOL:
-            for i in range(len(Y_max)):
-                if Y_max_active_set[i]:
-                    code_text += f"  Y_max.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({Y_max_values[i, 0]})"
-                    code_text += ");\n"
-            code_text += "\n"
+        code_text = Y_min_code_generator.write_limits_code(
+            code_text, type_name)
+        code_text = Y_max_code_generator.write_limits_code(
+            code_text, type_name)
 
         # prediction matrices
         code_text += f"  PredictionMatrices_Type prediction_matrices(F, Phi);\n\n"
