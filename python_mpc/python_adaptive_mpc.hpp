@@ -1,4 +1,3 @@
-
 /**
  * @file python_adaptive_mpc.hpp
  * @brief Adaptive Model Predictive Control (MPC) implementation for
