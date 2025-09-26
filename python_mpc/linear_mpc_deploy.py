@@ -351,7 +351,8 @@ class LinearMPC_Deploy:
         Y_size = lti_mpc.qp_solver.Y_size
 
         delta_U_min_code_generator = MinMaxCodeGenerator(
-            lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min)
+            lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min,
+            "delta_U_min")
         delta_U_min_active_set = delta_U_min_code_generator.generate_active_set(
             is_active_function=lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active)
 
@@ -391,17 +392,13 @@ class LinearMPC_Deploy:
                     Y_max_active_set[i] = True
 
         # create Limits code
-        delta_U_min = copy.deepcopy(delta_U_min_active_set)
-        delta_U_min = np.array(
-            delta_U_min, dtype=data_type).reshape(-1, 1)
-        exec(f"{variable_name}_delta_U_min = delta_U_min")
-        delta_U_min_file_name = eval(
-            f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_delta_U_min, " +
-            "file_name=caller_file_name_without_ext)")
-
+        delta_U_min_file_name, delta_U_min_file_name_no_extension = \
+            delta_U_min_code_generator.create_limits_code(
+                data_type=data_type,
+                variable_name=variable_name,
+                caller_file_name_without_ext=caller_file_name_without_ext
+            )
         deployed_file_names.append(delta_U_min_file_name)
-        delta_U_min_file_name_no_extension = delta_U_min_file_name .split(".")[
-            0]
 
         delta_U_max = copy.deepcopy(delta_U_max_active_set)
         delta_U_max = np.array(
@@ -550,11 +547,13 @@ class LinearMPC_Deploy:
 
         # limits
         code_text += f"  auto delta_U_min = {delta_U_min_file_name_no_extension}::make();\n\n"
-        if delta_U_min is not None and np.linalg.norm(delta_U_min_active_set) > TOL:
-            for i in range(len(delta_U_min)):
+        if delta_U_min_code_generator.active_set is not None and \
+                np.linalg.norm(delta_U_min_active_set) > TOL:
+            for i in range(len(delta_U_min_code_generator.active_set)):
                 if delta_U_min_active_set[i]:
                     code_text += f"  delta_U_min.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({delta_U_min_code_generator.values[i, 0]})"
+                    code_text += \
+                        f"static_cast<{type_name}>({delta_U_min_code_generator.values[i, 0]})"
                     code_text += ");\n"
             code_text += "\n"
 
