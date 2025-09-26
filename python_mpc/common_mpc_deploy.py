@@ -30,12 +30,19 @@ class MinMaxCodeGenerator:
     def __init__(
             self,
             min_max_array: np.ndarray,
-            min_max_name: str
+            min_max_name: str,
+            size: int
     ):
-        self.values = min_max_array
-        self.size = self.values.shape[0]
-        self.min_max_name = min_max_name
+        if min_max_array is not None:
+            self.values = min_max_array
+            self.size = self.values.shape[0]
+            self.active_set = None
+        else:
+            self.size = size
+            self.values = np.ones((self.size, 1))
+            self.active_set = np.zeros((self.size, 1), dtype=bool)
 
+        self.min_max_name = min_max_name
         self.file_name_no_extension = None
 
     def generate_active_set(
@@ -47,14 +54,15 @@ class MinMaxCodeGenerator:
             raise ValueError(
                 "Either is_active_function or is_active_array must be provided")
 
-        self.active_set = np.zeros((self.size, 1), dtype=bool)
+        if self.active_set is None:
+            self.active_set = np.zeros((self.size, 1), dtype=bool)
 
-        for i in range(self.size):
-            if is_active_function is not None and is_active_function(i):
-                self.active_set[i, 0] = True
+            for i in range(self.size):
+                if is_active_function is not None and is_active_function(i):
+                    self.active_set[i, 0] = True
 
-            elif is_active_array is not None and is_active_array[i]:
-                self.active_set[i, 0] = True
+                elif is_active_array is not None and is_active_array[i]:
+                    self.active_set[i, 0] = True
 
         return self.active_set
 
