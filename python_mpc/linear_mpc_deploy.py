@@ -22,6 +22,7 @@ from external_libraries.python_control_to_cpp.python_control.kalman_filter_deplo
 
 from mpc_utility.ltv_matrices_deploy import LTVMatricesDeploy
 from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
+from python_mpc.common_mpc_deploy import MinMaxCodeGenerator
 
 from external_libraries.MCAP_python_mpc.mpc_utility.linear_solver_utility import DU_U_Y_Limits
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
@@ -349,12 +350,10 @@ class LinearMPC_Deploy:
         U_size = lti_mpc.qp_solver.U_size
         Y_size = lti_mpc.qp_solver.Y_size
 
-        delta_U_min_values = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min
-        delta_U_min_active_set = np.zeros((U_size, 1), dtype=bool)
-        if delta_U_min_values is not None:
-            for i in range(len(delta_U_min_values)):
-                if lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active(i):
-                    delta_U_min_active_set[i] = True
+        delta_U_min_code_generator = MinMaxCodeGenerator(
+            lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min)
+        delta_U_min_active_set = delta_U_min_code_generator.generate_active_set(
+            is_active_function=lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active)
 
         delta_U_max_values = lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_max
         delta_U_max_active_set = np.zeros((U_size, 1), dtype=bool)
@@ -555,7 +554,7 @@ class LinearMPC_Deploy:
             for i in range(len(delta_U_min)):
                 if delta_U_min_active_set[i]:
                     code_text += f"  delta_U_min.template set<{i}, 0>("
-                    code_text += f"static_cast<{type_name}>({delta_U_min_values[i, 0]})"
+                    code_text += f"static_cast<{type_name}>({delta_U_min_code_generator.values[i, 0]})"
                     code_text += ");\n"
             code_text += "\n"
 
