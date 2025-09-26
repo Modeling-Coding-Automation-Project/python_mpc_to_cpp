@@ -24,7 +24,6 @@ from mpc_utility.ltv_matrices_deploy import LTVMatricesDeploy
 from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
 from python_mpc.common_mpc_deploy import MinMaxCodeGenerator
 
-from external_libraries.MCAP_python_mpc.mpc_utility.linear_solver_utility import DU_U_Y_Limits
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTV_MPC_NoConstraints
@@ -345,13 +344,10 @@ class LinearMPC_Deploy:
             0]
 
         # Limits code
-        U_size = lti_mpc.qp_solver.U_size
-        Y_size = lti_mpc.qp_solver.Y_size
-
         delta_U_min_code_generator = MinMaxCodeGenerator(
             lti_mpc.qp_solver.DU_U_Y_Limits.delta_U_min,
             "delta_U_min")
-        delta_U_min_active_set = delta_U_min_code_generator.generate_active_set(
+        delta_U_min_code_generator.generate_active_set(
             is_active_function=lti_mpc.qp_solver.DU_U_Y_Limits.is_delta_U_min_active)
 
         delta_U_max_code_generator = MinMaxCodeGenerator(
@@ -363,25 +359,25 @@ class LinearMPC_Deploy:
         U_min_code_generator = MinMaxCodeGenerator(
             lti_mpc.qp_solver.DU_U_Y_Limits.U_min,
             "U_min")
-        U_min_active_set = U_min_code_generator.generate_active_set(
+        U_min_code_generator.generate_active_set(
             is_active_function=lti_mpc.qp_solver.DU_U_Y_Limits.is_U_min_active)
 
         U_max_code_generator = MinMaxCodeGenerator(
             lti_mpc.qp_solver.DU_U_Y_Limits.U_max,
             "U_max")
-        U_max_active_set = U_max_code_generator.generate_active_set(
+        U_max_code_generator.generate_active_set(
             is_active_function=lti_mpc.qp_solver.DU_U_Y_Limits.is_U_max_active)
 
         Y_min_code_generator = MinMaxCodeGenerator(
             lti_mpc.qp_solver.DU_U_Y_Limits.Y_min,
             "Y_min")
-        Y_min_active_set = Y_min_code_generator.generate_active_set(
+        Y_min_code_generator.generate_active_set(
             is_active_function=lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_min_active)
 
         Y_max_code_generator = MinMaxCodeGenerator(
             lti_mpc.qp_solver.DU_U_Y_Limits.Y_max,
             "Y_max")
-        Y_max_active_set = Y_max_code_generator.generate_active_set(
+        Y_max_code_generator.generate_active_set(
             is_active_function=lti_mpc.qp_solver.DU_U_Y_Limits.is_Y_max_active)
 
         # create Limits code
