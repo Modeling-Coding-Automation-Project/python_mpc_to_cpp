@@ -14,7 +14,6 @@ sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 
 import inspect
-import numpy as np
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
