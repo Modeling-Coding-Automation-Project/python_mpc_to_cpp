@@ -17,6 +17,7 @@
 
 #include "python_control.hpp"
 #include "python_numpy.hpp"
+#include "python_optimization.hpp"
 
 #include <functional>
 #include <type_traits>

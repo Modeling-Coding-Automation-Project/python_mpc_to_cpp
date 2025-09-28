@@ -5,6 +5,7 @@
 
 #include "python_control.hpp"
 #include "python_numpy.hpp"
+#include "python_optimization.hpp"
 
 #include <functional>
 #include <type_traits>
@@ -22,6 +23,21 @@ public:
 
 public:
   /* Type */
+  using Value_Type = typename Cost_Matrices_Type::Value_Type;
+
+  using X_Type = typename Cost_Matrices_Type::X_Type;
+  using U_Type = typename Cost_Matrices_Type::U_Type;
+  using Y_Type = typename Cost_Matrices_Type::Y_Type;
+
+  using U_Horizon_Type = typename Cost_Matrices_Type::U_Horizon_Type;
+
+  using Weight_X_Type = PythonNumpy::DiagMatrix_Type<Value_Type, STATE_SIZE>;
+  using Weight_U_Type = PythonNumpy::DiagMatrix_Type<Value_Type, INPUT_SIZE>;
+  using Weight_Y_Type = PythonNumpy::DiagMatrix_Type<Value_Type, OUTPUT_SIZE>;
+
+protected:
+  /* Type */
+  using _Solver_Type = SQP_ActiveSet_PCG_PLS<CostMatrices_Type>;
 
 public:
   /* Constructor */
