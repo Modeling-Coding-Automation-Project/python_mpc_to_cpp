@@ -52,6 +52,8 @@ public:
 
 protected:
   /* Type */
+  using _Parameter_Type = typename Cost_Matrices_Type::Parameter_Type;
+
   using _Solver_Type =
       PythonOptimization::SQP_ActiveSet_PCG_PLS_Type<Cost_Matrices_Type>;
 
@@ -128,17 +130,18 @@ public:
   /* Function */
   inline auto calculate_this_U(const U_Horizon_Type &U_horizon) -> U_Type {
 
-    auto U = PythonNumpy::get_row<0>(U_horizon);
+    auto U = PythonNumpy::get_row<0, _T, INPUT_SIZE, 1>(U_horizon);
 
     return U;
   }
 
-  inline void update_parameters(const Parameter_Type &parameters) {
+  inline void update_parameters(const _Parameter_Type &parameters) {
 
     this->_kalman_filter.parameters = parameters;
     this->_cost_matrices.state_space_parameters = parameters;
   }
 
+  template <typename Reference_Type_In>
   inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
       -> U_Type {
 
