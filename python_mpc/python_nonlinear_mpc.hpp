@@ -113,6 +113,18 @@ public:
     this->_solver.set_solver_max_iteration(max_iteration);
   }
 
+  inline void set_reference_trajectory(const Y_Type &reference) {
+
+    ReferenceTrajectory_Type reference_trajectory;
+
+    this->_cost_matrices.set_reference_trajectory(reference_trajectory);
+  }
+
+  /* Getter */
+  inline auto get_solver_step_iterated_number(void) const -> std::size_t {
+    return this->_solver.get_solver_step_iterated_number();
+  }
+
   /* Function */
   inline auto update_manipulation(ReferenceTrajectory_Type &reference,
                                   const Y_Type &Y) -> U_Type {}
