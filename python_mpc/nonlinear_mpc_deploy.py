@@ -7,6 +7,7 @@ sys.path.append(os.path.join(
     os.getcwd(), 'external_libraries', 'python_optimization_to_cpp'))
 
 import inspect
+import copy
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
@@ -60,9 +61,16 @@ class NonlinearMPC_Deploy:
         code_file_name_ext = code_file_name + ".hpp"
 
         # %% generate cost matrices code
-        SQP_MatrixUtilityDeploy.generate_cpp_code(
-            nonlinear_mpc.sqp_cost_matrices,
-            file_name=caller_file_name_no_extension
+        cost_matrices = copy.deepcopy(nonlinear_mpc.sqp_cost_matrices)
+
+        cost_matrices_code_names = SQP_MatrixUtilityDeploy.generate_cpp_code(
+            cost_matrices=cost_matrices,
+            file_name=caller_file_name_no_extension,
         )
+        deployed_file_names.extend(cost_matrices_code_names)
+
+        cost_matrices_file_name_no_extension = caller_file_name_no_extension + \
+            "_cost_matrices"
+        cost_matrices_file_name = cost_matrices_file_name_no_extension + ".hpp"
 
         pass
