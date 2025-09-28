@@ -20,7 +20,7 @@ from external_libraries.python_control_to_cpp.python_control.kalman_filter_deplo
 
 from mpc_utility.ltv_matrices_deploy import LTVMatricesDeploy
 from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
-from python_mpc.common_mpc_deploy import MinMaxCodeGenerator
+from external_libraries.python_optimization_to_cpp.optimization_utility.common_optimization_deploy import MinMaxCodeGenerator
 
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC_NoConstraints
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc import LTI_MPC
@@ -78,19 +78,19 @@ class LinearMPC_Deploy:
         if file_name is None:
             caller_file_full_path = frame.f_code.co_filename
             caller_file_name = os.path.basename(caller_file_full_path)
-            caller_file_name_without_ext = os.path.splitext(caller_file_name)[
+            caller_file_name_no_extension = os.path.splitext(caller_file_name)[
                 0]
         else:
-            caller_file_name_without_ext = file_name
+            caller_file_name_no_extension = file_name
 
         # %% code generation
-        code_file_name = caller_file_name_without_ext + "_" + variable_name
+        code_file_name = caller_file_name_no_extension + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
 
         # create LKF code
         exec(f"{variable_name}_lkf = lti_mpc_nc.kalman_filter")
         lkf_file_names = eval(
-            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_without_ext, number_of_delay={number_of_delay})")
+            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
 
         deployed_file_names.append(lkf_file_names)
         lkf_file_name = lkf_file_names[-1]
@@ -104,7 +104,7 @@ class LinearMPC_Deploy:
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
             "SparseAvailable=F_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
@@ -117,7 +117,7 @@ class LinearMPC_Deploy:
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
             "SparseAvailable=Phi_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
@@ -129,7 +129,7 @@ class LinearMPC_Deploy:
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
             "SparseAvailable=solver_factor_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -275,19 +275,19 @@ class LinearMPC_Deploy:
         if file_name is None:
             caller_file_full_path = frame.f_code.co_filename
             caller_file_name = os.path.basename(caller_file_full_path)
-            caller_file_name_without_ext = os.path.splitext(caller_file_name)[
+            caller_file_name_no_extension = os.path.splitext(caller_file_name)[
                 0]
         else:
-            caller_file_name_without_ext = file_name
+            caller_file_name_no_extension = file_name
 
         # %% code generation
-        code_file_name = caller_file_name_without_ext + "_" + variable_name
+        code_file_name = caller_file_name_no_extension + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
 
         # create LKF code
         exec(f"{variable_name}_lkf = lti_mpc.kalman_filter")
         lkf_file_names = eval(
-            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_without_ext, number_of_delay={number_of_delay})")
+            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
 
         deployed_file_names.append(lkf_file_names)
         lkf_file_name = lkf_file_names[-1]
@@ -301,7 +301,7 @@ class LinearMPC_Deploy:
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
             "SparseAvailable=F_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
@@ -313,7 +313,7 @@ class LinearMPC_Deploy:
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
             "SparseAvailable=Phi_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
@@ -325,7 +325,7 @@ class LinearMPC_Deploy:
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
             "SparseAvailable=solver_factor_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -335,7 +335,7 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_Weight_U_Nc = lti_mpc.Weight_U_Nc")
         Weight_U_Nc_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
@@ -398,7 +398,7 @@ class LinearMPC_Deploy:
             delta_U_min_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(delta_U_min_file_name)
 
@@ -406,7 +406,7 @@ class LinearMPC_Deploy:
             delta_U_max_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(delta_U_max_file_name)
 
@@ -414,7 +414,7 @@ class LinearMPC_Deploy:
             U_min_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(U_min_file_name)
 
@@ -422,7 +422,7 @@ class LinearMPC_Deploy:
             U_max_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(U_max_file_name)
 
@@ -430,7 +430,7 @@ class LinearMPC_Deploy:
             Y_min_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(Y_min_file_name)
 
@@ -438,7 +438,7 @@ class LinearMPC_Deploy:
             Y_max_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(Y_max_file_name)
 
@@ -632,16 +632,16 @@ class LinearMPC_Deploy:
         if file_name is None:
             caller_file_full_path = frame.f_code.co_filename
             caller_file_name = os.path.basename(caller_file_full_path)
-            caller_file_name_without_ext = os.path.splitext(caller_file_name)[
+            caller_file_name_no_extension = os.path.splitext(caller_file_name)[
                 0]
         else:
-            caller_file_name_without_ext = file_name
+            caller_file_name_no_extension = file_name
 
-        code_file_name = caller_file_name_without_ext + "_" + variable_name
+        code_file_name = caller_file_name_no_extension + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
 
         # %% generate parameter class code
-        parameter_code_file_name = caller_file_name_without_ext + "_parameters.hpp"
+        parameter_code_file_name = caller_file_name_no_extension + "_parameters.hpp"
         parameter_code_file_name_no_extension = parameter_code_file_name.split(".")[
             0]
 
@@ -721,7 +721,7 @@ class LinearMPC_Deploy:
         # %% create LKF, F, Phi, solver_factor, Weight_U_Nc code
         exec(f"{variable_name}_lkf = ltv_mpc_nc.kalman_filter")
         lkf_file_names = eval(
-            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_without_ext, number_of_delay={number_of_delay})")
+            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
 
         deployed_file_names.append(lkf_file_names)
         lkf_file_name = lkf_file_names[-1]
@@ -735,7 +735,7 @@ class LinearMPC_Deploy:
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
             "SparseAvailable=F_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
@@ -748,7 +748,7 @@ class LinearMPC_Deploy:
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
             "SparseAvailable=Phi_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
@@ -760,7 +760,7 @@ class LinearMPC_Deploy:
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
             "SparseAvailable=solver_factor_SparseAvailable, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -769,7 +769,7 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_Weight_U_Nc = ltv_mpc_nc.Weight_U_Nc")
         Weight_U_Nc_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
-            "file_name=caller_file_name_without_ext)")
+            "file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
@@ -788,7 +788,7 @@ class LinearMPC_Deploy:
         code_text += f"#include \"{Phi_file_name}\"\n"
         code_text += f"#include \"{solver_factor_file_name}\"\n"
         code_text += f"#include \"{Weight_U_Nc_file_name}\"\n"
-        code_text += f"#include \"{caller_file_name_without_ext}_parameters.hpp\"\n"
+        code_text += f"#include \"{caller_file_name_no_extension}_parameters.hpp\"\n"
         code_text += f"#include \"{mpc_state_space_updater_cpp_name}\"\n"
         code_text += f"#include \"{LTV_MPC_Phi_F_updater_cpp_name}\"\n\n"
 
@@ -867,7 +867,7 @@ class LinearMPC_Deploy:
 
         code_text += f"  Weight_U_Nc_Type Weight_U_Nc = {Weight_U_Nc_file_name_no_extension}::make();\n\n"
 
-        mpc_state_space_updater_name = caller_file_name_without_ext + \
+        mpc_state_space_updater_name = caller_file_name_no_extension + \
             "_mpc_state_space_updater"
 
         code_text += f"  MPC_StateSpace_Updater_Function_Object<\n" + \
@@ -876,7 +876,7 @@ class LinearMPC_Deploy:
             f"    {mpc_state_space_updater_name}::MPC_StateSpace_Updater::update<\n" + \
             f"      Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;\n\n"
 
-        ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
+        ltv_mpc_phi_f_updater_name = caller_file_name_no_extension + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
             f"    EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
@@ -933,16 +933,16 @@ class LinearMPC_Deploy:
         if file_name is None:
             caller_file_full_path = frame.f_code.co_filename
             caller_file_name = os.path.basename(caller_file_full_path)
-            caller_file_name_without_ext = os.path.splitext(caller_file_name)[
+            caller_file_name_no_extension = os.path.splitext(caller_file_name)[
                 0]
         else:
-            caller_file_name_without_ext = file_name
+            caller_file_name_no_extension = file_name
 
-        code_file_name = caller_file_name_without_ext + "_" + variable_name
+        code_file_name = caller_file_name_no_extension + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
 
         # %% generate parameter class code
-        parameter_code_file_name = caller_file_name_without_ext + "_parameters.hpp"
+        parameter_code_file_name = caller_file_name_no_extension + "_parameters.hpp"
         parameter_code_file_name_no_extension = parameter_code_file_name.split(".")[
             0]
 
@@ -1022,7 +1022,7 @@ class LinearMPC_Deploy:
         # %% create LKF, F, Phi, solver_factor, Weight_U_Nc code
         exec(f"{variable_name}_lkf = ltv_mpc.kalman_filter")
         lkf_file_names = eval(
-            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_without_ext, number_of_delay={number_of_delay})")
+            f"KalmanFilterDeploy.generate_LKF_cpp_code({variable_name}_lkf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
 
         deployed_file_names.append(lkf_file_names)
         lkf_file_name = lkf_file_names[-1]
@@ -1036,7 +1036,7 @@ class LinearMPC_Deploy:
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
             f"SparseAvailable=F_SparseAvailable, " +
-            f"file_name=caller_file_name_without_ext)")
+            f"file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
@@ -1049,7 +1049,7 @@ class LinearMPC_Deploy:
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
             f"SparseAvailable=Phi_SparseAvailable, " +
-            f"file_name=caller_file_name_without_ext)")
+            f"file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
@@ -1061,7 +1061,7 @@ class LinearMPC_Deploy:
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
             f"SparseAvailable=solver_factor_SparseAvailable, " +
-            f"file_name=caller_file_name_without_ext)")
+            f"file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
@@ -1070,7 +1070,7 @@ class LinearMPC_Deploy:
         exec(f"{variable_name}_Weight_U_Nc = ltv_mpc.Weight_U_Nc")
         Weight_U_Nc_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
-            f"file_name=caller_file_name_without_ext)")
+            f"file_name=caller_file_name_no_extension)")
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
@@ -1133,7 +1133,7 @@ class LinearMPC_Deploy:
             delta_U_min_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(delta_U_min_file_name)
 
@@ -1141,7 +1141,7 @@ class LinearMPC_Deploy:
             delta_U_max_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(delta_U_max_file_name)
 
@@ -1149,7 +1149,7 @@ class LinearMPC_Deploy:
             U_min_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(U_min_file_name)
 
@@ -1157,7 +1157,7 @@ class LinearMPC_Deploy:
             U_max_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(U_max_file_name)
 
@@ -1165,7 +1165,7 @@ class LinearMPC_Deploy:
             Y_min_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(Y_min_file_name)
 
@@ -1173,7 +1173,7 @@ class LinearMPC_Deploy:
             Y_max_code_generator.create_limits_code(
                 data_type=data_type,
                 variable_name=variable_name,
-                caller_file_name_without_ext=caller_file_name_without_ext
+                caller_file_name_no_extension=caller_file_name_no_extension
             )
         deployed_file_names.append(Y_max_file_name)
 
@@ -1190,7 +1190,7 @@ class LinearMPC_Deploy:
         code_text += f"#include \"{Phi_file_name}\"\n"
         code_text += f"#include \"{solver_factor_file_name}\"\n"
         code_text += f"#include \"{Weight_U_Nc_file_name}\"\n"
-        code_text += f"#include \"{caller_file_name_without_ext}_parameters.hpp\"\n"
+        code_text += f"#include \"{caller_file_name_no_extension}_parameters.hpp\"\n"
         code_text += f"#include \"{mpc_state_space_updater_cpp_name}\"\n"
         code_text += f"#include \"{LTV_MPC_Phi_F_updater_cpp_name}\"\n\n"
 
@@ -1308,7 +1308,7 @@ class LinearMPC_Deploy:
 
         code_text += f"  ReferenceTrajectory_Type reference_trajectory;\n\n"
 
-        mpc_state_space_updater_name = caller_file_name_without_ext + \
+        mpc_state_space_updater_name = caller_file_name_no_extension + \
             "_mpc_state_space_updater"
 
         code_text += f"  MPC_StateSpace_Updater_Function_Object<\n" + \
@@ -1317,7 +1317,7 @@ class LinearMPC_Deploy:
             f"    {mpc_state_space_updater_name}::MPC_StateSpace_Updater::update<\n" + \
             f"      Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;\n\n"
 
-        ltv_mpc_phi_f_updater_name = caller_file_name_without_ext + "_ltv_mpc_phi_f_updater"
+        ltv_mpc_phi_f_updater_name = caller_file_name_no_extension + "_ltv_mpc_phi_f_updater"
 
         code_text += f"  LTV_MPC_Phi_F_Updater_Function_Object<\n" + \
             f"    EmbeddedIntegratorStateSpace_Type, Parameter_Type, Phi_Type, F_Type>\n" + \
