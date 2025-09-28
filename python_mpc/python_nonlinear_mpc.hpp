@@ -101,8 +101,8 @@ public:
 
     this->_solver =
         PythonOptimization::make_SQP_ActiveSet_PCG_PLS<Cost_Matrices_Type>();
-    this->_solver.X_initial = X_initial;
 
+    this->_solver.X_initial = X_initial;
     this->_solver.set_solver_max_iteration(NMPC_SOLVER_MAX_ITERATION_DEFAULT);
   }
 
