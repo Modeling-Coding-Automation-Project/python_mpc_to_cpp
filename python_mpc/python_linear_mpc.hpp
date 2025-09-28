@@ -377,7 +377,7 @@ public:
 
     this->_kalman_filter.predict_and_update_with_fixed_G(this->_U_latest, Y);
 
-    X_Type X = this->_kalman_filter.get_x_hat();
+    auto X = this->_kalman_filter.get_x_hat();
 
     X_Type X_compensated;
     Y_Type Y_compensated;
@@ -653,7 +653,8 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other) noexcept
+  LTI_MPC(LTI_MPC &&other)
+  noexcept
       : _LTI_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 
@@ -1051,7 +1052,7 @@ public:
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
-    X_Type X = this->_kalman_filter.get_x_hat();
+    auto X = this->_kalman_filter.get_x_hat();
 
     X_Type X_compensated;
     Y_Type Y_compensated;
@@ -1391,7 +1392,8 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other) noexcept
+  LTV_MPC(LTV_MPC &&other)
+  noexcept
       : _LTV_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 

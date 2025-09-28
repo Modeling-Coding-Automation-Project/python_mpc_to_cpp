@@ -415,7 +415,7 @@ public:
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
-    X_Type X = this->_kalman_filter.get_x_hat();
+    auto X = this->_kalman_filter.get_x_hat();
 
     X_Type X_compensated;
     Y_Type Y_compensated;

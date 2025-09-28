@@ -139,8 +139,31 @@ public:
     this->_cost_matrices.state_space_parameters = parameters;
   }
 
-  inline auto update_manipulation(ReferenceTrajectory_Type &reference,
-                                  const Y_Type &Y) -> U_Type {}
+  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
+      -> U_Type {
+
+    auto U_latest = this->calculate_this_U(this->U_horizon);
+
+    this->_kalman_filter.predict_and_update(U_latest, Y);
+
+    auto X = this->_kalman_filter.get_x_hat();
+
+    X_Type X_compensated;
+    Y_Type Y_compensated;
+    this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
+
+    this->set_reference_trajectory(reference);
+
+    this->U_horizon = this->_solver.solve(
+        this->U_horizon, this->_cost_and_gradient_function,
+        this->_cost_function, this->_hvp_function, X_compensated,
+        this->_cost_matrices.get_U_min_matrix(),
+        this->_cost_matrices.get_U_max_matrix());
+
+    U_latest = this->calculate_this_U(this->U_horizon);
+
+    return U_latest;
+  }
 
 protected:
   /* Function */
