@@ -11,6 +11,7 @@ import copy
 
 from external_libraries.python_numpy_to_cpp.python_numpy.numpy_deploy import NumpyDeploy
 from external_libraries.MCAP_python_control.python_control.control_deploy import ControlDeploy
+from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
 from external_libraries.python_optimization_to_cpp.optimization_utility.sqp_matrix_utility_deploy import SQP_MatrixUtilityDeploy
 
 from mpc_utility.adaptive_matrices_deploy import AdaptiveMatricesDeploy
@@ -59,6 +60,29 @@ class NonlinearMPC_Deploy:
 
         code_file_name = caller_file_name_no_extension + "_" + variable_name
         code_file_name_ext = code_file_name + ".hpp"
+
+        # %% create EKF code
+        exec(f"{variable_name}_ekf = nonlinear_mpc.kalman_filter")
+        ekf_file_names = eval(
+            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
+
+        deployed_file_names.append(ekf_file_names)
+        ekf_file_name = ekf_file_names[-1]
+
+        ekf_file_name_no_extension = ekf_file_name.split(".")[0]
+
+        parameter_code_file_name = ""
+        parameter_code_file_name_no_extension = ""
+        for name in ekf_file_names:
+            if "parameter" in name:
+                parameter_code_file_name = name
+                parameter_code_file_name_no_extension = name.split(".")[
+                    0]
+                break
+
+        if parameter_code_file_name == "":
+            raise ValueError(
+                "No parameter file found in EKF deployment files.")
 
         # %% generate cost matrices code
         cost_matrices = copy.deepcopy(nonlinear_mpc.sqp_cost_matrices)
