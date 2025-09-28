@@ -97,4 +97,7 @@ class NonlinearMPC_Deploy:
             "_cost_matrices"
         cost_matrices_file_name = cost_matrices_file_name_no_extension + ".hpp"
 
+        # %% main code generation
+        code_text = ""
+
         pass
