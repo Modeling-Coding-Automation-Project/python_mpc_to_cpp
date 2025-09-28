@@ -72,13 +72,16 @@ public:
   /* Constructor */
   NonlinearMPC_TwiceDifferentiable()
       : U_horizon(), _kalman_filter(), _delta_time(0), _X_inner_model(),
-        _Y_store(), _solver() {}
+        _Y_store(), _cost_function(nullptr),
+        _cost_and_gradient_function(nullptr), _hvp_function(nullptr),
+        _solver() {}
 
   NonlinearMPC_TwiceDifferentiable(EKF_Type &kalman_filter, _T delta_time,
                                    X_Type X_initial,
                                    Cost_Matrices_Type &cost_matrices)
       : U_horizon(), _kalman_filter(kalman_filter), _delta_time(delta_time),
-        _X_inner_model(X_initial), _Y_store(), _solver() {
+        _X_inner_model(X_initial), _Y_store(), _cost_function(),
+        _cost_and_gradient_function(), _hvp_function(), _solver() {
 
     this->_cost_function = [&cost_matrices](const X_Type &X,
                                             const U_Horizon_Type &U) ->
