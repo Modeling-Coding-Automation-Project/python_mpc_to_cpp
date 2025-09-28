@@ -126,6 +126,13 @@ public:
   }
 
   /* Function */
+  inline auto calculate_this_U(const U_Horizon_Type &U_horizon) -> U_Type {
+
+    auto U = PythonNumpy::get_row<0>(U_horizon);
+
+    return U;
+  }
+
   inline auto update_manipulation(ReferenceTrajectory_Type &reference,
                                   const Y_Type &Y) -> U_Type {}
 
