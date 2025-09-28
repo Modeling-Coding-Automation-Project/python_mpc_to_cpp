@@ -71,35 +71,33 @@ protected:
 public:
   /* Constructor */
   NonlinearMPC_TwiceDifferentiable()
-      : U_horizon(), _kalman_filter(), _delta_time(0), _X_inner_model(),
-        _Y_store(), _cost_function(nullptr),
+      : U_horizon(), _cost_matrices(), _kalman_filter(), _delta_time(0),
+        _X_inner_model(), _Y_store(), _cost_function(nullptr),
         _cost_and_gradient_function(nullptr), _hvp_function(nullptr),
         _solver() {}
 
-  NonlinearMPC_TwiceDifferentiable(EKF_Type &kalman_filter, _T delta_time,
-                                   X_Type X_initial,
-                                   Cost_Matrices_Type &cost_matrices)
-      : U_horizon(), _kalman_filter(kalman_filter), _delta_time(delta_time),
+  NonlinearMPC_TwiceDifferentiable(EKF_Type &kalman_filter,
+                                   Cost_Matrices_Type &cost_matrices,
+                                   _T delta_time, X_Type X_initial)
+      : U_horizon(), _cost_matrices(cost_matrices),
+        _kalman_filter(kalman_filter), _delta_time(delta_time),
         _X_inner_model(X_initial), _Y_store(), _cost_function(),
         _cost_and_gradient_function(), _hvp_function(), _solver() {
 
-    this->_cost_function = [&cost_matrices](const X_Type &X,
-                                            const U_Horizon_Type &U) ->
+    this->_cost_function = [this](const X_Type &X, const U_Horizon_Type &U) ->
         typename X_Type::Value_Type {
-          return cost_matrices.compute_cost(X, U);
+          return this->_cost_matrices.compute_cost(X, U);
         };
 
     this->_cost_and_gradient_function =
-        [&cost_matrices](const X_Type &X, const U_Horizon_Type &U,
-                         typename X_Type::Value_Type &J,
-                         _Gradient_Type &gradient) {
-          cost_matrices.compute_cost_and_gradient(X, U, J, gradient);
+        [this](const X_Type &X, const U_Horizon_Type &U,
+               typename X_Type::Value_Type &J, _Gradient_Type &gradient) {
+          this->_cost_matrices.compute_cost_and_gradient(X, U, J, gradient);
         };
 
-    this->_hvp_function =
-        [&cost_matrices](const X_Type &X, const U_Horizon_Type &U,
-                         const _V_Horizon_Type &V) -> _HVP_Type {
-      return cost_matrices.hvp_analytic(X, U, V);
+    this->_hvp_function = [this](const X_Type &X, const U_Horizon_Type &U,
+                                 const _V_Horizon_Type &V) -> _HVP_Type {
+      return this->_cost_matrices.hvp_analytic(X, U, V);
     };
 
     this->_solver =
@@ -126,6 +124,8 @@ public:
 protected:
   /* Variable */
   EKF_Type _kalman_filter;
+  Cost_Matrices_Type _cost_matrices;
+
   _T _delta_time;
 
   X_Type _X_inner_model;
