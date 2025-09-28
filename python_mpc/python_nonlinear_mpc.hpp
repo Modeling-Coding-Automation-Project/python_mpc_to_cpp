@@ -133,8 +133,23 @@ public:
     return U;
   }
 
+  inline void update_parameters(const Parameter_Type &parameters) {
+
+    this->_kalman_filter.parameters = parameters;
+    this->_cost_matrices.state_space_parameters = parameters;
+  }
+
   inline auto update_manipulation(ReferenceTrajectory_Type &reference,
                                   const Y_Type &Y) -> U_Type {}
+
+protected:
+  /* Function */
+  inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
+                                    X_Type &X_out, Y_Type &Y_out) {
+
+    AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
+        X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
+  }
 
 public:
   /* Variable */
