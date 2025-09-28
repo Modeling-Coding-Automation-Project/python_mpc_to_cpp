@@ -17,7 +17,7 @@ from external_libraries.python_optimization_to_cpp.optimization_utility.common_o
 from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
 
 
-class NonlinearMPCDeploy:
+class NonlinearMPC_Deploy:
 
     @staticmethod
     def generate_Nonlinear_MPC_cpp_code(
