@@ -1394,6 +1394,18 @@ void check_Adaptive_MPC(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_Nonlinear_MPC(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+
+    tester.throw_error_if_test_failed();
+}
+
 
 int main(void) {
 
@@ -1436,6 +1448,8 @@ int main(void) {
     check_Adaptive_MPC<double>();
 
     check_Adaptive_MPC<float>();
+
+    check_Nonlinear_MPC<double>();
 
 
     return 0;
