@@ -8,6 +8,7 @@ namespace PythonMPC_KinematicBicycleModelData {
 using namespace PythonMath;
 using namespace PythonNumpy;
 using namespace PythonControl;
+using namespace PythonOptimization;
 
 namespace kinematic_bicycle_model_nmpc_ekf_parameter {
 
@@ -346,22 +347,22 @@ inline auto make() -> type<T> {
 
     Parameter_Type<T> parameters;
 
-    StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_object =
+    PythonControl::StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
         return kinematic_bicycle_model_nmpc_ekf_state_function::function(X, U, Parameters);
         };
 
-    StateFunctionJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_jacobian_object =
+    PythonControl::StateFunctionJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_jacobian_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
         return kinematic_bicycle_model_nmpc_ekf_state_function_jacobian::function(X, U, Parameters);
         };
 
-    MeasurementFunction_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_object =
+    PythonControl::MeasurementFunction_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
         return kinematic_bicycle_model_nmpc_ekf_measurement_function::function(X, Parameters);
         };
 
-    MeasurementFunctionJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_jacobian_object =
+    PythonControl::MeasurementFunctionJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_jacobian_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
         return kinematic_bicycle_model_nmpc_ekf_measurement_function_jacobian::function(X, Parameters);
         };
@@ -1219,6 +1220,273 @@ public:
 
 } // namespace kinematic_bicycle_model_sqp_hessian_h_xx
 
+namespace kinematic_bicycle_model_cost_matrices_U_min {
+
+template <typename T>
+using type = DenseMatrix_Type<T, 2, 1>;
+
+template <typename T>
+inline auto make(void) -> type<T> {
+
+    return make_DenseMatrix<2, 1>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+}
+
+} // namespace kinematic_bicycle_model_cost_matrices_U_min
+
+namespace kinematic_bicycle_model_cost_matrices_U_max {
+
+template <typename T>
+using type = DenseMatrix_Type<T, 2, 1>;
+
+template <typename T>
+inline auto make(void) -> type<T> {
+
+    return make_DenseMatrix<2, 1>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+}
+
+} // namespace kinematic_bicycle_model_cost_matrices_U_max
+
+namespace kinematic_bicycle_model_cost_matrices_Y_min {
+
+using SparseAvailable_cost_matrices_Y_min = SparseAvailable<
+    ColumnAvailable<false>,
+    ColumnAvailable<false>,
+    ColumnAvailable<false>,
+    ColumnAvailable<false>
+>;
+
+template <typename T>
+using type = SparseMatrix_Type<T, SparseAvailable_cost_matrices_Y_min>;
+
+template <typename T>
+inline auto make(void) -> type<T> {
+
+    return make_SparseMatrixEmpty<T, 4, 1>();
+
+}
+
+} // namespace kinematic_bicycle_model_cost_matrices_Y_min
+
+namespace kinematic_bicycle_model_cost_matrices_Y_max {
+
+using SparseAvailable_cost_matrices_Y_max = SparseAvailable<
+    ColumnAvailable<false>,
+    ColumnAvailable<false>,
+    ColumnAvailable<false>,
+    ColumnAvailable<false>
+>;
+
+template <typename T>
+using type = SparseMatrix_Type<T, SparseAvailable_cost_matrices_Y_max>;
+
+template <typename T>
+inline auto make(void) -> type<T> {
+
+    return make_SparseMatrixEmpty<T, 4, 1>();
+
+}
+
+} // namespace kinematic_bicycle_model_cost_matrices_Y_max
+
+namespace kinematic_bicycle_model_cost_matrices {
+
+constexpr std::size_t NP = 10;
+
+constexpr std::size_t INPUT_SIZE = 2;
+constexpr std::size_t STATE_SIZE = 4;
+constexpr std::size_t OUTPUT_SIZE = 4;
+
+template <typename T>
+using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
+
+template <typename T>
+using U_Type = StateSpaceInput_Type<T, INPUT_SIZE>;
+
+template <typename T>
+using Y_Type = StateSpaceOutput_Type<T, OUTPUT_SIZE>;
+
+template <typename T>
+using State_Jacobian_X_Matrix_Type = kinematic_bicycle_model_sqp_state_jacobian_x::State_Jacobian_x_Type<T>;
+
+template <typename T>
+using State_Jacobian_U_Matrix_Type = kinematic_bicycle_model_sqp_state_jacobian_u::State_Jacobian_u_Type<T>;
+
+template <typename T>
+using Measurement_Jacobian_X_Matrix_Type = kinematic_bicycle_model_sqp_measurement_jacobian_x::Measurement_Jacobian_x_Type<T>;
+
+template <typename T>
+using State_Hessian_XX_Matrix_Type = kinematic_bicycle_model_sqp_hessian_f_xx::State_Hessian_xx_Type<T>;
+
+template <typename T>
+using State_Hessian_XU_Matrix_Type = kinematic_bicycle_model_sqp_hessian_f_xu::State_Hessian_xu_Type<T>;
+
+template <typename T>
+using State_Hessian_UX_Matrix_Type = kinematic_bicycle_model_sqp_hessian_f_ux::State_Hessian_ux_Type<T>;
+
+template <typename T>
+using State_Hessian_UU_Matrix_Type = kinematic_bicycle_model_sqp_hessian_f_uu::State_Hessian_uu_Type<T>;
+
+template <typename T>
+using Measurement_Hessian_XX_Matrix_Type = kinematic_bicycle_model_sqp_hessian_h_xx::Measurement_Hessian_xx_Type<T>;
+
+template <typename T>
+static PythonOptimization::StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_FUNCTION =
+    kinematic_bicycle_model_sqp_state_function::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::MeasurementFunction_Object<Y_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_FUNCTION =
+    kinematic_bicycle_model_sqp_measurement_function::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>, Y_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::StateFunctionJacobian_X_Object<
+    State_Jacobian_X_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_JACOBIAN_X_FUNCTION =
+    kinematic_bicycle_model_sqp_state_jacobian_x::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::StateFunctionJacobian_U_Object<
+    State_Jacobian_U_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_JACOBIAN_U_FUNCTION =
+    kinematic_bicycle_model_sqp_state_jacobian_u::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::MeasurementFunctionJacobian_X_Object<
+    Measurement_Jacobian_X_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_JACOBIAN_X_FUNCTION =
+    kinematic_bicycle_model_sqp_measurement_jacobian_x::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::StateFunctionHessian_XX_Object<
+    State_Hessian_XX_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_XX_FUNCTION =
+    kinematic_bicycle_model_sqp_hessian_f_xx::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::StateFunctionHessian_XU_Object<
+    State_Hessian_XU_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_XU_FUNCTION =
+    kinematic_bicycle_model_sqp_hessian_f_xu::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::StateFunctionHessian_UX_Object<
+    State_Hessian_UX_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_UX_FUNCTION =
+    kinematic_bicycle_model_sqp_hessian_f_ux::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::StateFunctionHessian_UU_Object<
+    State_Hessian_UU_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_UU_FUNCTION =
+    kinematic_bicycle_model_sqp_hessian_f_uu::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+static PythonOptimization::MeasurementFunctionHessian_XX_Object<
+    Measurement_Hessian_XX_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_HESSIAN_XX_FUNCTION =
+    kinematic_bicycle_model_sqp_hessian_h_xx::Function<X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+
+template <typename T>
+using Qx_Type = DiagMatrix_Type<T, STATE_SIZE>;
+
+template <typename T>
+using R_Type = DiagMatrix_Type<T, INPUT_SIZE>;
+
+template <typename T>
+using Qy_Type = DiagMatrix_Type<T, OUTPUT_SIZE>;
+
+template <typename T>
+using U_Min_Type = kinematic_bicycle_model_cost_matrices_U_min::type<T>;
+
+template <typename T>
+using U_Max_Type = kinematic_bicycle_model_cost_matrices_U_max::type<T>;
+
+template <typename T>
+using Y_Min_Type = kinematic_bicycle_model_cost_matrices_Y_min::type<T>;
+
+template <typename T>
+using Y_Max_Type = kinematic_bicycle_model_cost_matrices_Y_max::type<T>;
+
+template <typename T>
+using Reference_Trajectory_Type = DenseMatrix_Type<T, OUTPUT_SIZE, (NP + 1)>;
+
+template <typename T>
+using type = SQP_CostMatrices_NMPC_Type<T, NP, Parameter_Type<T>,
+    U_Min_Type<T>, U_Max_Type<T>, Y_Min_Type<T>, Y_Max_Type<T>,
+    State_Jacobian_X_Matrix_Type<T>,
+    State_Jacobian_U_Matrix_Type<T>,
+    Measurement_Jacobian_X_Matrix_Type<T>,
+    State_Hessian_XX_Matrix_Type<T>,
+    State_Hessian_XU_Matrix_Type<T>,
+    State_Hessian_UX_Matrix_Type<T>,
+    State_Hessian_UU_Matrix_Type<T>,
+    Measurement_Hessian_XX_Matrix_Type<T>>;
+
+template <typename T>
+inline auto make() -> type<T> {
+
+    auto U_min = kinematic_bicycle_model_cost_matrices_U_min::make<T>();
+
+    U_min.template set<0, 0>(static_cast<T>(-1.0));
+    U_min.template set<1, 0>(static_cast<T>(-1.5));
+
+    auto U_max = kinematic_bicycle_model_cost_matrices_U_max::make<T>();
+
+    U_max.template set<0, 0>(static_cast<T>(1.0));
+    U_max.template set<1, 0>(static_cast<T>(1.5));
+
+    auto Y_min = kinematic_bicycle_model_cost_matrices_Y_min::make<T>();
+
+    auto Y_max = kinematic_bicycle_model_cost_matrices_Y_max::make<T>();
+
+    Qx_Type Qx = make_DiagMatrix<STATE_SIZE>(
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.0));
+
+    R_Type R = make_DiagMatrix<INPUT_SIZE>(
+        static_cast<T>(0.05),
+        static_cast<T>(0.05));
+
+    Qy_Type Qy = make_DiagMatrix<OUTPUT_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0));
+
+    Reference_Trajectory_Type reference_trajectory;
+
+    type<T> cost_matrices =
+        make_SQP_CostMatrices_NMPC<T, NP, Parameter_Type,
+        U_Min_Type, U_Max_Type, Y_Min_Type, Y_Max_Type,
+        State_Jacobian_X_Matrix_Type,
+        State_Jacobian_U_Matrix_Type,
+        Measurement_Jacobian_X_Matrix_Type,
+        State_Hessian_XX_Matrix_Type,
+        State_Hessian_XU_Matrix_Type,
+        State_Hessian_UX_Matrix_Type,
+        State_Hessian_UU_Matrix_Type,
+        Measurement_Hessian_XX_Matrix_Type>(
+            Qx, R, Qy, U_min, U_max, Y_min, Y_max);
+
+    cost_matrices.set_function_objects(
+        STATE_FUNCTION,
+        MEASUREMENT_FUNCTION,
+        STATE_JACOBIAN_X_FUNCTION,
+        STATE_JACOBIAN_U_FUNCTION,
+        MEASUREMENT_JACOBIAN_X_FUNCTION,
+        STATE_HESSIAN_XX_FUNCTION,
+        STATE_HESSIAN_XU_FUNCTION,
+        STATE_HESSIAN_UX_FUNCTION,
+        STATE_HESSIAN_UU_FUNCTION,
+        MEASUREMENT_HESSIAN_XX_FUNCTION
+    );
+
+    return cost_matrices;
+
+}
+
+} // namespace kinematic_bicycle_model_cost_matrices
 
 
 } // namespace PythonMPC_KinematicBicycleModelData
