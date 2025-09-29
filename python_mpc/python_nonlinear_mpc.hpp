@@ -14,31 +14,37 @@ namespace PythonMPC {
 
 static constexpr std::size_t NMPC_SOLVER_MAX_ITERATION_DEFAULT = 20;
 
-namespace MPC_ReferenceTrajectoryOperation {
+namespace NonlinearMPC_ReferenceTrajectoryOperation {
 
-// template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
-//           typename Reference_Type, typename Y_Type>
-// inline typename std::enable_if<(ROWS > 1), void>::type
-// substitute_reference(const Reference_Type &ref, const Y_Type &Y,
-//                      Reference_Type &ref_next) {
-//   static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
+template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
+          typename Reference_Type>
+inline typename std::enable_if<(ROWS > 1), void>::type
+substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
+                     const Reference_Type &reference) {
+  static_assert(ROWS == (Np + 1), "ROWS must be equal to Np + 1 when ROWS > 1");
 
-//   ref_next.template set<J, I>(ref.template get<J, I>() -
-//                               Y.template get<J, 0>());
-// }
+  for (std::size_t i = 0; i < Reference_Type::COLS; ++i) {
+    for (std::size_t j = 0; j < Reference_Type::ROWS; ++j) {
+      reference_trajectory.template set<i, j>(reference.template get<i, j>());
+    }
+  }
+}
 
-// template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
-//           typename Reference_Type, typename Y_Type>
-// inline typename std::enable_if<(ROWS == 1), void>::type
-// calculate_each_ref_sub_Y(const Reference_Type &ref, const Y_Type &Y,
-//                          Reference_Type &ref_next) {
-//   static_assert(ROWS == 1, "ROWS must be equal to 1");
+template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
+          typename Reference_Type>
+inline typename std::enable_if<(ROWS == 1), void>::type
+calculate_each_ref_sub_Y(ReferenceTrajectory_Type &reference_trajectory,
+                         const Reference_Type &reference) {
+  static_assert(ROWS == 1, "ROWS must be equal to 1");
 
-//   ref_next.template set<J, 0>(ref.template get<J, 0>() -
-//                               Y.template get<J, 0>());
-// }
+  for (std::size_t i = 0; i < Reference_Type::COLS; ++i) {
+    for (std::size_t j = 0; j < Reference_Type::ROWS; ++j) {
+      reference_trajectory.template set<i, j>(reference.template get<i, j>());
+    }
+  }
+}
 
-} // namespace MPC_ReferenceTrajectoryOperation
+} // namespace NonlinearMPC_ReferenceTrajectoryOperation
 
 template <typename EKF_Type_In, typename Cost_Matrices_Type_In>
 class NonlinearMPC_TwiceDifferentiable {
