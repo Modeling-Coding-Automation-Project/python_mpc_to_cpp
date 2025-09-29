@@ -7,6 +7,7 @@
 #include "test_mpc_servo_motor_data.hpp"
 #include "test_mpc_two_wheel_vehicle_model_data.hpp"
 #include "test_Adaptive_MPC_Phi_F_Updater_Function.hpp"
+#include "test_mpc_kinematic_bicycle_model_data.hpp"
 
 #include "MCAP_tester.hpp"
 
