@@ -14,8 +14,33 @@ namespace PythonMPC {
 
 static constexpr std::size_t NMPC_SOLVER_MAX_ITERATION_DEFAULT = 20;
 
-template <typename EKF_Type_In, typename Cost_Matrices_Type_In,
-          typename ReferenceTrajectory_Type_In>
+namespace MPC_ReferenceTrajectoryOperation {
+
+// template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+//           typename Reference_Type, typename Y_Type>
+// inline typename std::enable_if<(ROWS > 1), void>::type
+// substitute_reference(const Reference_Type &ref, const Y_Type &Y,
+//                      Reference_Type &ref_next) {
+//   static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
+
+//   ref_next.template set<J, I>(ref.template get<J, I>() -
+//                               Y.template get<J, 0>());
+// }
+
+// template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+//           typename Reference_Type, typename Y_Type>
+// inline typename std::enable_if<(ROWS == 1), void>::type
+// calculate_each_ref_sub_Y(const Reference_Type &ref, const Y_Type &Y,
+//                          Reference_Type &ref_next) {
+//   static_assert(ROWS == 1, "ROWS must be equal to 1");
+
+//   ref_next.template set<J, 0>(ref.template get<J, 0>() -
+//                               Y.template get<J, 0>());
+// }
+
+} // namespace MPC_ReferenceTrajectoryOperation
+
+template <typename EKF_Type_In, typename Cost_Matrices_Type_In>
 class NonlinearMPC_TwiceDifferentiable {
 protected:
   /* Type */
@@ -48,7 +73,8 @@ public:
   using Weight_U_Type = PythonNumpy::DiagMatrix_Type<_T, INPUT_SIZE>;
   using Weight_Y_Type = PythonNumpy::DiagMatrix_Type<_T, OUTPUT_SIZE>;
 
-  using ReferenceTrajectory_Type = ReferenceTrajectory_Type_In;
+  using ReferenceTrajectory_Type =
+      PythonNumpy::DenseMatrix_Type<_T, OUTPUT_SIZE, (NP + 1)>;
 
 protected:
   /* Type */
@@ -115,7 +141,8 @@ public:
     this->_solver.set_solver_max_iteration(max_iteration);
   }
 
-  inline void set_reference_trajectory(const Y_Type &reference) {
+  template <typename Reference_Type_In>
+  inline void set_reference_trajectory(const Reference_Type_In &reference) {
 
     ReferenceTrajectory_Type reference_trajectory;
 
