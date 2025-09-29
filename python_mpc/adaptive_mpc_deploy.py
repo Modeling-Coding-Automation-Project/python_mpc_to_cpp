@@ -303,11 +303,11 @@ class AdaptiveMPC_Deploy:
         if ada_mpc_nc.is_ref_trajectory:
             ref_row_size_text = "NP"
 
-        code_text += f"using Ref_Type = DenseMatrix_Type<{type_name}, OUTPUT_SIZE, " + \
+        code_text += f"using Reference_Type = DenseMatrix_Type<{type_name}, OUTPUT_SIZE, " + \
             ref_row_size_text + ">;\n\n"
 
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
-            "  Ref_Type, NP>;\n\n"
+            "  Reference_Type, NP>;\n\n"
 
         code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter_Type;\n\n"
 
@@ -753,11 +753,11 @@ class AdaptiveMPC_Deploy:
         if ada_mpc.is_ref_trajectory:
             ref_row_size_text = "NP"
 
-        code_text += f"using Ref_Type = DenseMatrix_Type<{type_name}, OUTPUT_SIZE, " + \
+        code_text += f"using Reference_Type = DenseMatrix_Type<{type_name}, OUTPUT_SIZE, " + \
             ref_row_size_text + ">;\n\n"
 
         code_text += f"using ReferenceTrajectory_Type = MPC_ReferenceTrajectory_Type<\n" + \
-            "  Ref_Type, NP>;\n\n"
+            "  Reference_Type, NP>;\n\n"
 
         code_text += f"using Parameter_Type = {parameter_code_file_name_no_extension}::Parameter_Type;\n\n"
 

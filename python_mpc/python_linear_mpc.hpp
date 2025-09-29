@@ -347,14 +347,14 @@ public:
    * This function updates the reference trajectory used by the MPC to
    * calculate control inputs based on the provided reference vector.
    *
-   * @tparam Ref_Type Type of the reference vector.
+   * @tparam Reference_Type Type of the reference vector.
    * @param ref The reference vector to be set.
    */
-  template <typename Ref_Type>
-  inline void set_reference_trajectory(const Ref_Type &ref) {
+  template <typename Reference_Type>
+  inline void set_reference_trajectory(const Reference_Type &ref) {
 
-    static_assert(std::is_same<typename Ref_Type::Value_Type, _T>::value,
-                  "Ref_Type::Value_Type must be equal to Value_Type");
+    static_assert(std::is_same<typename Reference_Type::Value_Type, _T>::value,
+                  "Reference_Type::Value_Type must be equal to Value_Type");
 
     this->_reference_trajectory.reference_vector = ref;
   }
@@ -366,14 +366,15 @@ public:
    * compensates for delays in the state and output vectors, and calculates the
    * new control input based on the reference trajectory and the current state.
    *
-   * @tparam Ref_Type Type of the reference vector.
+   * @tparam Reference_Type Type of the reference vector.
    * @param reference The reference vector to be used for updating control
    * input.
    * @param Y The measured output vector.
    * @return The updated control input vector.
    */
-  template <typename Ref_Type>
-  inline auto update(const Ref_Type &reference, const Y_Type &Y) -> U_Type {
+  template <typename Reference_Type>
+  inline auto update(const Reference_Type &reference, const Y_Type &Y)
+      -> U_Type {
 
     this->_kalman_filter.predict_and_update_with_fixed_G(this->_U_latest, Y);
 
@@ -653,8 +654,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : _LTI_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 
@@ -998,14 +998,14 @@ public:
    * This function updates the reference trajectory used by the MPC to
    * calculate control inputs based on the provided reference vector.
    *
-   * @tparam Ref_Type Type of the reference vector.
+   * @tparam Reference_Type Type of the reference vector.
    * @param ref The reference vector to be set.
    */
-  template <typename Ref_Type>
-  inline void set_reference_trajectory(const Ref_Type &ref) {
+  template <typename Reference_Type>
+  inline void set_reference_trajectory(const Reference_Type &ref) {
 
-    static_assert(std::is_same<typename Ref_Type::Value_Type, _T>::value,
-                  "Ref_Type::Value_Type must be equal to Value_Type");
+    static_assert(std::is_same<typename Reference_Type::Value_Type, _T>::value,
+                  "Reference_Type::Value_Type must be equal to Value_Type");
 
     this->_reference_trajectory.reference_vector = ref;
   }
@@ -1040,15 +1040,15 @@ public:
    * compensates for delays in the state and output vectors, and calculates the
    * new control input based on the reference trajectory and the current state.
    *
-   * @tparam Ref_Type Type of the reference vector.
+   * @tparam Reference_Type Type of the reference vector.
    * @param reference The reference vector to be used for updating control
    * input.
    * @param Y The measured output vector.
    * @return The updated control input vector.
    */
-  template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
-      -> U_Type {
+  template <typename Reference_Type>
+  inline auto update_manipulation(const Reference_Type &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
@@ -1392,8 +1392,7 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other)
-  noexcept
+  LTV_MPC(LTV_MPC &&other) noexcept
       : _LTV_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 

@@ -406,12 +406,12 @@ public:
    * This function sets a new reference trajectory based on the provided
    * reference vector, which is used to calculate control inputs.
    *
-   * @tparam Ref_Type Type of the reference vector.
+   * @tparam Reference_Type Type of the reference vector.
    * @param ref The reference vector to be set.
    */
-  template <typename Ref_Type>
-  inline auto update_manipulation(const Ref_Type &reference, const Y_Type &Y)
-      -> U_Type {
+  template <typename Reference_Type>
+  inline auto update_manipulation(const Reference_Type &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     this->_kalman_filter.predict_and_update(this->_U_latest, Y);
 
