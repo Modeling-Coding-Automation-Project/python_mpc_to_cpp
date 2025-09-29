@@ -20,9 +20,9 @@ constexpr std::size_t STATE_SIZE =
 constexpr std::size_t OUTPUT_SIZE =
     adaptive_mpc_two_wheel_vehicle_constraints_delay_SIL_wrapper::OUTPUT_SIZE;
 
-using Ref_Type =
+using Reference_Type =
     typename adaptive_mpc_two_wheel_vehicle_constraints_delay_SIL_wrapper::
-        Ref_Type;
+        Reference_Type;
 
 adaptive_mpc_two_wheel_vehicle_constraints_delay_SIL_wrapper::type ada_mpc;
 
@@ -59,10 +59,10 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
 
   /* substitute */
   FLOAT *ref_data_ptr = static_cast<FLOAT *>(ref_info.ptr);
-  Ref_Type ref;
-  for (std::size_t i = 0; i < Ref_Type::COLS; ++i) {
-    for (std::size_t j = 0; j < Ref_Type::ROWS; ++j) {
-      ref.access(i, j) = ref_data_ptr[i * Ref_Type::ROWS + j];
+  Reference_Type ref;
+  for (std::size_t i = 0; i < Reference_Type::COLS; ++i) {
+    for (std::size_t j = 0; j < Reference_Type::ROWS; ++j) {
+      ref.access(i, j) = ref_data_ptr[i * Reference_Type::ROWS + j];
     }
   }
 
