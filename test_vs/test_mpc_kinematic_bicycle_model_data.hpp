@@ -291,6 +291,91 @@ inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> C
 
 } // namespace kinematic_bicycle_model_nmpc_ekf_measurement_function_jacobian
 
+namespace kinematic_bicycle_model_nmpc_ekf {
+
+constexpr std::size_t NUMBER_OF_DELAY = 0;
+
+template <typename T>
+using A_Type = kinematic_bicycle_model_ekf_A::type<T>;
+
+template <typename T>
+using C_Type = kinematic_bicycle_model_ekf_C::type<T>;
+
+constexpr std::size_t STATE_SIZE = 4;
+constexpr std::size_t INPUT_SIZE = 2;
+constexpr std::size_t OUTPUT_SIZE = 2;
+
+template <typename T>
+using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
+
+template <typename T>
+using U_Type = StateSpaceInput_Type<T, INPUT_SIZE>;
+
+template <typename T>
+using Y_Type = StateSpaceOutput_Type<T, OUTPUT_SIZE>;
+
+template <typename T>
+using Q_Type = KalmanFilter_Q_Type<T, STATE_SIZE>;
+
+template <typename T>
+using R_Type = KalmanFilter_R_Type<T, OUTPUT_SIZE>;
+
+template <typename T>
+using Parameter_Type = kinematic_bicycle_model_nmpc_ekf_parameter::Parameter_Type<T>;
+
+template <typename T>
+using type = ExtendedKalmanFilter_Type<
+    A_Type<T>, C_Type<T>, U_Type<T>, Q_Type<T>, R_Type<T>, Parameter_Type<T>, NUMBER_OF_DELAY>;
+
+template <typename T>
+inline auto make() -> type<T> {
+
+    auto Q = make_KalmanFilter_Q<STATE_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    auto R = make_KalmanFilter_R<OUTPUT_SIZE>(
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0),
+        static_cast<T>(1.0)
+    );
+
+    Parameter_Type<T> parameters;
+
+    StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_object =
+        [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
+        return kinematic_bicycle_model_nmpc_ekf_state_function::function(X, U, Parameters);
+        };
+
+    StateFunctionJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_jacobian_object =
+        [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
+        return kinematic_bicycle_model_nmpc_ekf_state_function_jacobian::function(X, U, Parameters);
+        };
+
+    MeasurementFunction_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_object =
+        [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
+        return kinematic_bicycle_model_nmpc_ekf_measurement_function::function(X, Parameters);
+        };
+
+    MeasurementFunctionJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_jacobian_object =
+        [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
+        return kinematic_bicycle_model_nmpc_ekf_measurement_function_jacobian::function(X, Parameters);
+        };
+
+    return ExtendedKalmanFilter_Type<
+        A_Type<T>, C_Type<T>, U_Type<T>, Q_Type<T>, R_Type<T>, Parameter_Type<T>, NUMBER_OF_DELAY>(
+            Q, R, state_function_object, state_function_jacobian_object,
+            measurement_function_object, measurement_function_jacobian_object,
+            parameters);
+
+}
+
+} // namespace kinematic_bicycle_model_nmpc_ekf
+
 
 } // namespace PythonMPC_KinematicBicycleModelData
 
