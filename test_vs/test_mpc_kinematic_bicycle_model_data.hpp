@@ -657,6 +657,568 @@ public:
 
 } // namespace kinematic_bicycle_model_sqp_measurement_jacobian_x
 
+namespace kinematic_bicycle_model_sqp_hessian_f_xx {
+
+using State_Hessian_xx_Type_SparseAvailable = SparseAvailable<
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, true, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, true>,
+    ColumnAvailable<false, false, true, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>
+>;
+
+template <typename T>
+using State_Hessian_xx_Type = SparseMatrix_Type<T, State_Hessian_xx_Type_SparseAvailable>;
+
+template <typename T, typename X_Type, typename U_Type, typename Parameter_Type>
+class Function {
+public:
+    static inline auto sympy_function(const T delta_time, const T v) -> State_Hessian_xx_Type<T> {
+
+        State_Hessian_xx_Type<T> result;
+
+        T x0 = delta_time * v;
+
+        T x1 = 2 * x0;
+
+        result.template set<0, 0>(static_cast<T>(0));
+        result.template set<0, 1>(static_cast<T>(0));
+        result.template set<0, 2>(static_cast<T>(0));
+        result.template set<0, 3>(static_cast<T>(0));
+        result.template set<1, 0>(static_cast<T>(0));
+        result.template set<1, 1>(static_cast<T>(0));
+        result.template set<1, 2>(static_cast<T>(0));
+        result.template set<1, 3>(static_cast<T>(0));
+        result.template set<2, 0>(static_cast<T>(0));
+        result.template set<2, 1>(static_cast<T>(0));
+        result.template set<2, 2>(static_cast<T>(4 * x0));
+        result.template set<2, 3>(static_cast<T>(0));
+        result.template set<3, 0>(static_cast<T>(0));
+        result.template set<3, 1>(static_cast<T>(0));
+        result.template set<3, 2>(static_cast<T>(0));
+        result.template set<3, 3>(static_cast<T>(0));
+        result.template set<4, 0>(static_cast<T>(0));
+        result.template set<4, 1>(static_cast<T>(0));
+        result.template set<4, 2>(static_cast<T>(0));
+        result.template set<4, 3>(static_cast<T>(0));
+        result.template set<5, 0>(static_cast<T>(0));
+        result.template set<5, 1>(static_cast<T>(0));
+        result.template set<5, 2>(static_cast<T>(0));
+        result.template set<5, 3>(static_cast<T>(0));
+        result.template set<6, 0>(static_cast<T>(0));
+        result.template set<6, 1>(static_cast<T>(0));
+        result.template set<6, 2>(static_cast<T>(0));
+        result.template set<6, 3>(static_cast<T>(x1));
+        result.template set<7, 0>(static_cast<T>(0));
+        result.template set<7, 1>(static_cast<T>(0));
+        result.template set<7, 2>(static_cast<T>(x1));
+        result.template set<7, 3>(static_cast<T>(0));
+        result.template set<8, 0>(static_cast<T>(0));
+        result.template set<8, 1>(static_cast<T>(0));
+        result.template set<8, 2>(static_cast<T>(0));
+        result.template set<8, 3>(static_cast<T>(0));
+        result.template set<9, 0>(static_cast<T>(0));
+        result.template set<9, 1>(static_cast<T>(0));
+        result.template set<9, 2>(static_cast<T>(0));
+        result.template set<9, 3>(static_cast<T>(0));
+        result.template set<10, 0>(static_cast<T>(0));
+        result.template set<10, 1>(static_cast<T>(0));
+        result.template set<10, 2>(static_cast<T>(0));
+        result.template set<10, 3>(static_cast<T>(0));
+        result.template set<11, 0>(static_cast<T>(0));
+        result.template set<11, 1>(static_cast<T>(0));
+        result.template set<11, 2>(static_cast<T>(0));
+        result.template set<11, 3>(static_cast<T>(0));
+        result.template set<12, 0>(static_cast<T>(0));
+        result.template set<12, 1>(static_cast<T>(0));
+        result.template set<12, 2>(static_cast<T>(0));
+        result.template set<12, 3>(static_cast<T>(0));
+        result.template set<13, 0>(static_cast<T>(0));
+        result.template set<13, 1>(static_cast<T>(0));
+        result.template set<13, 2>(static_cast<T>(0));
+        result.template set<13, 3>(static_cast<T>(0));
+        result.template set<14, 0>(static_cast<T>(0));
+        result.template set<14, 1>(static_cast<T>(0));
+        result.template set<14, 2>(static_cast<T>(0));
+        result.template set<14, 3>(static_cast<T>(0));
+        result.template set<15, 0>(static_cast<T>(0));
+        result.template set<15, 1>(static_cast<T>(0));
+        result.template set<15, 2>(static_cast<T>(0));
+        result.template set<15, 3>(static_cast<T>(0));
+
+        return result;
+    }
+
+    static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> State_Hessian_xx_Type<T> {
+
+        T v = U.template get<0, 0>();
+
+        T delta_time = Parameters.delta_time;
+
+        return sympy_function(delta_time, v);
+    }
+
+};
+
+} // namespace kinematic_bicycle_model_sqp_hessian_f_xx
+
+namespace kinematic_bicycle_model_sqp_hessian_f_xu {
+
+using State_Hessian_xu_Type_SparseAvailable = SparseAvailable<
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<true, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<true, false>,
+    ColumnAvailable<true, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<true, true>,
+    ColumnAvailable<true, true>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<true, true>,
+    ColumnAvailable<true, true>
+>;
+
+template <typename T>
+using State_Hessian_xu_Type = SparseMatrix_Type<T, State_Hessian_xu_Type_SparseAvailable>;
+
+template <typename T, typename X_Type, typename U_Type, typename Parameter_Type>
+class Function {
+public:
+    static inline auto sympy_function(const T delta, const T wheel_base, const T v, const T q3, const T delta_time, const T q0) -> State_Hessian_xu_Type<T> {
+
+        State_Hessian_xu_Type<T> result;
+
+        T x0 = delta_time * q0;
+
+        T x1 = static_cast<T>(1) / wheel_base;
+
+        T x2 = tan(delta);
+
+        T x3 = delta_time * x1 * x2 / static_cast<T>(2);
+
+        T x4 = v * x3;
+
+        T x5 = sin(x4);
+
+        T x6 = -x3 * x5;
+
+        T x7 = delta_time * v * x1 * (x2 * x2 + 1) / static_cast<T>(2);
+
+        T x8 = -x5 * x7;
+
+        T x9 = cos(x4);
+
+        T x10 = x3 * x9;
+
+        T x11 = x7 * x9;
+
+        result.template set<0, 0>(static_cast<T>(0));
+        result.template set<0, 1>(static_cast<T>(0));
+        result.template set<1, 0>(static_cast<T>(0));
+        result.template set<1, 1>(static_cast<T>(0));
+        result.template set<2, 0>(static_cast<T>(4 * x0));
+        result.template set<2, 1>(static_cast<T>(0));
+        result.template set<3, 0>(static_cast<T>(0));
+        result.template set<3, 1>(static_cast<T>(0));
+        result.template set<4, 0>(static_cast<T>(0));
+        result.template set<4, 1>(static_cast<T>(0));
+        result.template set<5, 0>(static_cast<T>(0));
+        result.template set<5, 1>(static_cast<T>(0));
+        result.template set<6, 0>(static_cast<T>(2 * delta_time * q3));
+        result.template set<6, 1>(static_cast<T>(0));
+        result.template set<7, 0>(static_cast<T>(2 * x0));
+        result.template set<7, 1>(static_cast<T>(0));
+        result.template set<8, 0>(static_cast<T>(0));
+        result.template set<8, 1>(static_cast<T>(0));
+        result.template set<9, 0>(static_cast<T>(0));
+        result.template set<9, 1>(static_cast<T>(0));
+        result.template set<10, 0>(static_cast<T>(x6));
+        result.template set<10, 1>(static_cast<T>(x8));
+        result.template set<11, 0>(static_cast<T>(-x10));
+        result.template set<11, 1>(static_cast<T>(-x11));
+        result.template set<12, 0>(static_cast<T>(0));
+        result.template set<12, 1>(static_cast<T>(0));
+        result.template set<13, 0>(static_cast<T>(0));
+        result.template set<13, 1>(static_cast<T>(0));
+        result.template set<14, 0>(static_cast<T>(x10));
+        result.template set<14, 1>(static_cast<T>(x11));
+        result.template set<15, 0>(static_cast<T>(x6));
+        result.template set<15, 1>(static_cast<T>(x8));
+
+        return result;
+    }
+
+    static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> State_Hessian_xu_Type<T> {
+
+        T q0 = X.template get<2, 0>();
+
+        T q3 = X.template get<3, 0>();
+
+        T v = U.template get<0, 0>();
+
+        T delta = U.template get<1, 0>();
+
+        T wheel_base = Parameters.wheel_base;
+
+        T delta_time = Parameters.delta_time;
+
+        return sympy_function(delta, wheel_base, v, q3, delta_time, q0);
+    }
+
+};
+
+} // namespace kinematic_bicycle_model_sqp_hessian_f_xu
+
+namespace kinematic_bicycle_model_sqp_hessian_f_ux {
+
+using State_Hessian_ux_Type_SparseAvailable = SparseAvailable<
+    ColumnAvailable<false, false, true, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, true, true>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, true, true>,
+    ColumnAvailable<false, false, true, true>,
+    ColumnAvailable<false, false, true, true>,
+    ColumnAvailable<false, false, true, true>
+>;
+
+template <typename T>
+using State_Hessian_ux_Type = SparseMatrix_Type<T, State_Hessian_ux_Type_SparseAvailable>;
+
+template <typename T, typename X_Type, typename U_Type, typename Parameter_Type>
+class Function {
+public:
+    static inline auto sympy_function(const T delta, const T wheel_base, const T v, const T q3, const T delta_time, const T q0) -> State_Hessian_ux_Type<T> {
+
+        State_Hessian_ux_Type<T> result;
+
+        T x0 = delta_time * q0;
+
+        T x1 = static_cast<T>(1) / wheel_base;
+
+        T x2 = tan(delta);
+
+        T x3 = delta_time * x1 * x2 / static_cast<T>(2);
+
+        T x4 = v * x3;
+
+        T x5 = sin(x4);
+
+        T x6 = -x3 * x5;
+
+        T x7 = cos(x4);
+
+        T x8 = x3 * x7;
+
+        T x9 = delta_time * v * x1 * (x2 * x2 + 1) / static_cast<T>(2);
+
+        T x10 = -x5 * x9;
+
+        T x11 = x7 * x9;
+
+        result.template set<0, 0>(static_cast<T>(0));
+        result.template set<0, 1>(static_cast<T>(0));
+        result.template set<0, 2>(static_cast<T>(4 * x0));
+        result.template set<0, 3>(static_cast<T>(0));
+        result.template set<1, 0>(static_cast<T>(0));
+        result.template set<1, 1>(static_cast<T>(0));
+        result.template set<1, 2>(static_cast<T>(0));
+        result.template set<1, 3>(static_cast<T>(0));
+        result.template set<2, 0>(static_cast<T>(0));
+        result.template set<2, 1>(static_cast<T>(0));
+        result.template set<2, 2>(static_cast<T>(2 * delta_time * q3));
+        result.template set<2, 3>(static_cast<T>(2 * x0));
+        result.template set<3, 0>(static_cast<T>(0));
+        result.template set<3, 1>(static_cast<T>(0));
+        result.template set<3, 2>(static_cast<T>(0));
+        result.template set<3, 3>(static_cast<T>(0));
+        result.template set<4, 0>(static_cast<T>(0));
+        result.template set<4, 1>(static_cast<T>(0));
+        result.template set<4, 2>(static_cast<T>(x6));
+        result.template set<4, 3>(static_cast<T>(-x8));
+        result.template set<5, 0>(static_cast<T>(0));
+        result.template set<5, 1>(static_cast<T>(0));
+        result.template set<5, 2>(static_cast<T>(x10));
+        result.template set<5, 3>(static_cast<T>(-x11));
+        result.template set<6, 0>(static_cast<T>(0));
+        result.template set<6, 1>(static_cast<T>(0));
+        result.template set<6, 2>(static_cast<T>(x8));
+        result.template set<6, 3>(static_cast<T>(x6));
+        result.template set<7, 0>(static_cast<T>(0));
+        result.template set<7, 1>(static_cast<T>(0));
+        result.template set<7, 2>(static_cast<T>(x11));
+        result.template set<7, 3>(static_cast<T>(x10));
+
+        return result;
+    }
+
+    static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> State_Hessian_ux_Type<T> {
+
+        T q0 = X.template get<2, 0>();
+
+        T q3 = X.template get<3, 0>();
+
+        T v = U.template get<0, 0>();
+
+        T delta = U.template get<1, 0>();
+
+        T wheel_base = Parameters.wheel_base;
+
+        T delta_time = Parameters.delta_time;
+
+        return sympy_function(delta, wheel_base, v, q3, delta_time, q0);
+    }
+
+};
+
+} // namespace kinematic_bicycle_model_sqp_hessian_f_ux
+
+namespace kinematic_bicycle_model_sqp_hessian_f_uu {
+
+using State_Hessian_uu_Type_SparseAvailable = SparseAvailable<
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<false, false>,
+    ColumnAvailable<true, true>,
+    ColumnAvailable<true, true>,
+    ColumnAvailable<true, true>,
+    ColumnAvailable<true, true>
+>;
+
+template <typename T>
+using State_Hessian_uu_Type = SparseMatrix_Type<T, State_Hessian_uu_Type_SparseAvailable>;
+
+template <typename T, typename X_Type, typename U_Type, typename Parameter_Type>
+class Function {
+public:
+    static inline auto sympy_function(const T delta, const T wheel_base, const T v, const T q3, const T delta_time, const T q0) -> State_Hessian_uu_Type<T> {
+
+        State_Hessian_uu_Type<T> result;
+
+        T x0 = tan(delta);
+
+        T x1 = v * x0;
+
+        T x2 = static_cast<T>(1) / wheel_base;
+
+        T x3 = delta_time * x2 / static_cast<T>(2);
+
+        T x4 = x1 * x3;
+
+        T x5 = cos(x4);
+
+        T x6 = q0 * x5;
+
+        T x7 = x0 * x0;
+
+        T x8 = delta_time * delta_time;
+
+        T x9 = wheel_base * static_cast<T>(-2);
+
+        T x10 = x8 * x9 / static_cast<T>(4);
+
+        T x11 = x10 * x7;
+
+        T x12 = sin(x4);
+
+        T x13 = x7 + 1;
+
+        T x14 = x13 * x3;
+
+        T x15 = q0 * x12;
+
+        T x16 = q3 * x5;
+
+        T x17 = x10 * x6;
+
+        T x18 = x1 * x13;
+
+        T x19 = q3 * v * x0 * x12 * x13 * x8 * x9 / 4 - x14 * x15 - x14 * x16 - x17 * x18;
+
+        T x20 = 2 * x7 + static_cast<T>(2);
+
+        T x21 = x20 * x4;
+
+        T x22 = v * v;
+
+        T x23 = x13 * x13;
+
+        T x24 = x22 * x23;
+
+        T x25 = q3 * x12;
+
+        T x26 = x10 * x18;
+
+        T x27 = delta_time * q0 * x13 * x2 * x5 / static_cast<T>(2) - x14 * x25 - x15 * x26 - x16 * x26;
+
+        T x28 = x10 * x24;
+
+        result.template set<0, 0>(static_cast<T>(0));
+        result.template set<0, 1>(static_cast<T>(0));
+        result.template set<1, 0>(static_cast<T>(0));
+        result.template set<1, 1>(static_cast<T>(0));
+        result.template set<2, 0>(static_cast<T>(0));
+        result.template set<2, 1>(static_cast<T>(0));
+        result.template set<3, 0>(static_cast<T>(0));
+        result.template set<3, 1>(static_cast<T>(0));
+        result.template set<4, 0>(static_cast<T>(q3 * x12 * x7 * x8 * x9 / 4 - x11 * x6));
+        result.template set<4, 1>(static_cast<T>(x19));
+        result.template set<5, 0>(static_cast<T>(x19));
+        result.template set<5, 1>(static_cast<T>(q3 * x12 * x22 * x23 * x8 * x9 / 4 - x15 * x21 - x16 * x21 - x17 * x24));
+        result.template set<6, 0>(static_cast<T>(-q0 * x11 * x12 - x11 * x16));
+        result.template set<6, 1>(static_cast<T>(x27));
+        result.template set<7, 0>(static_cast<T>(x27));
+        result.template set<7, 1>(static_cast<T>(delta_time * q0 * v * x0 * x2 * x20 * x5 / 2 - x15 * x28 - x16 * x28 - x21 * x25));
+
+        return result;
+    }
+
+    static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> State_Hessian_uu_Type<T> {
+
+        T q0 = X.template get<2, 0>();
+
+        T q3 = X.template get<3, 0>();
+
+        T v = U.template get<0, 0>();
+
+        T delta = U.template get<1, 0>();
+
+        T wheel_base = Parameters.wheel_base;
+
+        T delta_time = Parameters.delta_time;
+
+        return sympy_function(delta, wheel_base, v, q3, delta_time, q0);
+    }
+
+};
+
+} // namespace kinematic_bicycle_model_sqp_hessian_f_uu
+
+namespace kinematic_bicycle_model_sqp_hessian_h_xx {
+
+using Measurement_Hessian_xx_Type_SparseAvailable = SparseAvailable<
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>,
+    ColumnAvailable<false, false, false, false>
+>;
+
+template <typename T>
+using Measurement_Hessian_xx_Type = SparseMatrix_Type<T, Measurement_Hessian_xx_Type_SparseAvailable>;
+
+template <typename T, typename X_Type, typename U_Type, typename Parameter_Type>
+class Function {
+public:
+    static inline auto sympy_function() -> Measurement_Hessian_xx_Type<T> {
+
+        Measurement_Hessian_xx_Type<T> result;
+
+        result.template set<0, 0>(static_cast<T>(0));
+        result.template set<0, 1>(static_cast<T>(0));
+        result.template set<0, 2>(static_cast<T>(0));
+        result.template set<0, 3>(static_cast<T>(0));
+        result.template set<1, 0>(static_cast<T>(0));
+        result.template set<1, 1>(static_cast<T>(0));
+        result.template set<1, 2>(static_cast<T>(0));
+        result.template set<1, 3>(static_cast<T>(0));
+        result.template set<2, 0>(static_cast<T>(0));
+        result.template set<2, 1>(static_cast<T>(0));
+        result.template set<2, 2>(static_cast<T>(0));
+        result.template set<2, 3>(static_cast<T>(0));
+        result.template set<3, 0>(static_cast<T>(0));
+        result.template set<3, 1>(static_cast<T>(0));
+        result.template set<3, 2>(static_cast<T>(0));
+        result.template set<3, 3>(static_cast<T>(0));
+        result.template set<4, 0>(static_cast<T>(0));
+        result.template set<4, 1>(static_cast<T>(0));
+        result.template set<4, 2>(static_cast<T>(0));
+        result.template set<4, 3>(static_cast<T>(0));
+        result.template set<5, 0>(static_cast<T>(0));
+        result.template set<5, 1>(static_cast<T>(0));
+        result.template set<5, 2>(static_cast<T>(0));
+        result.template set<5, 3>(static_cast<T>(0));
+        result.template set<6, 0>(static_cast<T>(0));
+        result.template set<6, 1>(static_cast<T>(0));
+        result.template set<6, 2>(static_cast<T>(0));
+        result.template set<6, 3>(static_cast<T>(0));
+        result.template set<7, 0>(static_cast<T>(0));
+        result.template set<7, 1>(static_cast<T>(0));
+        result.template set<7, 2>(static_cast<T>(0));
+        result.template set<7, 3>(static_cast<T>(0));
+        result.template set<8, 0>(static_cast<T>(0));
+        result.template set<8, 1>(static_cast<T>(0));
+        result.template set<8, 2>(static_cast<T>(0));
+        result.template set<8, 3>(static_cast<T>(0));
+        result.template set<9, 0>(static_cast<T>(0));
+        result.template set<9, 1>(static_cast<T>(0));
+        result.template set<9, 2>(static_cast<T>(0));
+        result.template set<9, 3>(static_cast<T>(0));
+        result.template set<10, 0>(static_cast<T>(0));
+        result.template set<10, 1>(static_cast<T>(0));
+        result.template set<10, 2>(static_cast<T>(0));
+        result.template set<10, 3>(static_cast<T>(0));
+        result.template set<11, 0>(static_cast<T>(0));
+        result.template set<11, 1>(static_cast<T>(0));
+        result.template set<11, 2>(static_cast<T>(0));
+        result.template set<11, 3>(static_cast<T>(0));
+        result.template set<12, 0>(static_cast<T>(0));
+        result.template set<12, 1>(static_cast<T>(0));
+        result.template set<12, 2>(static_cast<T>(0));
+        result.template set<12, 3>(static_cast<T>(0));
+        result.template set<13, 0>(static_cast<T>(0));
+        result.template set<13, 1>(static_cast<T>(0));
+        result.template set<13, 2>(static_cast<T>(0));
+        result.template set<13, 3>(static_cast<T>(0));
+        result.template set<14, 0>(static_cast<T>(0));
+        result.template set<14, 1>(static_cast<T>(0));
+        result.template set<14, 2>(static_cast<T>(0));
+        result.template set<14, 3>(static_cast<T>(0));
+        result.template set<15, 0>(static_cast<T>(0));
+        result.template set<15, 1>(static_cast<T>(0));
+        result.template set<15, 2>(static_cast<T>(0));
+        result.template set<15, 3>(static_cast<T>(0));
+
+        return result;
+    }
+
+    static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> Measurement_Hessian_xx_Type<T> {
+
+        return sympy_function();
+    }
+
+};
+
+} // namespace kinematic_bicycle_model_sqp_hessian_h_xx
+
 
 
 } // namespace PythonMPC_KinematicBicycleModelData
