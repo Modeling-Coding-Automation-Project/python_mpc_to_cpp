@@ -39,7 +39,7 @@ calculate_each_ref_sub_Y(ReferenceTrajectory_Type &reference_trajectory,
 
   for (std::size_t i = 0; i < Reference_Type::COLS; ++i) {
     for (std::size_t j = 0; j < Reference_Type::ROWS; ++j) {
-      reference_trajectory.template set<i, j>(reference.template get<i, j>());
+      reference_trajectory.template set<i, j>(reference.template get<i, 0>());
     }
   }
 }
