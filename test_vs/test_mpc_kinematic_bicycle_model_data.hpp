@@ -1031,7 +1031,7 @@ public:
 
         T x8 = delta_time * delta_time;
 
-        T x9 = wheel_base * static_cast<T>(-2);
+        T x9 = static_cast<T>(1) / wheel_base / wheel_base;
 
         T x10 = x8 * x9 / static_cast<T>(4);
 
