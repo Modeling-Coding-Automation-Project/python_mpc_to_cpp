@@ -1483,7 +1483,7 @@ void check_Nonlinear_MPC(void) {
 
     nonlinear_mpc.update_parameters(parameter);
 
-    //auto u_from_mpc = nonlinear_mpc.update_manipulation(reference_trajectory, y_measured);
+    auto u_from_mpc = nonlinear_mpc.update_manipulation(reference_trajectory, y_measured);
 
 
     tester.throw_error_if_test_failed();

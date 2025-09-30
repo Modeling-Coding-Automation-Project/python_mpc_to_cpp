@@ -334,9 +334,9 @@ public:
   }
 
   /* Function */
-  inline auto calculate_this_U(const U_Horizon_Type &U_horizon) -> U_Type {
+  inline auto calculate_this_U(const U_Horizon_Type &U_horizon_in) -> U_Type {
 
-    auto U = PythonNumpy::get_row<0, _T, INPUT_SIZE, 1>(U_horizon);
+    auto U = PythonNumpy::get_row<0>(U_horizon_in);
 
     return U;
   }
