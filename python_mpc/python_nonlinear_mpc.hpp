@@ -356,6 +356,32 @@ protected:
   _Solver_Type _solver;
 };
 
+/* make NonlinearMPC_TwiceDifferentiable */
+template <typename EKF_Type, typename Cost_Matrices_Type, typename T>
+inline auto make_NonlinearMPC_TwiceDifferentiable(
+    EKF_Type &kalman_filter, Cost_Matrices_Type &cost_matrices, T delta_time,
+    typename Cost_Matrices_Type::X_Type X_initial)
+    -> NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type> {
+
+  static_assert(std::is_same<typename EKF_Type::Value_Type, T>::value,
+                "Data type of EKF must be same type as T.");
+  static_assert(std::is_same<typename Cost_Matrices_Type::Value_Type, T>::value,
+                "Data type of CostMatrices must be same type as T.");
+
+  using NonlinearMPC_TwiceDifferentiable_Type =
+      NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>;
+
+  NonlinearMPC_TwiceDifferentiable_Type nonlinear_mpc(
+      kalman_filter, cost_matrices, static_cast<T>(delta_time), X_initial);
+
+  return nonlinear_mpc;
+}
+
+/* NonlinearMPC_TwiceDifferentiable Type */
+template <typename EKF_Type, typename Cost_Matrices_Type>
+using NonlinearMPC_TwiceDifferentiable_Type =
+    NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>;
+
 } // namespace PythonMPC
 
 #endif // __PYTHON_NONLINEAR_MPC_HPP__

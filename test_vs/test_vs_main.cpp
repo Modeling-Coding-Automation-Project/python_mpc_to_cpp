@@ -1412,11 +1412,25 @@ void check_Nonlinear_MPC(void) {
     constexpr std::size_t STATE_SIZE = kinematic_bicycle_model_cost_matrices::STATE_SIZE;
     constexpr std::size_t OUTPUT_SIZE = kinematic_bicycle_model_cost_matrices::OUTPUT_SIZE;
 
+    T delta_time = static_cast<T>(0.1);
+
+    auto X_initial = make_DenseMatrix<STATE_SIZE, 1>(
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(0.0)
+    );
+
     using EKF_Type = kinematic_bicycle_model_nmpc_ekf::type<T>;
 
     using Cost_Matrices_Type = kinematic_bicycle_model_cost_matrices::type<T>;
 
-    NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type> nonlinear_mpc;
+    auto kalman_filter = kinematic_bicycle_model_nmpc_ekf::make<T>();
+
+    auto cost_matrices = kinematic_bicycle_model_cost_matrices::make<T>();
+
+    NonlinearMPC_TwiceDifferentiable_Type<EKF_Type, Cost_Matrices_Type> nonlinear_mpc
+        = make_NonlinearMPC_TwiceDifferentiable(kalman_filter, cost_matrices, delta_time, X_initial);
 
 
 
