@@ -1411,7 +1411,7 @@ void check_Nonlinear_MPC(void) {
     /* 定義 */
     constexpr std::size_t NP = kinematic_bicycle_model_cost_matrices::NP;
 
-    //constexpr std::size_t INPUT_SIZE = kinematic_bicycle_model_cost_matrices::INPUT_SIZE;
+    constexpr std::size_t INPUT_SIZE = kinematic_bicycle_model_cost_matrices::INPUT_SIZE;
     constexpr std::size_t STATE_SIZE = kinematic_bicycle_model_cost_matrices::STATE_SIZE;
     constexpr std::size_t OUTPUT_SIZE = kinematic_bicycle_model_cost_matrices::OUTPUT_SIZE;
 
@@ -1484,6 +1484,14 @@ void check_Nonlinear_MPC(void) {
     nonlinear_mpc.update_parameters(parameter);
 
     auto u_from_mpc = nonlinear_mpc.update_manipulation(reference_trajectory, y_measured);
+
+    auto u_from_mpc_answer = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(0.52508323),
+        static_cast<T>(0.22256554)
+    );
+
+    tester.expect_near(u_from_mpc.matrix.data, u_from_mpc_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check Nonlinear MPC, update_manipulation, U.");
 
 
     tester.throw_error_if_test_failed();
