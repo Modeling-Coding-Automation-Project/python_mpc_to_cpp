@@ -216,7 +216,7 @@ protected:
 public:
   /* Constructor */
   NonlinearMPC_TwiceDifferentiable()
-      : U_horizon(), _sqp_cost_matrices(), _kalman_filter(), _delta_time(0),
+      : U_horizon(), _kalman_filter(), _sqp_cost_matrices(), _delta_time(0),
         _X_inner_model(), _Y_store(), _cost_function(nullptr),
         _cost_and_gradient_function(nullptr), _hvp_function(nullptr),
         _solver() {}
@@ -224,8 +224,8 @@ public:
   NonlinearMPC_TwiceDifferentiable(EKF_Type &kalman_filter,
                                    Cost_Matrices_Type &cost_matrices,
                                    _T delta_time, X_Type X_initial)
-      : U_horizon(), _sqp_cost_matrices(cost_matrices),
-        _kalman_filter(kalman_filter), _delta_time(delta_time),
+      : U_horizon(), _kalman_filter(kalman_filter),
+        _sqp_cost_matrices(cost_matrices), _delta_time(delta_time),
         _X_inner_model(X_initial), _Y_store(), _cost_function(),
         _cost_and_gradient_function(), _hvp_function(), _solver() {
 

@@ -1409,16 +1409,16 @@ inline auto make() -> type<T> {
     Reference_Trajectory_Type<T> reference_trajectory;
 
     type<T> cost_matrices =
-        make_SQP_CostMatrices_NMPC<T, NP, Parameter_Type,
-        U_Min_Type, U_Max_Type, Y_Min_Type, Y_Max_Type,
-        State_Jacobian_X_Matrix_Type,
-        State_Jacobian_U_Matrix_Type,
-        Measurement_Jacobian_X_Matrix_Type,
-        State_Hessian_XX_Matrix_Type,
-        State_Hessian_XU_Matrix_Type,
-        State_Hessian_UX_Matrix_Type,
-        State_Hessian_UU_Matrix_Type,
-        Measurement_Hessian_XX_Matrix_Type>(
+        make_SQP_CostMatrices_NMPC<T, NP, Parameter_Type<T>,
+        U_Min_Type<T>, U_Max_Type<T>, Y_Min_Type<T>, Y_Max_Type<T>,
+        State_Jacobian_X_Matrix_Type<T>,
+        State_Jacobian_U_Matrix_Type<T>,
+        Measurement_Jacobian_X_Matrix_Type<T>,
+        State_Hessian_XX_Matrix_Type<T>,
+        State_Hessian_XU_Matrix_Type<T>,
+        State_Hessian_UX_Matrix_Type<T>,
+        State_Hessian_UU_Matrix_Type<T>,
+        Measurement_Hessian_XX_Matrix_Type<T>>(
             Qx, R, Qy, U_min, U_max, Y_min, Y_max);
 
     PythonOptimization::StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_FUNCTION =
