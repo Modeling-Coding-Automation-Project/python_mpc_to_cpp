@@ -227,27 +227,7 @@ public:
         _X_inner_model(X_initial), _Y_store(), _cost_function(),
         _cost_and_gradient_function(), _hvp_function(), _solver() {
 
-    this->_cost_function = [this](const X_Type &X, const U_Horizon_Type &U) ->
-        typename X_Type::Value_Type {
-          return this->_cost_matrices.compute_cost(X, U);
-        };
-
-    this->_cost_and_gradient_function =
-        [this](const X_Type &X, const U_Horizon_Type &U,
-               typename X_Type::Value_Type &J, _Gradient_Type &gradient) {
-          this->_cost_matrices.compute_cost_and_gradient(X, U, J, gradient);
-        };
-
-    this->_hvp_function = [this](const X_Type &X, const U_Horizon_Type &U,
-                                 const _V_Horizon_Type &V) -> _HVP_Type {
-      return this->_cost_matrices.hvp_analytic(X, U, V);
-    };
-
-    this->_solver =
-        PythonOptimization::make_SQP_ActiveSet_PCG_PLS<Cost_Matrices_Type>();
-
-    this->_solver.X_initial = X_initial;
-    this->_solver.set_solver_max_iteration(NMPC_SOLVER_MAX_ITERATION_DEFAULT);
+    this->_initialize_solver(X_initial);
   }
 
 public:
@@ -315,6 +295,37 @@ public:
 
 protected:
   /* Function */
+  inline void _initialize_solver(const X_Type &X_initial) {
+
+    this->_cost_function = [this](const X_Type &X, const U_Horizon_Type &U) ->
+        typename X_Type::Value_Type {
+          return this->_cost_matrices.compute_cost(X, U);
+        };
+
+    this->_cost_and_gradient_function =
+        [this](const X_Type &X, const U_Horizon_Type &U,
+               typename X_Type::Value_Type &J, _Gradient_Type &gradient) {
+          this->_cost_matrices.compute_cost_and_gradient(X, U, J, gradient);
+        };
+
+    this->_hvp_function = [this](const X_Type &X, const U_Horizon_Type &U,
+                                 const _V_Horizon_Type &V) -> _HVP_Type {
+      return this->_cost_matrices.hvp_analytic(X, U, V);
+    };
+
+    this->_solver =
+        PythonOptimization::make_SQP_ActiveSet_PCG_PLS<Cost_Matrices_Type>();
+
+    // diag_R = np.diag(self.sqp_cost_matrices.R).reshape(
+    //     (self.INPUT_SIZE, 1))
+    // self.solver.set_diag_R_full(np.tile(diag_R, (1, self.Np)))
+
+    auto diag_R;
+
+    this->_solver.X_initial = X_initial;
+    this->_solver.set_solver_max_iteration(NMPC_SOLVER_MAX_ITERATION_DEFAULT);
+  }
+
   inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
                                     X_Type &X_out, Y_Type &Y_out) {
 

@@ -1403,6 +1403,21 @@ void check_Nonlinear_MPC(void) {
 
     MCAPTester<T> tester;
 
+    using namespace PythonMPC_KinematicBicycleModelData;
+
+    /* 定義 */
+    constexpr std::size_t NP = kinematic_bicycle_model_cost_matrices::NP;
+
+    constexpr std::size_t INPUT_SIZE = kinematic_bicycle_model_cost_matrices::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = kinematic_bicycle_model_cost_matrices::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = kinematic_bicycle_model_cost_matrices::OUTPUT_SIZE;
+
+    using EKF_Type = kinematic_bicycle_model_nmpc_ekf::type<T>;
+
+    using Cost_Matrices_Type = kinematic_bicycle_model_cost_matrices::type<T>;
+
+
+
 
     tester.throw_error_if_test_failed();
 }
