@@ -1409,11 +1409,11 @@ void check_Nonlinear_MPC(void) {
     using namespace PythonMPC_KinematicBicycleModelData;
 
     /* 定義 */
-    //constexpr std::size_t NP = kinematic_bicycle_model_cost_matrices::NP;
+    constexpr std::size_t NP = kinematic_bicycle_model_cost_matrices::NP;
 
     //constexpr std::size_t INPUT_SIZE = kinematic_bicycle_model_cost_matrices::INPUT_SIZE;
     constexpr std::size_t STATE_SIZE = kinematic_bicycle_model_cost_matrices::STATE_SIZE;
-    //constexpr std::size_t OUTPUT_SIZE = kinematic_bicycle_model_cost_matrices::OUTPUT_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = kinematic_bicycle_model_cost_matrices::OUTPUT_SIZE;
 
     T delta_time = static_cast<T>(0.1);
 
@@ -1450,6 +1450,8 @@ void check_Nonlinear_MPC(void) {
 
     nonlinear_mpc.U_horizon(0, 0) = static_cast<T>(0.0);
 
+    /* 計算 */
+    using ReferenceTrajectory_Type = DenseMatrix_Type<T, OUTPUT_SIZE, NP>;
 
 
 

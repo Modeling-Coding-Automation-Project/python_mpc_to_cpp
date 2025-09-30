@@ -20,20 +20,20 @@ namespace NonlinearMPC_ReferenceTrajectoryOperation {
 namespace SubstituteReferenceTrajectory {
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
-          std::size_t M, std::size_t N, std::size_t I, std::size_t J_idx>
+          std::size_t I, std::size_t J_idx>
 struct Column {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, J_idx>(
         reference.template get<I, J_idx>());
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, I,
-           (J_idx - 1)>::compute(reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, I, (J_idx - 1)>::compute(
+        reference_trajectory, reference);
   }
 };
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
-          std::size_t M, std::size_t N, std::size_t I>
-struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
+          std::size_t I>
+struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, 0>(reference.template get<I, 0>());
@@ -45,8 +45,8 @@ template <typename ReferenceTrajectory_Type, typename Reference_Type,
 struct Row {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, I_idx,
-           (N - 1)>::compute(reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, I_idx, (N - 1)>::compute(
+        reference_trajectory, reference);
     Row<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
         reference_trajectory, reference);
   }
@@ -57,20 +57,17 @@ template <typename ReferenceTrajectory_Type, typename Reference_Type,
 struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, 0, (N - 1)>::compute(
+    Column<ReferenceTrajectory_Type, Reference_Type, 0, (N - 1)>::compute(
         reference_trajectory, reference);
   }
 };
 
-template <typename ReferenceTrajectory_Type, typename Reference_Type>
+template <std::size_t COLS, std::size_t Np, typename ReferenceTrajectory_Type,
+          typename Reference_Type>
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
 
-  constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
-  constexpr std::size_t N = ReferenceTrajectory_Type::ROWS;
-
-  static_assert(M > 0 && N > 0, "Matrix dimensions must be positive");
-  Row<ReferenceTrajectory_Type, Reference_Type, M, N, (M - 1)>::compute(
+  Row<ReferenceTrajectory_Type, Reference_Type, COLS, Np, (COLS - 1)>::compute(
       reference_trajectory, reference);
 }
 
@@ -82,7 +79,11 @@ inline typename std::enable_if<(ROWS > 1), void>::type
 substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
                      const Reference_Type &reference) {
   static_assert(ROWS == (Np + 1), "ROWS must be equal to Np + 1 when ROWS > 1");
-  SubstituteReferenceTrajectory::substitute(reference_trajectory, reference);
+
+  constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
+
+  SubstituteReferenceTrajectory::substitute<M, Np>(reference_trajectory,
+                                                   reference);
 }
 
 namespace SubstituteReferenceVector {
@@ -188,7 +189,7 @@ public:
   using Weight_U_Type = PythonNumpy::DiagMatrix_Type<_T, INPUT_SIZE>;
   using Weight_Y_Type = PythonNumpy::DiagMatrix_Type<_T, OUTPUT_SIZE>;
 
-  using ReferenceTrajectory_Type =
+  using CostMatricesReferenceTrajectory_Type =
       PythonNumpy::DenseMatrix_Type<_T, OUTPUT_SIZE, (NP + 1)>;
 
 protected:
@@ -305,10 +306,10 @@ public:
   template <typename Reference_Type_In>
   inline void set_reference_trajectory(const Reference_Type_In &reference) {
 
-    ReferenceTrajectory_Type reference_trajectory;
+    CostMatricesReferenceTrajectory_Type reference_trajectory;
 
     NonlinearMPC_ReferenceTrajectoryOperation::substitute_reference<
-        Reference_Type_In::ROWS, NP>(reference_trajectory, reference);
+        Reference_Type_In::COLS, NP>(reference_trajectory, reference);
 
     this->_sqp_cost_matrices.reference_trajectory = reference_trajectory;
   }
