@@ -232,6 +232,70 @@ public:
     this->_initialize_solver(X_initial);
   }
 
+  /* Copy Constructor */
+  NonlinearMPC_TwiceDifferentiable(
+      const NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>
+          &input)
+      : U_horizon(input.U_horizon), _kalman_filter(input._kalman_filter),
+        _sqp_cost_matrices(input._sqp_cost_matrices),
+        _delta_time(input._delta_time), _X_inner_model(input._X_inner_model),
+        _Y_store(input._Y_store), _cost_function(input._cost_function),
+        _cost_and_gradient_function(input._cost_and_gradient_function),
+        _hvp_function(input._hvp_function), _solver(input._solver) {}
+
+  NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type> &
+  operator=(const NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>
+                &input) {
+    if (this != &input) {
+      this->U_horizon = input.U_horizon;
+      this->_kalman_filter = input._kalman_filter;
+      this->_sqp_cost_matrices = input._sqp_cost_matrices;
+      this->_delta_time = input._delta_time;
+      this->_X_inner_model = input._X_inner_model;
+      this->_Y_store = input._Y_store;
+      this->_cost_function = input._cost_function;
+      this->_cost_and_gradient_function = input._cost_and_gradient_function;
+      this->_hvp_function = input._hvp_function;
+      this->_solver = input._solver;
+    }
+    return *this;
+  }
+
+  /* Move Constructor */
+  NonlinearMPC_TwiceDifferentiable(
+      NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>
+          &&input) noexcept
+      : U_horizon(std::move(input.U_horizon)),
+        _kalman_filter(std::move(input._kalman_filter)),
+        _sqp_cost_matrices(std::move(input._sqp_cost_matrices)),
+        _delta_time(std::move(input._delta_time)),
+        _X_inner_model(std::move(input._X_inner_model)),
+        _Y_store(std::move(input._Y_store)),
+        _cost_function(std::move(input._cost_function)),
+        _cost_and_gradient_function(
+            std::move(input._cost_and_gradient_function)),
+        _hvp_function(std::move(input._hvp_function)),
+        _solver(std::move(input._solver)) {}
+
+  NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type> &
+  operator=(NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>
+                &&input) noexcept {
+    if (this != &input) {
+      this->U_horizon = std::move(input.U_horizon);
+      this->_kalman_filter = std::move(input._kalman_filter);
+      this->_sqp_cost_matrices = std::move(input._sqp_cost_matrices);
+      this->_delta_time = std::move(input._delta_time);
+      this->_X_inner_model = std::move(input._X_inner_model);
+      this->_Y_store = std::move(input._Y_store);
+      this->_cost_function = std::move(input._cost_function);
+      this->_cost_and_gradient_function =
+          std::move(input._cost_and_gradient_function);
+      this->_hvp_function = std::move(input._hvp_function);
+      this->_solver = std::move(input._solver);
+    }
+    return *this;
+  }
+
 public:
   /* Setter */
   inline void set_solver_max_iteration(std::size_t max_iteration) {

@@ -1429,8 +1429,15 @@ void check_Nonlinear_MPC(void) {
 
     auto cost_matrices = kinematic_bicycle_model_cost_matrices::make<T>();
 
+    using Nonlinear_MPC_Type = NonlinearMPC_TwiceDifferentiable_Type<EKF_Type, Cost_Matrices_Type>;
+
     NonlinearMPC_TwiceDifferentiable_Type<EKF_Type, Cost_Matrices_Type> nonlinear_mpc
         = make_NonlinearMPC_TwiceDifferentiable(kalman_filter, cost_matrices, delta_time, X_initial);
+
+    /* コピー、ムーブ */
+    Nonlinear_MPC_Type nonlinear_mpc_copy(nonlinear_mpc);
+    Nonlinear_MPC_Type nonlinear_mpc_move = nonlinear_mpc_copy;
+    nonlinear_mpc = std::move(nonlinear_mpc_move);
 
 
 
