@@ -100,7 +100,7 @@ def main():
                           [q0_reference[0, 0]],
                           [q3_reference[0, 0]]])
 
-    nmpc = NonlinearMPC_TwiceDifferentiable(
+    nonlinear_mpc = NonlinearMPC_TwiceDifferentiable(
         delta_time=state_space_parameters.delta_time,
         X=x_syms,
         U=u_syms,
@@ -120,13 +120,13 @@ def main():
 
     # You can create cpp header which can easily define MPC as C++ code
     deployed_file_names = NonlinearMPC_Deploy.generate_Nonlinear_MPC_cpp_code(
-        nmpc)
+        nonlinear_mpc)
     print(deployed_file_names)
 
     x_true = X_initial
     u = np.array([[0.0], [0.0]])
 
-    nmpc.solver.set_solver_max_iteration(5)
+    nonlinear_mpc.set_solver_max_iteration(5)
 
     plotter = SimulationPlotter()
 
@@ -140,14 +140,14 @@ def main():
         if i > 0:
             u = np.copy(u_from_mpc)
 
-        x_true = nmpc.kalman_filter.state_function(
+        x_true = nonlinear_mpc.kalman_filter.state_function(
             x_true, u, state_space_parameters)
 
         q_norm = np.sqrt(x_true[2, 0]**2 + x_true[3, 0]**2)
         x_true[2, 0] = x_true[2, 0] / q_norm
         x_true[3, 0] = x_true[3, 0] / q_norm
 
-        y_store[delay_index] = nmpc.kalman_filter.measurement_function(
+        y_store[delay_index] = nonlinear_mpc.kalman_filter.measurement_function(
             x_true, state_space_parameters)
 
         # system delay
@@ -169,10 +169,10 @@ def main():
             reference[2, j] = q0_reference[index, 0]
             reference[3, j] = q3_reference[index, 0]
 
-        u_from_mpc = nmpc.update_manipulation(reference, y_measured)
+        u_from_mpc = nonlinear_mpc.update_manipulation(reference, y_measured)
 
         # monitoring
-        solver_iteration = nmpc.get_solver_step_iterated_number()
+        solver_iteration = nonlinear_mpc.get_solver_step_iterated_number()
 
         px_ref = reference[0, 0]
         py_ref = reference[1, 0]

@@ -76,7 +76,7 @@ def main():
     # Nonlinear MPC object
     X_initial = np.array([[np.pi / 4.0], [0.0]])
 
-    nmpc = NonlinearMPC_TwiceDifferentiable(
+    nonlinear_mpc = NonlinearMPC_TwiceDifferentiable(
         delta_time=state_space_parameters.dt,
         X=x_syms,
         U=u_syms,
@@ -95,7 +95,7 @@ def main():
         Number_of_Delay=Number_of_Delay,
     )
 
-    nmpc.solver.set_solver_max_iteration(10)
+    nonlinear_mpc.set_solver_max_iteration(10)
 
     x_true = X_initial
     u = np.array([[0.0]])
@@ -112,9 +112,9 @@ def main():
         if i > 0:
             u = np.copy(u_from_mpc)
 
-        x_true = nmpc.kalman_filter.state_function(
+        x_true = nonlinear_mpc.kalman_filter.state_function(
             x_true, u, state_space_parameters)
-        y_store[delay_index] = nmpc.kalman_filter.measurement_function(
+        y_store[delay_index] = nonlinear_mpc.kalman_filter.measurement_function(
             x_true, state_space_parameters)
 
         # system delay
@@ -124,9 +124,9 @@ def main():
 
         y_measured = y_store[delay_index]
 
-        u_from_mpc = nmpc.update_manipulation(reference, y_measured)
+        u_from_mpc = nonlinear_mpc.update_manipulation(reference, y_measured)
 
-        solver_iteration = nmpc.get_solver_step_iterated_number()
+        solver_iteration = nonlinear_mpc.get_solver_step_iterated_number()
 
         plotter.append_name(x_true, "x_true")
         plotter.append_name(reference, "reference")
