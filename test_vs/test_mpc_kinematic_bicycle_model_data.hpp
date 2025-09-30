@@ -304,7 +304,7 @@ using C_Type = kinematic_bicycle_model_ekf_C::type<T>;
 
 constexpr std::size_t STATE_SIZE = 4;
 constexpr std::size_t INPUT_SIZE = 2;
-constexpr std::size_t OUTPUT_SIZE = 2;
+constexpr std::size_t OUTPUT_SIZE = 4;
 
 template <typename T>
 using X_Type = StateSpaceState_Type<T, STATE_SIZE>;
