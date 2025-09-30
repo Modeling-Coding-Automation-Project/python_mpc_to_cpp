@@ -1420,8 +1420,8 @@ void check_Nonlinear_MPC(void) {
     auto X_initial = make_DenseMatrix<STATE_SIZE, 1>(
         static_cast<T>(0.0),
         static_cast<T>(0.0),
-        static_cast<T>(0.0),
-        static_cast<T>(0.0)
+        static_cast<T>(3.26794897e-07),
+        static_cast<T>(-0.9999999999999466)
     );
 
     using EKF_Type = kinematic_bicycle_model_nmpc_ekf::type<T>;
