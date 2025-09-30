@@ -78,7 +78,9 @@ template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
 inline typename std::enable_if<(ROWS > 1), void>::type
 substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
                      const Reference_Type &reference) {
-  static_assert(ROWS == (Np + 1), "ROWS must be equal to Np + 1 when ROWS > 1");
+  static_assert(
+      ReferenceTrajectory_Type::ROWS == (Np + 1),
+      "ROWS of ReferenceTrajectory_Type must be equal to Np + 1 when ROWS > 1");
 
   constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
 

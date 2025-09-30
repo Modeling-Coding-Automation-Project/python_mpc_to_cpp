@@ -1453,6 +1453,26 @@ void check_Nonlinear_MPC(void) {
     /* 計算 */
     using ReferenceTrajectory_Type = DenseMatrix_Type<T, OUTPUT_SIZE, NP>;
 
+    /*
+array([ 0.        , -0.05178651, -0.10357302, -0.15535954, -0.20714605,       -0.25893256, -0.31071907, -0.36250559, -0.4142921 , -0.46607861])
+array([ 0.        , -0.02239073, -0.04478147, -0.0671722 , -0.08956293,       -0.11195366, -0.1343444 , -0.15673513, -0.17912586, -0.2015166 ])
+array([3.26794897e-07, 1.05347955e-02, 2.10680951e-02, 3.15990565e-02,       4.21265112e-02, 5.26492908e-02, 6.31662274e-02, 7.36761540e-02,       8.41779041e-02, 9.46703123e-02])
+array([-1.        , -0.99994451, -0.99977804, -0.99950063, -0.99911228,       -0.99861306, -0.99800302, -0.99728222, -0.99645074, -0.99550868])
+    */
+
+    ReferenceTrajectory_Type reference_trajectory({
+        {static_cast<T>(0.0), static_cast<T>(-0.05178651), static_cast<T>(-0.10357302), static_cast<T>(-0.15535954), static_cast<T>(-0.20714605),
+        static_cast<T>(-0.25893256), static_cast<T>(-0.31071907), static_cast<T>(-0.36250559), static_cast<T>(-4.1429210), static_cast<T>(-0.46607861) },
+        { static_cast<T>(0.0), static_cast<T>(-0.02239073), static_cast<T>(-0.04478147), static_cast<T>(-0.0671722), static_cast<T>(-0.08956293),
+        static_cast<T>(-0.11195366), static_cast<T>(-0.1343444), static_cast<T>(-0.15673513), static_cast<T>(-0.17912586), static_cast<T>(-0.2015166) },
+        { static_cast<T>(3.26794897e-07), static_cast<T>(1.05347955e-02), static_cast<T>(2.10680951e-02), static_cast<T>(3.15990565e-02), static_cast<T>(4.21265112e-02),
+        static_cast<T>(5.26492908e-02), static_cast<T>(6.31662274e-02), static_cast<T>(7.36761540e-02), static_cast<T>(8.41779041e-02), static_cast<T>(9.46703123e-02) },
+        { static_cast<T>(-1.0), static_cast<T>(-0.99994451), static_cast<T>(-0.99977804), static_cast<T>(-0.99950063), static_cast<T>(-0.99911228),
+        static_cast<T>(-0.99861306), static_cast<T>(-0.99800302), static_cast<T>(-0.99728222), static_cast<T>(-0.99645074), static_cast<T>(-0.99550868) }
+    });
+
+    nonlinear_mpc.set_reference_trajectory(reference_trajectory);
+
 
 
     tester.throw_error_if_test_failed();
