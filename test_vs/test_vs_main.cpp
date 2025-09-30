@@ -1403,6 +1403,9 @@ void check_Nonlinear_MPC(void) {
 
     MCAPTester<T> tester;
 
+    // There is a Floating point Numerical instability problem.
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0);
+
     using namespace PythonMPC_KinematicBicycleModelData;
 
     /* 定義 */
@@ -1435,9 +1438,18 @@ void check_Nonlinear_MPC(void) {
         = make_NonlinearMPC_TwiceDifferentiable(kalman_filter, cost_matrices, delta_time, X_initial);
 
     /* コピー、ムーブ */
+    nonlinear_mpc.U_horizon(0, 0) = static_cast<T>(1.0);
+
     Nonlinear_MPC_Type nonlinear_mpc_copy(nonlinear_mpc);
     Nonlinear_MPC_Type nonlinear_mpc_move = nonlinear_mpc_copy;
     nonlinear_mpc = std::move(nonlinear_mpc_move);
+
+    tester.expect_near(nonlinear_mpc.U_horizon.matrix.data,
+        nonlinear_mpc_copy.U_horizon.matrix.data, NEAR_LIMIT_STRICT,
+        "check Nonlinear MPC, copy, U_horizon(0, 0).");
+
+    nonlinear_mpc.U_horizon(0, 0) = static_cast<T>(0.0);
+
 
 
 
