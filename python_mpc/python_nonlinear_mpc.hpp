@@ -235,6 +235,8 @@ public:
         _X_inner_model(X_initial), _Y_store(), _cost_function(),
         _cost_and_gradient_function(), _hvp_function(), _solver() {
 
+    this->_kalman_filter.set_x_hat(X_initial);
+
     this->_initialize_solver(X_initial);
   }
 
