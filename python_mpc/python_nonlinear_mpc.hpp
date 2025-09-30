@@ -308,10 +308,20 @@ public:
   template <typename Reference_Type_In>
   inline void set_reference_trajectory(const Reference_Type_In &reference) {
 
+    static_assert(Reference_Type_In::COLS == OUTPUT_SIZE,
+                  "COLS of Reference_Type_In must be equal to OUTPUT_SIZE");
+    static_assert(Reference_Type_In::ROWS == NP,
+                  "ROWS of Reference_Type_In must be equal to NP");
+    // reference trajectory of sqp_cost_matrices is (OUTPUT_SIZE, NP + 1),
+    // but reference input is (OUTPUT_SIZE, NP)
+
     CostMatricesReferenceTrajectory_Type reference_trajectory;
 
     NonlinearMPC_ReferenceTrajectoryOperation::substitute_reference<
         Reference_Type_In::COLS, NP>(reference_trajectory, reference);
+
+    PythonNumpy::set_row<NP>(reference_trajectory,
+                             PythonNumpy::get_row<NP - 1>(reference));
 
     this->_sqp_cost_matrices.reference_trajectory = reference_trajectory;
   }
