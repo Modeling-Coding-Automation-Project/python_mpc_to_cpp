@@ -193,6 +193,8 @@ public:
 
 protected:
   /* Type */
+  using _R_Type = Weight_U_Type;
+
   using _Parameter_Type = typename Cost_Matrices_Type::Parameter_Type;
 
   using _Solver_Type =
@@ -214,7 +216,7 @@ protected:
 public:
   /* Constructor */
   NonlinearMPC_TwiceDifferentiable()
-      : U_horizon(), _cost_matrices(), _kalman_filter(), _delta_time(0),
+      : U_horizon(), _sqp_cost_matrices(), _kalman_filter(), _delta_time(0),
         _X_inner_model(), _Y_store(), _cost_function(nullptr),
         _cost_and_gradient_function(nullptr), _hvp_function(nullptr),
         _solver() {}
@@ -222,7 +224,7 @@ public:
   NonlinearMPC_TwiceDifferentiable(EKF_Type &kalman_filter,
                                    Cost_Matrices_Type &cost_matrices,
                                    _T delta_time, X_Type X_initial)
-      : U_horizon(), _cost_matrices(cost_matrices),
+      : U_horizon(), _sqp_cost_matrices(cost_matrices),
         _kalman_filter(kalman_filter), _delta_time(delta_time),
         _X_inner_model(X_initial), _Y_store(), _cost_function(),
         _cost_and_gradient_function(), _hvp_function(), _solver() {
@@ -244,7 +246,7 @@ public:
     NonlinearMPC_ReferenceTrajectoryOperation::substitute_reference<
         Reference_Type_In::ROWS, NP>(reference_trajectory, reference);
 
-    this->_cost_matrices.reference_trajectory = reference_trajectory;
+    this->_sqp_cost_matrices.reference_trajectory = reference_trajectory;
   }
 
   /* Getter */
@@ -263,7 +265,7 @@ public:
   inline void update_parameters(const _Parameter_Type &parameters) {
 
     this->_kalman_filter.parameters = parameters;
-    this->_cost_matrices.state_space_parameters = parameters;
+    this->_sqp_cost_matrices.state_space_parameters = parameters;
   }
 
   template <typename Reference_Type_In>
@@ -285,8 +287,8 @@ public:
     this->U_horizon = this->_solver.solve(
         this->U_horizon, this->_cost_and_gradient_function,
         this->_cost_function, this->_hvp_function, X_compensated,
-        this->_cost_matrices.get_U_min_matrix(),
-        this->_cost_matrices.get_U_max_matrix());
+        this->_sqp_cost_matrices.get_U_min_matrix(),
+        this->_sqp_cost_matrices.get_U_max_matrix());
 
     U_latest = this->calculate_this_U(this->U_horizon);
 
@@ -299,28 +301,26 @@ protected:
 
     this->_cost_function = [this](const X_Type &X, const U_Horizon_Type &U) ->
         typename X_Type::Value_Type {
-          return this->_cost_matrices.compute_cost(X, U);
+          return this->_sqp_cost_matrices.compute_cost(X, U);
         };
 
     this->_cost_and_gradient_function =
         [this](const X_Type &X, const U_Horizon_Type &U,
                typename X_Type::Value_Type &J, _Gradient_Type &gradient) {
-          this->_cost_matrices.compute_cost_and_gradient(X, U, J, gradient);
+          this->_sqp_cost_matrices.compute_cost_and_gradient(X, U, J, gradient);
         };
 
     this->_hvp_function = [this](const X_Type &X, const U_Horizon_Type &U,
                                  const _V_Horizon_Type &V) -> _HVP_Type {
-      return this->_cost_matrices.hvp_analytic(X, U, V);
+      return this->_sqp_cost_matrices.hvp_analytic(X, U, V);
     };
 
     this->_solver =
         PythonOptimization::make_SQP_ActiveSet_PCG_PLS<Cost_Matrices_Type>();
 
-    // diag_R = np.diag(self.sqp_cost_matrices.R).reshape(
-    //     (self.INPUT_SIZE, 1))
-    // self.solver.set_diag_R_full(np.tile(diag_R, (1, self.Np)))
-
-    auto diag_R;
+    auto diag_R = this->_sqp_cost_matrices.get_R();
+    this->_solver.set_diag_R_full(
+        PythonNumpy::concatenate_tile<1, NP, _R_Type>(diag_R));
 
     this->_solver.X_initial = X_initial;
     this->_solver.set_solver_max_iteration(NMPC_SOLVER_MAX_ITERATION_DEFAULT);
@@ -340,7 +340,7 @@ public:
 protected:
   /* Variable */
   EKF_Type _kalman_filter;
-  Cost_Matrices_Type _cost_matrices;
+  Cost_Matrices_Type _sqp_cost_matrices;
 
   _T _delta_time;
 
