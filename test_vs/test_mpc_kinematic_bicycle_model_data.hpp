@@ -229,6 +229,7 @@ inline auto sympy_function(const T q3, const T q0, const T py, const T px) -> Y_
 
 template <typename T>
 inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> Y_Type<T> {
+    static_cast<void>(Parameters);
 
     T px = X.template get<0, 0>();
 
@@ -285,6 +286,8 @@ inline auto sympy_function() -> C_Type<T> {
 
 template <typename T>
 inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> C_Type<T> {
+    static_cast<void>(X);
+    static_cast<void>(Parameters);
 
     return sympy_function<T>();
 }
@@ -445,6 +448,9 @@ public:
     }
 
     static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> Y_Type {
+        static_cast<void>(U);
+        static_cast<void>(Parameters);
+
 
         T px = X.template get<0, 0>();
 
@@ -650,6 +656,9 @@ public:
     }
 
     static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> Measurement_Jacobian_x_Type<T> {
+        static_cast<void>(X);
+        static_cast<void>(U);
+        static_cast<void>(Parameters);
 
         return sympy_function();
     }
@@ -762,6 +771,8 @@ public:
     }
 
     static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> State_Hessian_xx_Type<T> {
+        static_cast<void>(X);
+
 
         T v = U.template get<0, 0>();
 
@@ -1212,6 +1223,10 @@ public:
     }
 
     static inline auto function(const X_Type X, const U_Type U, const Parameter_Type Parameters) -> Measurement_Hessian_xx_Type<T> {
+        static_cast<void>(X);
+        static_cast<void>(U);
+        static_cast<void>(Parameters);
+
 
         return sympy_function();
     }
