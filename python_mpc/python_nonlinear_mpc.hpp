@@ -320,9 +320,10 @@ protected:
     this->_solver =
         PythonOptimization::make_SQP_ActiveSet_PCG_PLS<Cost_Matrices_Type>();
 
-    auto diag_R = this->_sqp_cost_matrices.get_R();
+    // auto diag_R = this->_sqp_cost_matrices.get_R();
+    auto diag_R = PythonNumpy::make_DenseMatrixZeros<_T, INPUT_SIZE, 1>();
     this->_solver.set_diag_R_full(
-        PythonNumpy::concatenate_tile<1, NP, _R_Type>(diag_R));
+        PythonNumpy::concatenate_tile<1, NP, decltype(diag_R)>(diag_R));
 
     this->_solver.X_initial = X_initial;
     this->_solver.set_solver_max_iteration(NMPC_SOLVER_MAX_ITERATION_DEFAULT);
