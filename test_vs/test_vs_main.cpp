@@ -1416,6 +1416,7 @@ void check_Nonlinear_MPC(void) {
 
     using Cost_Matrices_Type = kinematic_bicycle_model_cost_matrices::type<T>;
 
+    NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type> nonlinear_mpc;
 
 
 

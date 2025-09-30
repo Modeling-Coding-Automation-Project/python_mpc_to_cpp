@@ -195,7 +195,7 @@ protected:
   /* Type */
   using _R_Type = Weight_U_Type;
 
-  using _Parameter_Type = typename Cost_Matrices_Type::Parameter_Type;
+  using _Parameter_Type = typename EKF_Type::Parameter_Type;
 
   using _Solver_Type =
       PythonOptimization::SQP_ActiveSet_PCG_PLS_Type<Cost_Matrices_Type>;
@@ -263,6 +263,8 @@ public:
   }
 
   inline void update_parameters(const _Parameter_Type &parameters) {
+    // when you use this function, parameters type of EKF and CostMatrices must
+    // be same
 
     this->_kalman_filter.parameters = parameters;
     this->_sqp_cost_matrices.state_space_parameters = parameters;
