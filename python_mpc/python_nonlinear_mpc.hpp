@@ -73,19 +73,22 @@ inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
 
 } // namespace SubstituteReferenceTrajectory
 
-template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
+template <std::size_t ROWS, std::size_t NP, typename ReferenceTrajectory_Type,
           typename Reference_Type>
 inline typename std::enable_if<(ROWS > 1), void>::type
 substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
                      const Reference_Type &reference) {
   static_assert(
-      ReferenceTrajectory_Type::ROWS == (Np + 1),
-      "ROWS of ReferenceTrajectory_Type must be equal to Np + 1 when ROWS > 1");
+      ReferenceTrajectory_Type::ROWS == (NP + 1),
+      "ROWS of ReferenceTrajectory_Type must be equal to NP + 1 when ROWS > 1");
 
   constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
 
-  SubstituteReferenceTrajectory::substitute<M, Np>(reference_trajectory,
+  SubstituteReferenceTrajectory::substitute<M, NP>(reference_trajectory,
                                                    reference);
+
+  PythonNumpy::set_row<NP>(reference_trajectory,
+                           PythonNumpy::get_row<NP - 1>(reference));
 }
 
 namespace SubstituteReferenceVector {
@@ -310,18 +313,17 @@ public:
 
     static_assert(Reference_Type_In::COLS == OUTPUT_SIZE,
                   "COLS of Reference_Type_In must be equal to OUTPUT_SIZE");
-    static_assert(Reference_Type_In::ROWS == NP,
-                  "ROWS of Reference_Type_In must be equal to NP");
-    // reference trajectory of sqp_cost_matrices is (OUTPUT_SIZE, NP + 1),
+    static_assert((Reference_Type_In::ROWS == NP) ||
+                      (Reference_Type_In::ROWS == 1),
+                  "ROWS of Reference_Type_In must be equal to NP, or 1");
+    // If the input is reference vector, it is copied to all time steps.
+    // Reference trajectory of sqp_cost_matrices is (OUTPUT_SIZE, NP + 1),
     // but reference input is (OUTPUT_SIZE, NP)
 
     CostMatricesReferenceTrajectory_Type reference_trajectory;
 
     NonlinearMPC_ReferenceTrajectoryOperation::substitute_reference<
-        Reference_Type_In::COLS, NP>(reference_trajectory, reference);
-
-    PythonNumpy::set_row<NP>(reference_trajectory,
-                             PythonNumpy::get_row<NP - 1>(reference));
+        Reference_Type_In::ROWS, NP>(reference_trajectory, reference);
 
     this->_sqp_cost_matrices.reference_trajectory = reference_trajectory;
   }
