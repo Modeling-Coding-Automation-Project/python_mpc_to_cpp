@@ -1390,23 +1390,23 @@ inline auto make() -> type<T> {
 
     auto Y_max = kinematic_bicycle_model_cost_matrices_Y_max::make<T>();
 
-    Qx_Type Qx = make_DiagMatrix<STATE_SIZE>(
+    Qx_Type<T> Qx = make_DiagMatrix<STATE_SIZE>(
         static_cast<T>(0.0),
         static_cast<T>(0.0),
         static_cast<T>(0.0),
         static_cast<T>(0.0));
 
-    R_Type R = make_DiagMatrix<INPUT_SIZE>(
+    R_Type<T> R = make_DiagMatrix<INPUT_SIZE>(
         static_cast<T>(0.05),
         static_cast<T>(0.05));
 
-    Qy_Type Qy = make_DiagMatrix<OUTPUT_SIZE>(
+    Qy_Type<T> Qy = make_DiagMatrix<OUTPUT_SIZE>(
         static_cast<T>(1.0),
         static_cast<T>(1.0),
         static_cast<T>(1.0),
         static_cast<T>(1.0));
 
-    Reference_Trajectory_Type reference_trajectory;
+    Reference_Trajectory_Type<T> reference_trajectory;
 
     type<T> cost_matrices =
         make_SQP_CostMatrices_NMPC<T, NP, Parameter_Type,
