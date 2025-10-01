@@ -166,12 +166,13 @@ int main(void) {
     std::size_t solver_iteration =
         nonlinear_mpc.get_solver_step_iterated_number();
 
-    std::cout << "Y_0: " << Y(0, 0) << ", ";
-    std::cout << "Y_1: " << Y(1, 0) << ", ";
-    std::cout << "Y_2: " << Y(2, 0) << ", ";
-    std::cout << "Y_3: " << Y(3, 0) << ", ";
-    std::cout << "U_0: " << U(0, 0) << ", ";
-    std::cout << "U_1: " << U(1, 0) << ", ";
+    double yaw = 2.0 * std::atan2(Y(3, 0), Y(2, 0));
+
+    std::cout << "px: " << Y(0, 0) << ", ";
+    std::cout << "py: " << Y(1, 0) << ", ";
+    std::cout << "yaw: " << yaw << ", ";
+    std::cout << "v: " << U(0, 0) << ", ";
+    std::cout << "delta: " << U(1, 0) << ", ";
     std::cout << "iteration: " << solver_iteration << ", ";
 
     std::cout << std::endl;
