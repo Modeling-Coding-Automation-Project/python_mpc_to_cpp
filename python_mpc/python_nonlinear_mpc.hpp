@@ -223,7 +223,7 @@ public:
   /* Constructor */
   NonlinearMPC_TwiceDifferentiable()
       : U_horizon(), _kalman_filter(), _sqp_cost_matrices(), _delta_time(0),
-        _X_inner_model(), _Y_store(), _cost_function(nullptr),
+        _Y_store(), _cost_function(nullptr),
         _cost_and_gradient_function(nullptr), _hvp_function(nullptr),
         _solver() {}
 
@@ -231,9 +231,9 @@ public:
                                    Cost_Matrices_Type &cost_matrices,
                                    _T delta_time, X_Type X_initial)
       : U_horizon(), _kalman_filter(kalman_filter),
-        _sqp_cost_matrices(cost_matrices), _delta_time(delta_time),
-        _X_inner_model(X_initial), _Y_store(), _cost_function(),
-        _cost_and_gradient_function(), _hvp_function(), _solver() {
+        _sqp_cost_matrices(cost_matrices), _delta_time(delta_time), _Y_store(),
+        _cost_function(), _cost_and_gradient_function(), _hvp_function(),
+        _solver() {
 
     this->_kalman_filter.set_x_hat(X_initial);
 
@@ -246,8 +246,8 @@ public:
           &input)
       : U_horizon(input.U_horizon), _kalman_filter(input._kalman_filter),
         _sqp_cost_matrices(input._sqp_cost_matrices),
-        _delta_time(input._delta_time), _X_inner_model(input._X_inner_model),
-        _Y_store(input._Y_store), _cost_function(input._cost_function),
+        _delta_time(input._delta_time), _Y_store(input._Y_store),
+        _cost_function(input._cost_function),
         _cost_and_gradient_function(input._cost_and_gradient_function),
         _hvp_function(input._hvp_function), _solver(input._solver) {}
 
@@ -259,7 +259,6 @@ public:
       this->_kalman_filter = input._kalman_filter;
       this->_sqp_cost_matrices = input._sqp_cost_matrices;
       this->_delta_time = input._delta_time;
-      this->_X_inner_model = input._X_inner_model;
       this->_Y_store = input._Y_store;
       this->_cost_function = input._cost_function;
       this->_cost_and_gradient_function = input._cost_and_gradient_function;
@@ -277,7 +276,6 @@ public:
         _kalman_filter(std::move(input._kalman_filter)),
         _sqp_cost_matrices(std::move(input._sqp_cost_matrices)),
         _delta_time(std::move(input._delta_time)),
-        _X_inner_model(std::move(input._X_inner_model)),
         _Y_store(std::move(input._Y_store)),
         _cost_function(std::move(input._cost_function)),
         _cost_and_gradient_function(
@@ -293,7 +291,6 @@ public:
       this->_kalman_filter = std::move(input._kalman_filter);
       this->_sqp_cost_matrices = std::move(input._sqp_cost_matrices);
       this->_delta_time = std::move(input._delta_time);
-      this->_X_inner_model = std::move(input._X_inner_model);
       this->_Y_store = std::move(input._Y_store);
       this->_cost_function = std::move(input._cost_function);
       this->_cost_and_gradient_function =
