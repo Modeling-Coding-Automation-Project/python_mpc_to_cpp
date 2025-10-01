@@ -1,4 +1,5 @@
 #include <array>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -117,11 +118,16 @@ int main(void) {
     /* system response */
     X = kinematic_bicycle_model_nonlinear_mpc_ekf_state_function::function(
         X, U, parameters);
+
+    double q_norm = std::sqrt(X(2, 0) * X(2, 0) + X(3, 0) * X(3, 0));
+    X(2, 0) = X(2, 0) / q_norm;
+    X(3, 0) = X(3, 0) / q_norm;
+
     Y = kinematic_bicycle_model_nonlinear_mpc_ekf_measurement_function::
         function(X, parameters);
 
     /* controller */
-    // Build reference trajectory for NonlinearMPC (OUTPUT_SIZE x NP)
+    // Set reference trajectory for NonlinearMPC (OUTPUT_SIZE x NP)
     // reference_trajectory is (OUTPUT_SIZE, NP)
     // We'll fill each column j with the appropriate reference at time index =
     // step + j
@@ -161,9 +167,9 @@ int main(void) {
         nonlinear_mpc.get_solver_step_iterated_number();
 
     std::cout << "Y_0: " << Y(0, 0) << ", ";
-    std::cout << "Y_1: " << Y(0, 1) << ", ";
-    std::cout << "Y_2: " << Y(0, 2) << ", ";
-    std::cout << "Y_3: " << Y(0, 3) << ", ";
+    std::cout << "Y_1: " << Y(1, 0) << ", ";
+    std::cout << "Y_2: " << Y(2, 0) << ", ";
+    std::cout << "Y_3: " << Y(3, 0) << ", ";
     std::cout << "U_0: " << U(0, 0) << ", ";
     std::cout << "U_1: " << U(1, 0) << ", ";
     std::cout << "iteration: " << solver_iteration << ", ";
