@@ -219,6 +219,8 @@ def main():
             u_from_mpc, u_cpp, NEAR_LIMIT,
             "Nonlinear MPC kinematic bicycle model SIL, check update_manipulation.")
 
+    tester.throw_error_if_test_failed()
+
 
 if __name__ == "__main__":
     main()

@@ -30,6 +30,8 @@ nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::type nonlinear_mpc;
 void initialize(void) {
 
   nonlinear_mpc = nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::make();
+
+  nonlinear_mpc.set_solver_max_iteration(5);
 }
 
 py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
