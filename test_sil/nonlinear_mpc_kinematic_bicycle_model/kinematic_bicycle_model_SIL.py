@@ -11,8 +11,10 @@ from dataclasses import dataclass
 from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
 from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_Deploy
 
-from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
 from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_path import interpolate_path_csv
+
+from test_sil.SIL_operator import SIL_CodeGenerator
+from test_vs.MCAP_tester.tester.MCAP_tester import MCAPTester
 
 
 def create_plant_model():
@@ -140,18 +142,25 @@ def main():
     # You can create cpp header which can easily define MPC as C++ code
     deployed_file_names = NonlinearMPC_Deploy.generate_Nonlinear_MPC_cpp_code(
         nonlinear_mpc)
-    print(deployed_file_names)
+
+    current_dir = os.path.dirname(__file__)
+    generator = SIL_CodeGenerator(deployed_file_names, current_dir)
+    generator.build_SIL_code()
+
+    from test_sil.nonlinear_mpc_kinematic_bicycle_model import NonlinearMpcKinematicBicycleModelSIL
+    NonlinearMpcKinematicBicycleModelSIL.initialize()
 
     x_true = X_initial
     u = np.array([[0.0], [0.0]])
 
     nonlinear_mpc.set_solver_max_iteration(5)
 
-    plotter = SimulationPlotter()
-
     y_measured = np.array([[0.0], [0.0], [0.0], [0.0]])
     y_store = [y_measured] * (Number_of_Delay + 1)
     delay_index = 0
+
+    tester = MCAPTester()
+    NEAR_LIMIT = 0.5
 
     # simulation
     for i in range(round(simulation_time / delta_time)):
@@ -190,6 +199,9 @@ def main():
 
         u_from_mpc = nonlinear_mpc.update_manipulation(reference, y_measured)
 
+        u_cpp = NonlinearMpcKinematicBicycleModelSIL.update_manipulation(
+            reference, y_measured)
+
         # monitoring
         solver_iteration = nonlinear_mpc.get_solver_step_iterated_number()
 
@@ -203,36 +215,9 @@ def main():
         v = u_from_mpc[0, 0]
         delta = u_from_mpc[1, 0]
 
-        plotter.append_name(px_ref, "px_ref")
-        plotter.append_name(py_ref, "py_ref")
-        plotter.append_name(yaw_ref, "yaw_ref")
-        plotter.append_name(px_measured, "px_measured")
-        plotter.append_name(py_measured, "py_measured")
-        plotter.append_name(yaw_measured, "yaw_measured")
-        plotter.append_name(v, "v")
-        plotter.append_name(delta, "delta")
-        plotter.append_name(solver_iteration, "solver_iteration")
-
-    plotter.assign("px_ref", column=0, row=0, position=(0, 0),
-                   x_sequence=times, label="px_ref")
-    plotter.assign("px_measured", column=0, row=0, position=(0, 0),
-                   x_sequence=times, label="px_measured")
-    plotter.assign("py_ref", column=0, row=0, position=(1, 0),
-                   x_sequence=times, label="py_ref")
-    plotter.assign("py_measured", column=0, row=0, position=(1, 0),
-                   x_sequence=times, label="py_measured")
-    plotter.assign("yaw_ref", column=0, row=0, position=(2, 0),
-                   x_sequence=times, label="yaw_ref")
-    plotter.assign("yaw_measured", column=0, row=0, position=(2, 0),
-                   x_sequence=times, label="yaw_measured")
-    plotter.assign("v", column=0, row=0, position=(0, 1),
-                   x_sequence=times, label="v")
-    plotter.assign("delta", column=0, row=0, position=(1, 1),
-                   x_sequence=times, label="delta")
-    plotter.assign("solver_iteration", column=0, row=0, position=(2, 1),
-                   x_sequence=times, label="solver_iteration")
-
-    plotter.plot()
+        tester.expect_near(
+            u_from_mpc, u_cpp, NEAR_LIMIT,
+            "Nonlinear MPC kinematic bicycle model SIL, check update_manipulation.")
 
 
 if __name__ == "__main__":
