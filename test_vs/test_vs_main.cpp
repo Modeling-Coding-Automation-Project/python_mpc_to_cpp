@@ -1404,7 +1404,7 @@ void check_Nonlinear_MPC(void) {
     MCAPTester<T> tester;
 
     // There is a Floating point Numerical instability problem.
-    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0);
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
 
     using namespace PythonMPC_KinematicBicycleModelData;
 
@@ -1462,21 +1462,6 @@ void check_Nonlinear_MPC(void) {
 
 
     using ReferenceTrajectory_Type = DenseMatrix_Type<T, OUTPUT_SIZE, NP>;
-
-    /*
-[[ 0.000000000000000e+00 -5.178651247695076e-02 -1.035730249539015e-01 -1.553595374308523e-01
--2.071460499078030e-01 -2.589325623847538e-01 -3.107190748617046e-01 -3.625055873386553e-01
-  -4.142920998156061e-01 -4.660786122925568e-01]
- [ 0.000000000000000e+00 -2.239073290103556e-02 -4.478146580207112e-02 -6.717219870310670e-02
- -8.956293160414225e-02 -1.119536645051778e-01 -1.343443974062134e-01 -1.567351303072489e-01
-  -1.791258632082845e-01 -2.015165961093200e-01]
- [ 3.267948965381384e-07  1.053479549786667e-02  2.106809506914014e-02  3.159905654303604e-02
- 4.212651121335022e-02  5.264929076305785e-02  6.316622739396925e-02  7.367615395633174e-02
-   8.417790407835588e-02  9.467031229565905e-02]
- [-9.999999999999466e-01 -9.999445075022004e-01 -9.997780430526356e-01 -9.995006251251622e-01
- -9.991122845070975e-01 -9.986130642957496e-01 -9.980030198936340e-01 -9.972822190023258e-01
-  -9.964507416149456e-01 -9.955086800072827e-01]]
-    */
 
     ReferenceTrajectory_Type reference_trajectory({
         {static_cast<T>(0.0),
@@ -1588,6 +1573,8 @@ int main(void) {
     check_Adaptive_MPC<float>();
 
     check_Nonlinear_MPC<double>();
+
+    check_Nonlinear_MPC<float>();
 
 
     return 0;
