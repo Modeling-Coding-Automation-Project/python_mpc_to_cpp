@@ -94,6 +94,25 @@ def main():
     q0_reference = np.cos(yaw_reference * 0.5)
     q3_reference = np.sin(yaw_reference * 0.5)
 
+    # --- Write reference path to CSV for C++ consumption ---
+    # Combine px, py, q0, q3 into a single (T x 4) array and save as CSV
+    try:
+        reference_array = np.hstack((
+            px_reference.reshape(-1, 1),
+            py_reference.reshape(-1, 1),
+            q0_reference.reshape(-1, 1),
+            q3_reference.reshape(-1, 1),
+        ))
+
+        reference_csv_path = os.path.join(os.getcwd(), 'reference_path.csv')
+        # Save with header so C++ can ignore or parse it if needed
+        header = 'px,py,q0,q3'
+        np.savetxt(reference_csv_path, reference_array,
+                   delimiter=',', header=header, comments='')
+        print(f"Wrote reference CSV to: {reference_csv_path}")
+    except Exception as e:
+        print(f"Failed to write reference CSV: {e}")
+
     # Nonlinear MPC object
     X_initial = np.array([[px_reference[0, 0]],
                           [py_reference[0, 0]],
