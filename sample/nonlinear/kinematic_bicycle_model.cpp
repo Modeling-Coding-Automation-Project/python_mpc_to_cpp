@@ -1,10 +1,3 @@
-#include <array>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <vector>
-
 // You must run "kinematic_bicycle_model.py" to use
 // "kinematic_bicycle_model_nonlinear_mpc.hpp"
 #include "kinematic_bicycle_model_nonlinear_mpc.hpp"
@@ -12,6 +5,13 @@
 #include "python_control.hpp"
 #include "python_mpc.hpp"
 #include "python_numpy.hpp"
+
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
 using namespace PythonNumpy;
 using namespace PythonControl;
