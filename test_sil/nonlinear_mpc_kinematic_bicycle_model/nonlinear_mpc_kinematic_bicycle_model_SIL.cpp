@@ -1,6 +1,7 @@
 #include "nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper.hpp"
 
 #include "python_control.hpp"
+#include <memory>
 #include <stdexcept>
 
 #include <pybind11/numpy.h>
@@ -25,17 +26,25 @@ using ReferenceTrajectory_Type =
     typename nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::
         ReferenceTrajectory_Type;
 
-nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::type nonlinear_mpc;
+static std::unique_ptr<nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::type>
+    nonlinear_mpc;
 
 void initialize(void) {
 
-  nonlinear_mpc = nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::make();
+  nonlinear_mpc.reset(
+      new nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::type(
+          nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::make()));
 
-  nonlinear_mpc.set_solver_max_iteration(5);
+  nonlinear_mpc->set_solver_max_iteration(5);
 }
 
 py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
                                        py::array_t<FLOAT> Y_in) {
+
+  if (!nonlinear_mpc) {
+    throw std::runtime_error(
+        "SIL module is not initialized. Call initialize() first.");
+  }
 
   // Expect a 2D reference_trajectory with shape (OUTPUT_SIZE, horizon)
   py::buffer_info ref_info = reference_trajectory.request();
@@ -86,7 +95,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
   }
 
   /* update */
-  auto U = nonlinear_mpc.update_manipulation(ref, Y);
+  auto U = nonlinear_mpc->update_manipulation(ref, Y);
 
   /* output U */
   py::array_t<FLOAT> result;
