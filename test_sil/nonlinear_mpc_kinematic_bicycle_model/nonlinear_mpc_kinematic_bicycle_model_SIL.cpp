@@ -46,8 +46,6 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
   std::size_t ref_cols = static_cast<std::size_t>(ref_info.shape[0]);
   std::size_t ref_rows = static_cast<std::size_t>(ref_info.shape[1]);
 
-  /* check compatibility: rows must equal OUTPUT_SIZE and cols match
-   * Reference_Type::COLS */
   if (OUTPUT_SIZE != ref_cols) {
     throw std::runtime_error("reference_trajectory must have " +
                              std::to_string(OUTPUT_SIZE) + " cols (outputs).");
@@ -55,7 +53,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
 
   if (NP != ref_rows) {
     throw std::runtime_error("reference_trajectory must have " +
-                             std::to_string(Reference_Type::COLS) +
+                             std::to_string(ReferenceTrajectory_Type::COLS) +
                              " columns (horizon).");
   }
 
