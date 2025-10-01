@@ -21,8 +21,9 @@ constexpr std::size_t OUTPUT_SIZE =
 constexpr std::size_t NP =
     nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::NP;
 
-using Reference_Type =
-    typename nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::Reference_Type;
+using ReferenceTrajectory_Type =
+    typename nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::
+        ReferenceTrajectory_Type;
 
 nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::type nonlinear_mpc;
 
@@ -70,7 +71,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
 
   /* substitute reference trajectory: assume C-contiguous row-major layout */
   FLOAT *ref_data_ptr = static_cast<FLOAT *>(ref_info.ptr);
-  Reference_Type ref;
+  ReferenceTrajectory_Type ref;
   for (std::size_t col = 0; col < OUTPUT_SIZE; ++col) {
     for (std::size_t row = 0; row < NP; ++row) {
 
