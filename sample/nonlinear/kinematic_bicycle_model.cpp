@@ -52,8 +52,6 @@ int main(void) {
   StateSpaceInput_Type<double, INPUT_SIZE> U;
   StateSpaceOutput_Type<double, OUTPUT_SIZE> Y;
 
-  kinematic_bicycle_model_nonlinear_mpc::Reference_Type reference;
-
   kinematic_bicycle_model_nonlinear_mpc::ReferenceTrajectory_Type
       reference_trajectory;
 
@@ -156,9 +154,6 @@ int main(void) {
         reference_trajectory(row, j) = value;
       }
     }
-
-    // For compatibility, set the single-step reference vector to the first
-    // column
 
     U = nonlinear_mpc.update_manipulation(reference_trajectory, Y);
 
