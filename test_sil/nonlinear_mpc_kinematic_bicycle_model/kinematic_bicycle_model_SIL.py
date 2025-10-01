@@ -59,7 +59,7 @@ class Parameters:
 
 def main():
     # simulation setup
-    simulation_time = 60.0
+    simulation_time = 3.0
     delta_time = 0.1
     Number_of_Delay = 0
 
