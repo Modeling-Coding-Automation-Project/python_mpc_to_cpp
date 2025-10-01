@@ -111,7 +111,7 @@ def create_reference(
     curve_yaw_rate = math.pi / 5.0
     curve_timing = 2.0
 
-    yaw_ref = math.pi
+    yaw_reference = math.pi
 
     x_sequence = np.zeros((len(time), 1))
     y_sequence = np.zeros((len(time), 1))
@@ -128,15 +128,15 @@ def create_reference(
             r_sequence[i, 0] = 0.0
             V_sequence[i, 0] = vehicle_speed
 
-        elif time[i] > curve_timing and theta_sequence[i - 1, 0] < yaw_ref:
+        elif time[i] > curve_timing and theta_sequence[i - 1, 0] < yaw_reference:
             x_sequence[i, 0] = x_sequence[i - 1, 0] + \
                 vehicle_speed * delta_time * math.cos(theta_sequence[i - 1, 0])
             y_sequence[i, 0] = y_sequence[i - 1, 0] + \
                 vehicle_speed * delta_time * math.sin(theta_sequence[i - 1, 0])
             theta_sequence[i, 0] = theta_sequence[i - 1, 0] + \
                 curve_yaw_rate * delta_time
-            if theta_sequence[i, 0] > yaw_ref:
-                theta_sequence[i, 0] = yaw_ref
+            if theta_sequence[i, 0] > yaw_reference:
+                theta_sequence[i, 0] = yaw_reference
 
             r_sequence[i, 0] = curve_yaw_rate
             V_sequence[i, 0] = vehicle_speed

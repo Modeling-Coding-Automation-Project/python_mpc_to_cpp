@@ -12,7 +12,7 @@ constexpr std::size_t INPUT_SIZE = lti_mpc_SIL_wrapper::INPUT_SIZE;
 constexpr std::size_t STATE_SIZE = lti_mpc_SIL_wrapper::STATE_SIZE;
 constexpr std::size_t OUTPUT_SIZE = lti_mpc_SIL_wrapper::OUTPUT_SIZE;
 
-using Ref_Type = typename lti_mpc_SIL_wrapper::Ref_Type;
+using Reference_Type = typename lti_mpc_SIL_wrapper::Reference_Type;
 
 lti_mpc_SIL_wrapper::type lmpc;
 
@@ -36,10 +36,10 @@ py::array_t<FLOAT> update(py::array_t<FLOAT> ref_in, py::array_t<FLOAT> Y_in) {
 
   /* substitute */
   FLOAT *ref_data_ptr = static_cast<FLOAT *>(ref_info.ptr);
-  Ref_Type ref;
-  for (std::size_t i = 0; i < Ref_Type::COLS; ++i) {
-    for (std::size_t j = 0; j < Ref_Type::ROWS; ++j) {
-      ref.access(i, j) = ref_data_ptr[i * Ref_Type::ROWS + j];
+  Reference_Type ref;
+  for (std::size_t i = 0; i < Reference_Type::COLS; ++i) {
+    for (std::size_t j = 0; j < Reference_Type::ROWS; ++j) {
+      ref.access(i, j) = ref_data_ptr[i * Reference_Type::ROWS + j];
     }
   }
 

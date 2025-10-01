@@ -49,7 +49,7 @@ ReferenceSequence create_reference(const std::vector<double> &time,
   const double vehicle_speed = 15.0;
   const double curve_yaw_rate = PI / 5.0;
   const double curve_timing = 2.0;
-  const double yaw_ref = PI;
+  const double yaw_reference = PI;
 
   const size_t time_size = time.size();
 
@@ -73,7 +73,7 @@ ReferenceSequence create_reference(const std::vector<double> &time,
       ref.V_sequence[i] = vehicle_speed;
 
     } else if (time[i] > curve_timing &&
-               (i == 0 || ref.theta_sequence[i - 1] < yaw_ref)) {
+               (i == 0 || ref.theta_sequence[i - 1] < yaw_reference)) {
 
       double prev_theta = (i > 0) ? ref.theta_sequence[i - 1] : 0.0;
       double prev_x = (i > 0) ? ref.x_sequence[i - 1] : 0.0;
@@ -85,8 +85,8 @@ ReferenceSequence create_reference(const std::vector<double> &time,
           prev_y + vehicle_speed * delta_time * std::sin(prev_theta);
       ref.theta_sequence[i] = prev_theta + curve_yaw_rate * delta_time;
 
-      if (ref.theta_sequence[i] > yaw_ref) {
-        ref.theta_sequence[i] = yaw_ref;
+      if (ref.theta_sequence[i] > yaw_reference) {
+        ref.theta_sequence[i] = yaw_reference;
       }
 
       ref.r_sequence[i] = curve_yaw_rate;

@@ -26,10 +26,10 @@ jobs:
 
         '
     - name: Build and Run C++ application
-      run: 'g++ -std=c++11 -Wall -Werror ${{ matrix.define }} -I ./mpc_utility -I
-        ./python_mpc -I ./external_libraries/python_optimization_to_cpp/python_optimization
-        -I ./external_libraries/python_optimization_to_cpp/optimization_utility -I
-        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+      run: 'g++ -std=c++11 -Wall -Werror ${{ matrix.define }} -O2 -I ./mpc_utility -I
+        ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization
+        -I ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
         -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
         -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
         -I ./test_vs/MCAP_tester/include -o ./test_vs/app ./test_vs/test_vs_main.cpp

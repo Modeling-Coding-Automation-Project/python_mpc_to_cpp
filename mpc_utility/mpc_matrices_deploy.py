@@ -1,27 +1,12 @@
 """
-File: ltv_matrices_deploy.py
+File: mpc_matrices_deploy.py
 
-This module provides utilities for converting Python-based
-Linear Time-Varying (LTV) Model Predictive Control (MPC) models into C++ code.
-It includes classes and functions to parse Python classes and methods
- (especially those defining system matrices and update logic),
-and generate corresponding C++ header files for use in
- embedded or high-performance environments.
-
-Key features:
-
-Extracts class methods from Python source files using AST parsing.
-Converts Python matrix updater and state-space updater
- logic into C++ templates and classes.
-Handles translation of NumPy-based matrix operations
- and assignments to C++ equivalents.
-Supports generation of C++ code for parameter structures,
- state-space updaters, and prediction matrix updaters.
-Designed for integration with external code generation
- and control libraries.
-The generated C++ code enables deployment of LTV MPC models,
- including all necessary type definitions, update routines,
-and matrix operations, for use in C++ projects.
+This module provides functionality to convert Python class methods,
+particularly those related to Model Predictive Control (MPC) matrices,
+into C++ code. It utilizes the Abstract Syntax Tree (AST) to parse and
+transform Python code into C++ code, handling specific constructs
+such as class definitions, function definitions, assignments, and
+return statements.
 """
 import os
 import sys

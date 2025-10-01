@@ -7,6 +7,7 @@
 #include "test_mpc_servo_motor_data.hpp"
 #include "test_mpc_two_wheel_vehicle_model_data.hpp"
 #include "test_Adaptive_MPC_Phi_F_Updater_Function.hpp"
+#include "test_mpc_kinematic_bicycle_model_data.hpp"
 
 #include "MCAP_tester.hpp"
 
@@ -1394,6 +1395,140 @@ void check_Adaptive_MPC(void) {
     tester.throw_error_if_test_failed();
 }
 
+template <typename T>
+void check_Nonlinear_MPC(void) {
+    using namespace PythonNumpy;
+    using namespace PythonControl;
+    using namespace PythonMPC;
+
+    MCAPTester<T> tester;
+
+    // There is a Floating point Numerical instability problem.
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
+
+    using namespace PythonMPC_KinematicBicycleModelData;
+
+    /* 定義 */
+    constexpr std::size_t NP = kinematic_bicycle_model_cost_matrices::NP;
+
+    constexpr std::size_t INPUT_SIZE = kinematic_bicycle_model_cost_matrices::INPUT_SIZE;
+    constexpr std::size_t STATE_SIZE = kinematic_bicycle_model_cost_matrices::STATE_SIZE;
+    constexpr std::size_t OUTPUT_SIZE = kinematic_bicycle_model_cost_matrices::OUTPUT_SIZE;
+
+    T delta_time = static_cast<T>(0.1);
+
+    auto X_initial = make_DenseMatrix<STATE_SIZE, 1>(
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(3.26794897e-07),
+        static_cast<T>(-0.9999999999999466)
+    );
+
+    using EKF_Type = kinematic_bicycle_model_nmpc_ekf::type<T>;
+
+    using Cost_Matrices_Type = kinematic_bicycle_model_cost_matrices::type<T>;
+
+    auto kalman_filter = kinematic_bicycle_model_nmpc_ekf::make<T>();
+
+    auto cost_matrices = kinematic_bicycle_model_cost_matrices::make<T>();
+
+    using Nonlinear_MPC_Type = NonlinearMPC_TwiceDifferentiable_Type<EKF_Type, Cost_Matrices_Type>;
+
+    NonlinearMPC_TwiceDifferentiable_Type<EKF_Type, Cost_Matrices_Type> nonlinear_mpc
+        = make_NonlinearMPC_TwiceDifferentiable(kalman_filter, cost_matrices, delta_time, X_initial);
+
+    /* コピー、ムーブ */
+    nonlinear_mpc.U_horizon(0, 0) = static_cast<T>(1.0);
+
+    Nonlinear_MPC_Type nonlinear_mpc_copy(nonlinear_mpc);
+    Nonlinear_MPC_Type nonlinear_mpc_move = nonlinear_mpc_copy;
+    nonlinear_mpc = std::move(nonlinear_mpc_move);
+
+    tester.expect_near(nonlinear_mpc.U_horizon.matrix.data,
+        nonlinear_mpc_copy.U_horizon.matrix.data, NEAR_LIMIT_STRICT,
+        "check Nonlinear MPC, copy, U_horizon(0, 0).");
+
+    nonlinear_mpc.U_horizon(0, 0) = static_cast<T>(0.0);
+
+    /* 計算 */
+    using Parameter_Type = kinematic_bicycle_model_nmpc_ekf_parameter::Parameter_Type<T>;
+    Parameter_Type parameter;
+
+    nonlinear_mpc.set_solver_max_iteration(5);
+
+    auto reference = make_DenseMatrixOnes<T, OUTPUT_SIZE, 1>();
+
+    nonlinear_mpc.set_reference_trajectory(reference);
+
+
+    using ReferenceTrajectory_Type = DenseMatrix_Type<T, OUTPUT_SIZE, NP>;
+
+    ReferenceTrajectory_Type reference_trajectory({
+        {static_cast<T>(0.0),
+         static_cast<T>(-5.178651247695076e-02),
+         static_cast<T>(-1.035730249539015e-01),
+         static_cast<T>(-1.553595374308523e-01),
+         static_cast<T>(-2.071460499078030e-01),
+         static_cast<T>(-2.589325623847538e-01),
+         static_cast<T>(-3.107190748617046e-01),
+         static_cast<T>(-3.625055873386553e-01),
+         static_cast<T>(-4.142920998156061e-01),
+         static_cast<T>(-4.660786122925568e-01)},
+        {static_cast<T>(0.0),
+         static_cast<T>(-2.239073290103556e-02),
+         static_cast<T>(-4.478146580207112e-02),
+         static_cast<T>(-6.717219870310670e-02),
+         static_cast<T>(-8.956293160414225e-02),
+         static_cast<T>(-1.119536645051778e-01),
+         static_cast<T>(-1.343443974062134e-01),
+         static_cast<T>(-1.567351303072489e-01),
+         static_cast<T>(-1.791258632082845e-01),
+         static_cast<T>(-2.015165961093200e-01)},
+        {static_cast<T>(3.267948965381384e-07),
+         static_cast<T>(1.053479549786667e-02),
+         static_cast<T>(2.106809506914014e-02),
+         static_cast<T>(3.159905654303604e-02),
+         static_cast<T>(4.212651121335022e-02),
+         static_cast<T>(5.264929076305785e-02),
+         static_cast<T>(6.316622739396925e-02),
+         static_cast<T>(7.367615395633174e-02),
+         static_cast<T>(8.417790407835588e-02),
+         static_cast<T>(9.467031229565905e-02)},
+        {static_cast<T>(-9.999999999999466e-01),
+         static_cast<T>(-9.999445075022004e-01),
+         static_cast<T>(-9.997780430526356e-01),
+         static_cast<T>(-9.995006251251622e-01),
+         static_cast<T>(-9.991122845070975e-01),
+         static_cast<T>(-9.986130642957496e-01),
+         static_cast<T>(-9.980030198936340e-01),
+         static_cast<T>(-9.972822190023258e-01),
+         static_cast<T>(-9.964507416149456e-01),
+         static_cast<T>(-9.955086800072827e-01)}
+    });
+
+    auto y_measured = make_DenseMatrix<OUTPUT_SIZE, 1>(
+        static_cast<T>(0.0),
+        static_cast<T>(0.0),
+        static_cast<T>(3.26794897e-07),
+        static_cast<T>(-0.9999999999999466)
+    );
+
+    nonlinear_mpc.update_parameters(parameter);
+
+    auto u_from_mpc = nonlinear_mpc.update_manipulation(reference_trajectory, y_measured);
+
+    auto u_from_mpc_answer = make_DenseMatrix<INPUT_SIZE, 1>(
+        static_cast<T>(0.52508323),
+        static_cast<T>(0.22256554)
+    );
+
+    tester.expect_near(u_from_mpc.matrix.data, u_from_mpc_answer.matrix.data, NEAR_LIMIT_STRICT,
+        "check Nonlinear MPC, update_manipulation, U.");
+
+
+    tester.throw_error_if_test_failed();
+}
+
 
 int main(void) {
 
@@ -1436,6 +1571,10 @@ int main(void) {
     check_Adaptive_MPC<double>();
 
     check_Adaptive_MPC<float>();
+
+    check_Nonlinear_MPC<double>();
+
+    check_Nonlinear_MPC<float>();
 
 
     return 0;

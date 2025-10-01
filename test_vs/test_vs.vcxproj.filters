@@ -53,5 +53,11 @@
     <ClInclude Include="test_Adaptive_MPC_Phi_F_Updater_Function.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\python_mpc\python_nonlinear_mpc.hpp">
+      <Filter>リソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="test_mpc_kinematic_bicycle_model_data.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
