@@ -1,16 +1,15 @@
 #include "nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper.hpp"
 
-#include "kinematic_bicycle_model_nonlinear_mpc_ekf_parameter.hpp"
-
 #include "python_control.hpp"
+#include <stdexcept>
 
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
-using FLOAT = typename nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::type::
-    Value_Type;
+using FLOAT = typename nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::
+    EKF_Type::Value_Type;
 
 constexpr std::size_t INPUT_SIZE =
     nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::INPUT_SIZE;
@@ -22,9 +21,8 @@ constexpr std::size_t OUTPUT_SIZE =
 constexpr std::size_t NP =
     nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::NP;
 
-using ReferenceTrajectory_Type =
-    typename nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::
-        ReferenceTrajectory_Type;
+using Reference_Type =
+    typename nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::Reference_Type;
 
 nonlinear_mpc_kinematic_bicycle_model_SIL_wrapper::type nonlinear_mpc;
 
