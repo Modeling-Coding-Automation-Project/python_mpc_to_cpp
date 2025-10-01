@@ -108,7 +108,7 @@ def main():
 
     plotter = SimulationPlotter()
 
-    y_measured = np.array([[0.0], [0.0], [0.0], [0.0], [0.0]])
+    y_measured = np.array([[0.0]])
     y_store = [y_measured] * (Number_of_Delay + 1)
     delay_index = 0
 

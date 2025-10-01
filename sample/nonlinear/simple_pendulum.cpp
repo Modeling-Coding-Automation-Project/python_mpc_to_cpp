@@ -24,9 +24,9 @@ int main(void) {
     time[i] = i * DELTA_TIME;
   }
 
-  auto nonlinear_mpc = simple_pendulum_nonlinear_mpc::make();
-
   constexpr std::size_t NP = 10;
+
+  auto nonlinear_mpc = simple_pendulum_nonlinear_mpc::make();
 
   return 0;
 }
