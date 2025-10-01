@@ -335,6 +335,10 @@ public:
     return this->_solver.get_solver_step_iterated_number();
   }
 
+  inline auto get_X(void) const -> X_Type {
+    return this->_kalman_filter.get_x_hat();
+  }
+
   /* Function */
   inline auto calculate_this_U(const U_Horizon_Type &U_horizon_in) -> U_Type {
 
@@ -352,8 +356,8 @@ public:
   }
 
   template <typename Reference_Type_In>
-  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
-      -> U_Type {
+  inline auto update_manipulation(Reference_Type_In &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     auto U_latest = this->calculate_this_U(this->U_horizon);
 
@@ -427,7 +431,6 @@ protected:
 
   _T _delta_time;
 
-  X_Type _X_inner_model;
   Y_Store_Type _Y_store;
 
   _ConstFunction_Object_Type _cost_function;
