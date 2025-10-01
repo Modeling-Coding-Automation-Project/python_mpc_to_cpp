@@ -125,7 +125,7 @@ int main(void) {
     // reference_trajectory is (OUTPUT_SIZE, NP)
     // We'll fill each column j with the appropriate reference at time index =
     // step + j
-    for (std::size_t row = 0; row < 1; ++row) {
+    for (std::size_t row = 0; row < OUTPUT_SIZE; ++row) {
       for (std::size_t j = 0; j < NP; ++j) {
         std::size_t index = step + j;
         if (reference_length == 0) {
