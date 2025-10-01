@@ -1,3 +1,20 @@
+/**
+ * @file python_nonlinear_mpc.hpp
+ *
+ * @brief Nonlinear Model Predictive Control (Nonlinear MPC) library
+ *
+ * This header file defines the NonlinearMPC_TwiceDifferentiable class template,
+ * which implements a Nonlinear Model Predictive Control (MPC) algorithm using
+ * a twice-differentiable cost function. The class integrates an Extended
+ * Kalman Filter (EKF) for state estimation and utilizes a Sequential
+ * Quadratic Programming (SQP) solver for optimization.
+ *
+ * The NonlinearMPC_TwiceDifferentiable class supports setting reference
+ * trajectories and updating control inputs in a flexible manner. The
+ * implementation is designed to work with Python-based state-space models,
+ * making it suitable for applications that require real-time control of
+ * nonlinear systems.
+ */
 #ifndef __PYTHON_NONLINEAR_MPC_HPP__
 #define __PYTHON_NONLINEAR_MPC_HPP__
 
@@ -19,6 +36,27 @@ namespace NonlinearMPC_ReferenceTrajectoryOperation {
 // Unroll nested loops for copying reference -> reference_trajectory
 namespace SubstituteReferenceTrajectory {
 
+/**
+ * @brief Recursively copies elements from a reference object to a reference
+ * trajectory at a specific row (I) and column (J_idx).
+ *
+ * This struct template defines a static inline function `compute` that copies
+ * the element at position (I, J_idx) from the `reference` object to the
+ * `reference_trajectory` object using their respective `get` and `set` methods.
+ * The recursion proceeds by decrementing the column index `J_idx` until the
+ * base case is reached (not shown here).
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference object, which must provide a
+ * `get<I, J_idx>()` method.
+ * @tparam I Row index for the element to be copied.
+ * @tparam J_idx Column index for the element to be copied; decremented
+ * recursively.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t I, std::size_t J_idx>
 struct Column {
@@ -31,6 +69,24 @@ struct Column {
   }
 };
 
+/**
+ * @brief Base case for the recursive copying of elements from a reference
+ * object to a reference trajectory at a specific row (I) and column (0).
+ *
+ * This struct template specializes the `Column` struct for the case when
+ * `J_idx` is 0. It defines a static inline function `compute` that copies
+ * the element at position (I, 0) from the `reference` object to the
+ * `reference_trajectory` object using their respective `get` and `set` methods.
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, 0>()` method.
+ * @tparam Reference_Type Type of the reference object, which must provide a
+ * `get<I, 0>()` method.
+ * @tparam I Row index for the element to be copied.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t I>
 struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
@@ -40,6 +96,27 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
   }
 };
 
+/**
+ * @brief Recursively processes rows of the reference trajectory to copy
+ * elements from the reference object.
+ *
+ * This struct template defines a static inline function `compute` that
+ * processes each row of the `reference_trajectory` object by invoking the
+ * `Column` struct to copy elements from the `reference` object. The recursion
+ * proceeds by decrementing the row index `I_idx` until the base case is
+ * reached (not shown here).
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference object, which must provide a
+ * `get<I, J_idx>()` method.
+ * @tparam M Total number of rows in the reference trajectory.
+ * @tparam N Total number of columns in the reference trajectory.
+ * @tparam I_idx Current row index being processed; decremented recursively.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I_idx>
 struct Row {
@@ -52,6 +129,25 @@ struct Row {
   }
 };
 
+/**
+ * @brief Base case for the recursive processing of rows in the reference
+ * trajectory.
+ *
+ * This struct template specializes the `Row` struct for the case when
+ * `I_idx` is 0. It defines a static inline function `compute` that processes
+ * the first row of the `reference_trajectory` object by invoking the `Column`
+ * struct to copy elements from the `reference` object.
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<0, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference object, which must provide a
+ * `get<0, J_idx>()` method.
+ * @tparam M Total number of rows in the reference trajectory.
+ * @tparam N Total number of columns in the reference trajectory.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N>
 struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
@@ -62,6 +158,25 @@ struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
   }
 };
 
+/**
+ * @brief Copies elements from a reference object to a reference trajectory.
+ *
+ * This function initiates the recursive copying of elements from the
+ * `reference` object to the `reference_trajectory` object by invoking the
+ * `Row` struct. It assumes that both objects provide appropriate `get` and
+ * `set` methods for element access.
+ *
+ * @tparam COLS Number of columns in the reference trajectory.
+ * @tparam Np Number of prediction steps (rows - 1) in the reference
+ * trajectory.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference object, which must provide a
+ * `get<I, J_idx>()` method.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <std::size_t COLS, std::size_t Np, typename ReferenceTrajectory_Type,
           typename Reference_Type>
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
@@ -73,6 +188,23 @@ inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
 
 } // namespace SubstituteReferenceTrajectory
 
+/**
+ * @brief Substitutes a reference trajectory based on the number of rows.
+ *
+ * This function substitutes the reference trajectory based on the number of
+ * rows in the reference input. If the number of rows is greater than 1, it
+ * copies the reference values directly to the corresponding rows in the
+ * reference trajectory. If the number of rows is 1, it replicates the single
+ * reference value across all rows of the reference trajectory.
+ *
+ * @tparam ROWS Number of rows in the reference input.
+ * @tparam Np Number of prediction steps (rows - 1) in the reference
+ * trajectory.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference object, which must provide a
+ * `get<I, J_idx>()` method.
+ */
 template <std::size_t ROWS, std::size_t NP, typename ReferenceTrajectory_Type,
           typename Reference_Type>
 inline typename std::enable_if<(ROWS > 1), void>::type
@@ -93,6 +225,27 @@ substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
 
 namespace SubstituteReferenceVector {
 
+/**
+ * @brief Recursively copies elements from a reference vector to a reference
+ * trajectory.
+ *
+ * This struct template defines a static inline function `compute` that
+ * copies elements from the `reference` vector to the `reference_trajectory`
+ * matrix. The recursion proceeds by decrementing the row index `I` and column
+ * index `J_idx` until the base case is reached (not shown here).
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference vector, which must provide a
+ * `get<I, 0>()` method.
+ * @tparam M Total number of rows in the reference trajectory.
+ * @tparam N Total number of columns in the reference trajectory.
+ * @tparam I Current row index being processed; decremented recursively.
+ * @tparam J_idx Current column index being processed; decremented recursively.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I, std::size_t J_idx>
 struct Column {
@@ -104,6 +257,26 @@ struct Column {
   }
 };
 
+/**
+ * @brief Base case for the recursive copying of elements from a reference
+ * vector to a reference trajectory.
+ *
+ * This struct template specializes the `Column` struct for the case when
+ * `J_idx` is 0. It defines a static inline function `compute` that copies
+ * the element at position (I, 0) from the `reference` vector to the
+ * `reference_trajectory` object using their respective `get` and `set` methods.
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, 0>()` method.
+ * @tparam Reference_Type Type of the reference vector, which must provide a
+ * `get<I, 0>()` method.
+ * @tparam M Total number of rows in the reference trajectory.
+ * @tparam N Total number of columns in the reference trajectory.
+ * @tparam I Row index for the element to be copied.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I>
 struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
@@ -113,6 +286,27 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
   }
 };
 
+/**
+ * @brief Recursively processes rows of the reference trajectory to copy
+ * elements from the reference vector.
+ *
+ * This struct template defines a static inline function `compute` that
+ * processes each row of the `reference_trajectory` object by invoking the
+ * `Column` struct to copy elements from the `reference` vector. The recursion
+ * proceeds by decrementing the row index `I_idx` until the base case is
+ * reached (not shown here).
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference vector, which must provide a
+ * `get<I, 0>()` method.
+ * @tparam M Total number of rows in the reference trajectory.
+ * @tparam N Total number of columns in the reference trajectory.
+ * @tparam I_idx Current row index being processed; decremented recursively.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I_idx>
 struct Row {
@@ -125,6 +319,25 @@ struct Row {
   }
 };
 
+/**
+ * @brief Base case for the recursive processing of rows in the reference
+ * trajectory.
+ *
+ * This struct template specializes the `Row` struct for the case when
+ * `I_idx` is 0. It defines a static inline function `compute` that processes
+ * the first row of the `reference_trajectory` object by invoking the `Column`
+ * struct to copy elements from the `reference` vector.
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<0, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference vector, which must provide a
+ * `get<0, 0>()` method.
+ * @tparam M Total number of rows in the reference trajectory.
+ * @tparam N Total number of columns in the reference trajectory.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N>
 struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
@@ -135,6 +348,22 @@ struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
   }
 };
 
+/**
+ * @brief Copies elements from a reference vector to a reference trajectory.
+ *
+ * This function initiates the recursive copying of elements from the
+ * `reference` vector to the `reference_trajectory` matrix by invoking the
+ * `Row` struct. It assumes that both objects provide appropriate `get` and
+ * `set` methods for element access.
+ *
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference vector, which must provide a
+ * `get<I, 0>()` method.
+ *
+ * @param reference_trajectory The object to which elements are copied.
+ * @param reference The object from which elements are copied.
+ */
 template <typename ReferenceTrajectory_Type, typename Reference_Type>
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
@@ -149,6 +378,22 @@ inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
 
 } // namespace SubstituteReferenceVector
 
+/**
+ * @brief Substitutes a reference trajectory when the reference is a vector.
+ *
+ * This function substitutes the reference trajectory by copying the values
+ * from a reference vector to each column of the reference trajectory matrix.
+ * It assumes that the reference vector has a single column and the same number
+ * of rows as the reference trajectory.
+ *
+ * @tparam ROWS Number of rows in the reference input.
+ * @tparam Np Number of prediction steps (rows - 1) in the reference
+ * trajectory.
+ * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
+ * which must provide a `set<I, J_idx>()` method.
+ * @tparam Reference_Type Type of the reference vector, which must provide a
+ * `get<I, 0>()` method.
+ */
 template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
           typename Reference_Type>
 inline typename std::enable_if<(ROWS == 1), void>::type
@@ -161,6 +406,26 @@ substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
 
 } // namespace NonlinearMPC_ReferenceTrajectoryOperation
 
+/**
+ * @brief Nonlinear Model Predictive Control (Nonlinear MPC) class template
+ * using a twice-differentiable cost function.
+ *
+ * This class template implements a Nonlinear Model Predictive Control (MPC)
+ * algorithm that utilizes a twice-differentiable cost function. It integrates
+ * an Extended Kalman Filter (EKF) for state estimation and employs a
+ * Sequential Quadratic Programming (SQP) solver for optimization.
+ *
+ * The NonlinearMPC_TwiceDifferentiable class supports setting reference
+ * trajectories and updating control inputs in a flexible manner. It is designed
+ * to work with Python-based state-space models, making it suitable for
+ * applications that require real-time control of nonlinear systems.
+ *
+ * @tparam EKF_Type_In Type of the Extended Kalman Filter (EKF) used for state
+ * estimation. Must provide methods for state prediction and update.
+ * @tparam Cost_Matrices_Type_In Type of the cost matrices used in the MPC
+ * formulation. Must define state, input, and output sizes, as well as horizon
+ * length.
+ */
 template <typename EKF_Type_In, typename Cost_Matrices_Type_In>
 class NonlinearMPC_TwiceDifferentiable {
 protected:
@@ -303,10 +568,39 @@ public:
 
 public:
   /* Setter */
+
+  /**
+   * @brief Sets the maximum number of iterations for the solver.
+   *
+   * This function configures the solver to limit the number of iterations it
+   * performs during the optimization process. Setting an appropriate maximum
+   * can help control computation time and ensure timely convergence.
+   *
+   * @param max_iteration The maximum number of iterations the solver is allowed
+   * to perform.
+   */
   inline void set_solver_max_iteration(std::size_t max_iteration) {
     this->_solver.set_solver_max_iteration(max_iteration);
   }
 
+  /**
+   * @brief Sets the reference trajectory for the MPC.
+   *
+   * This function allows setting the reference trajectory that the MPC will
+   * use to compute control inputs. The reference can be provided as either a
+   * trajectory matrix or a single reference vector. The function ensures that
+   * the input dimensions are compatible with the expected output size and
+   * prediction horizon.
+   *
+   * @tparam Reference_Type_In Type of the reference input, which must have
+   * static members `ROWS` and `COLS`.
+   * @param reference The reference input, which can be a trajectory matrix or
+   * a single vector.
+   *
+   * @note The function uses static assertions to validate the dimensions of
+   * the input reference against the expected output size and prediction
+   * horizon.
+   */
   template <typename Reference_Type_In>
   inline void set_reference_trajectory(const Reference_Type_In &reference) {
 
@@ -328,15 +622,50 @@ public:
   }
 
   /* Getter */
+
+  /**
+   * @brief Retrieves the number of iterations performed in the last solver
+   * step.
+   *
+   * This function returns the number of iterations that the underlying solver
+   * executed during the most recent solver step. It can be useful for
+   * monitoring solver performance or debugging convergence issues.
+   *
+   * @return std::size_t The number of iterations performed in the last solver
+   * step.
+   */
   inline auto get_solver_step_iterated_number(void) const -> std::size_t {
     return this->_solver.get_solver_step_iterated_number();
   }
 
+  /**
+   * @brief Retrieves the current estimated state from the Kalman filter.
+   *
+   * This function returns the current state estimate maintained by the
+   * Extended Kalman Filter (EKF) integrated within the MPC framework. The
+   * state estimate is used for prediction and control input calculation.
+   *
+   * @return X_Type The current estimated state from the Kalman filter.
+   */
   inline auto get_X(void) const -> X_Type {
     return this->_kalman_filter.get_x_hat();
   }
 
   /* Function */
+
+  /**
+   * @brief Calculates the current control input from the control input
+   * horizon.
+   *
+   * This function extracts the first control input from the control input
+   * horizon, which represents the immediate action to be taken by the system.
+   * The control input horizon is typically a sequence of future control inputs
+   * computed by the MPC algorithm.
+   *
+   * @param U_horizon_in The control input horizon from which to extract the
+   * current control input.
+   * @return U_Type The current control input extracted from the horizon.
+   */
   inline auto calculate_this_U(const U_Horizon_Type &U_horizon_in) -> U_Type {
 
     auto U = PythonNumpy::get_row<0>(U_horizon_in);
@@ -344,6 +673,20 @@ public:
     return U;
   }
 
+  /**
+   * @brief Updates the parameters of the Kalman filter and cost matrices.
+   *
+   * This function allows updating the parameters used by both the Extended
+   * Kalman Filter (EKF) and the cost matrices in the MPC formulation. It is
+   * important that the parameter types for both components are compatible to
+   * ensure consistent behavior.
+   *
+   * @param parameters The new parameters to be set for the EKF and cost
+   * matrices.
+   *
+   * @note The function assumes that the parameter types of the EKF and cost
+   * matrices are the same.
+   */
   inline void update_parameters(const _Parameter_Type &parameters) {
     // when you use this function, parameters type of EKF and CostMatrices must
     // be same
@@ -352,9 +695,28 @@ public:
     this->_sqp_cost_matrices.state_space_parameters = parameters;
   }
 
+  /**
+   * @brief Updates the control input based on the current reference and
+   * measurement.
+   *
+   * This function performs a complete update cycle for the MPC, including
+   * state estimation using the Extended Kalman Filter (EKF) and optimization
+   * of the control input horizon. It takes the current reference and
+   * measurement as inputs, compensates for any delays, and computes the
+   * optimal control input to be applied to the system.
+   *
+   * @tparam Reference_Type_In Type of the reference input, which must have
+   * static members `ROWS` and `COLS`.
+   * @param reference The current reference input for the MPC.
+   * @param Y The current measurement used for state estimation.
+   * @return U_Type The updated control input to be applied to the system.
+   *
+   * @note The function assumes that the reference input dimensions are
+   * compatible with the expected output size and prediction horizon.
+   */
   template <typename Reference_Type_In>
-  inline auto update_manipulation(Reference_Type_In &reference,
-                                  const Y_Type &Y) -> U_Type {
+  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
+      -> U_Type {
 
     auto U_latest = this->calculate_this_U(this->U_horizon);
 
@@ -381,6 +743,17 @@ public:
 
 protected:
   /* Function */
+
+  /**
+   * @brief Initializes the solver with the initial state and cost functions.
+   *
+   * This function sets up the solver by defining the cost function, cost
+   * gradient function, and Hessian-vector product (HVP) function based on the
+   * provided cost matrices. It also configures the solver with the initial
+   * state and sets a default maximum number of iterations.
+   *
+   * @param X_initial The initial state to be used for solver initialization.
+   */
   inline void _initialize_solver(const X_Type &X_initial) {
 
     this->_cost_function = [this](const X_Type &X, const U_Horizon_Type &U) ->
@@ -435,9 +808,34 @@ protected:
   _HVP_Function_Object_Type _hvp_function;
 
   _Solver_Type _solver;
-};
+}; // namespace NonlinearMPC_ReferenceTrajectoryOperation
 
 /* make NonlinearMPC_TwiceDifferentiable */
+
+/**
+ * @brief Factory function to create a NonlinearMPC_TwiceDifferentiable object.
+ *
+ * This function constructs and returns a NonlinearMPC_TwiceDifferentiable
+ * object, initializing it with the provided Extended Kalman Filter (EKF),
+ * cost matrices, time step, and initial state. It ensures that the data types
+ * of the EKF and cost matrices match the specified type T.
+ *
+ * @tparam EKF_Type Type of the Extended Kalman Filter (EKF) used for state
+ * estimation. Must provide methods for state prediction and update.
+ * @tparam Cost_Matrices_Type Type of the cost matrices used in the MPC
+ * formulation. Must define state, input, and output sizes, as well as horizon
+ * length.
+ * @tparam T Data type for the EKF and cost matrices (e.g., float, double).
+ * @param kalman_filter Reference to an EKF object for state estimation.
+ * @param cost_matrices Reference to a cost matrices object for MPC.
+ * @param delta_time Time step for the MPC updates.
+ * @param X_initial Initial state for the EKF.
+ * @return NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>
+ * Initialized NonlinearMPC_TwiceDifferentiable object.
+ *
+ * @note The function uses static assertions to ensure that the data types of
+ * the EKF and cost matrices match the specified type T.
+ */
 template <typename EKF_Type, typename Cost_Matrices_Type, typename T>
 inline auto make_NonlinearMPC_TwiceDifferentiable(
     EKF_Type &kalman_filter, Cost_Matrices_Type &cost_matrices, T delta_time,
@@ -459,6 +857,21 @@ inline auto make_NonlinearMPC_TwiceDifferentiable(
 }
 
 /* NonlinearMPC_TwiceDifferentiable Type */
+
+/**
+ * @brief Type alias for NonlinearMPC_TwiceDifferentiable.
+ *
+ * This alias simplifies the usage of the NonlinearMPC_TwiceDifferentiable
+ * class template by providing a shorter and more convenient name. It can be
+ * used to instantiate NonlinearMPC_TwiceDifferentiable objects with specific
+ * EKF and cost matrices types.
+ *
+ * @tparam EKF_Type Type of the Extended Kalman Filter (EKF) used for state
+ * estimation. Must provide methods for state prediction and update.
+ * @tparam Cost_Matrices_Type Type of the cost matrices used in the MPC
+ * formulation. Must define state, input, and output sizes, as well as horizon
+ * length.
+ */
 template <typename EKF_Type, typename Cost_Matrices_Type>
 using NonlinearMPC_TwiceDifferentiable_Type =
     NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>;
