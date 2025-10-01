@@ -1,3 +1,15 @@
+"""
+File: kinematic_bicycle_model.py
+
+Description: Example of Nonlinear MPC for a kinematic bicycle model with nonlinear dynamics.
+This script implements and simulates a Nonlinear Model Predictive Control (MPC)
+system for a kinematic bicycle model. The vehicle dynamics are symbolically derived using SymPy,
+including the state-space and measurement models and their Jacobians.
+The simulation runs a closed-loop control scenario,
+where the MPC tracks a reference trajectory for vehicle position and orientation.
+The code also visualizes the results using a custom plotter,
+allowing analysis of the controller's performance over time.
+"""
 import os
 import sys
 sys.path.append(os.getcwd())
@@ -16,6 +28,25 @@ from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_pat
 
 
 def create_plant_model():
+    """
+    Creates the symbolic nonlinear kinematic bicycle plant model using SymPy.
+
+    Returns:
+        fxu (sympy.Matrix): The symbolic state transition function f(x, u),
+          representing the next state as a function of current state and control input.
+        hx (sympy.Matrix): The symbolic output function h(x),
+          representing the measurement or output equation.
+        X (sympy.Matrix): The symbolic state vector [px, py, q0, q3],
+          where px and py are positions, and q0, q3 are orientation components.
+        U (sympy.Matrix): The symbolic control input vector [v, delta],
+          where v is velocity and delta is steering angle.
+
+    Notes:
+        - The model uses quaternion-like orientation representation (q0, q3).
+        - The state transition is discretized using the given delta_time.
+        - wheel_base and delta_time are symbolic parameters for
+          vehicle geometry and integration step.
+    """
     wheel_base = sp.Symbol('wheel_base', real=True,
                            positive=True, nonzero=True)
     delta_time = sp.Symbol('delta_time', real=True,

@@ -1,3 +1,20 @@
+/**
+ * @file kinematic_bicycle_model.cpp
+ *
+ * @brief Example of Nonlinear MPC for a kinematic bicycle model with nonlinear
+ * dynamics.
+ *
+ * This code demonstrates the implementation of a Nonlinear Model Predictive
+ * Control (MPC) system for a kinematic bicycle model. The vehicle dynamics are
+ * defined using symbolic expressions, and the MPC controller is designed to
+ * track a reference trajectory for the vehicle's position and orientation. The
+ * simulation runs a closed-loop control scenario, where the MPC computes the
+ * optimal control inputs at each time step based on the current state and
+ * reference. The results are printed to the console, showing the vehicle's
+ * position, orientation, control inputs, and the number of solver iterations at
+ * each time step.
+ */
+
 // You must run "kinematic_bicycle_model.py" to use
 // "kinematic_bicycle_model_nonlinear_mpc.hpp"
 #include "kinematic_bicycle_model_nonlinear_mpc.hpp"
