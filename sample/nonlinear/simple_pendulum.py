@@ -1,3 +1,15 @@
+"""
+File: simple_pendulum.py
+
+Description: Example of Nonlinear MPC for a simple pendulum system with nonlinear dynamics.
+This script implements and simulates a Nonlinear Model Predictive Control (MPC)
+system for a simple pendulum. The pendulum dynamics are symbolically derived using SymPy,
+including the state-space and measurement models and their Jacobians.
+The simulation runs a closed-loop control scenario,
+where the MPC tracks a reference trajectory for the pendulum angle.
+The code also visualizes the results using a custom plotter,
+allowing analysis of the controller's performance over time.
+"""
 import os
 import sys
 sys.path.append(os.getcwd())
@@ -16,6 +28,24 @@ from sample.simulation_manager.visualize.simulation_plotter import SimulationPlo
 
 
 def create_plant_model():
+    """
+    Creates the symbolic state-space model of a simple nonlinear pendulum system.
+
+    Returns:
+        f (sympy.Matrix): State transition function as a symbolic matrix,
+          representing the next state [theta_next, omega_next].
+        h (sympy.Matrix): Output function as a symbolic matrix,
+          representing the measurement [theta].
+        x_syms (sympy.Matrix): Symbolic state vector [theta, omega].
+        u_syms (sympy.Matrix): Symbolic input vector [u0].
+
+    The model uses the following symbolic variables:
+        theta: Pendulum angle (rad)
+        omega: Pendulum angular velocity (rad/s)
+        u0: Control input (e.g., torque)
+        dt: Discrete time step
+        a, b, c, d: System parameters (real constants)
+    """
     theta, omega, u0, dt, a, b, c, d = sp.symbols(
         'theta omega u0 dt a b c d', real=True)
 
