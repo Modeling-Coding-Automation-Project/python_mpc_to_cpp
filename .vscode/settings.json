@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.py": "python",
         "array": "cpp",
         "algorithm": "cpp",
         "atomic": "cpp",
@@ -71,7 +72,8 @@
         "numbers": "cpp",
         "complex": "cpp",
         "sstream": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "fstream": "cpp"
     },
     "[python]": {
         "editor.defaultFormatter": "ms-python.autopep8",

@@ -1,5 +1,11 @@
+#include <array>
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <vector>
 
+// You must run "kinematic_bicycle_model.py" to use
+// "kinematic_bicycle_model_nonlinear_mpc.hpp"
 #include "kinematic_bicycle_model_nonlinear_mpc.hpp"
 
 #include "python_control.hpp"
@@ -43,10 +49,72 @@ int main(void) {
   auto X_initial = nonlinear_mpc.get_X();
 
   StateSpaceState_Type<double, STATE_SIZE> X = X_initial;
+  StateSpaceState_Type<double, STATE_SIZE> X;
   StateSpaceInput_Type<double, INPUT_SIZE> U;
   StateSpaceOutput_Type<double, OUTPUT_SIZE> Y;
 
   kinematic_bicycle_model_nonlinear_mpc::Reference_Type reference;
+
+  kinematic_bicycle_model_nonlinear_mpc::ReferenceTrajectory_Type
+      reference_trajectory;
+
+  // You must run "kinematic_bicycle_model.py" to generate "reference_path.csv".
+  // --- Load reference CSV (px,py,q0,q3) ---
+  std::vector<std::array<double, 4>> reference_data;
+  {
+    std::ifstream ifs("reference_path.csv");
+    if (!ifs) {
+      std::cerr << "Warning: could not open reference_path.csv, using zeros"
+                << std::endl;
+    } else {
+      std::string line;
+      // skip header if present
+      if (std::getline(ifs, line)) {
+        // check if header contains non-numeric characters
+        bool header = false;
+        for (char c : line) {
+          if (!std::isdigit(c) && c != '+' && c != '-' && c != '.' &&
+              c != 'e' && c != 'E' && c != ',') {
+            header = true;
+            break;
+          }
+        }
+        if (!header) {
+          // first line is data
+          std::stringstream ss(line);
+          std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
+          for (int k = 0; k < 4; ++k) {
+            std::string cell;
+            if (!std::getline(ss, cell, ','))
+              break;
+            row[k] = std::stod(cell);
+          }
+          reference_data.push_back(row);
+        }
+      }
+
+      // read remaining lines
+      while (std::getline(ifs, line)) {
+        if (line.empty())
+          continue;
+        std::stringstream ss(line);
+        std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
+        for (int k = 0; k < 4; ++k) {
+          std::string cell;
+          if (!std::getline(ss, cell, ','))
+            break;
+          try {
+            row[k] = std::stod(cell);
+          } catch (...) {
+            row[k] = 0.0;
+          }
+        }
+        reference_data.push_back(row);
+      }
+    }
+  }
+
+  const std::size_t reference_length = reference_data.size();
 
   for (std::size_t step = 0; step < MAX_STEP; ++step) {
     /* system response */
@@ -56,7 +124,44 @@ int main(void) {
         function(X, parameters);
 
     /* controller */
-    U = nonlinear_mpc.update_manipulation(reference, Y);
+    // Build reference trajectory for NonlinearMPC (OUTPUT_SIZE x NP)
+    // reference_trajectory is (OUTPUT_SIZE, NP)
+    // We'll fill each column j with the appropriate reference at time index =
+    // step + j
+    for (std::size_t row = 0; row < OUTPUT_SIZE; ++row) {
+      for (std::size_t j = 0; j < NP; ++j) {
+        std::size_t index = step + j;
+        if (reference_length == 0) {
+          reference_trajectory(row, j) = 0.0;
+          continue;
+        }
+        if (index >= reference_length)
+          index = reference_length - 1;
+        double value = 0.0;
+        switch (row) {
+        case 0:
+          value = reference_data[index][0];
+          break;
+        case 1:
+          value = reference_data[index][1];
+          break;
+        case 2:
+          value = reference_data[index][2];
+          break;
+        case 3:
+          value = reference_data[index][3];
+          break;
+        default:
+          value = 0.0;
+        }
+        reference_trajectory(row, j) = value;
+      }
+    }
+
+    // For compatibility, set the single-step reference vector to the first
+    // column
+
+    U = nonlinear_mpc.update_manipulation(reference_trajectory, Y);
 
     std::size_t solver_iteration =
         nonlinear_mpc.get_solver_step_iterated_number();

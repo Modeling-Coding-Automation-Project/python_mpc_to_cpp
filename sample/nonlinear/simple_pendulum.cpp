@@ -1,5 +1,7 @@
 #include <iostream>
 
+// You must run "simple_pendulum.py" to use
+// "simple_pendulum_nonlinear_mpc.hpp"
 #include "simple_pendulum_nonlinear_mpc.hpp"
 
 #include "python_control.hpp"
