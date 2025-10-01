@@ -143,7 +143,7 @@ class NonlinearMPC_Deploy:
         code_text += f"using type = NonlinearMPC_TwiceDifferentiable_Type<\n" + \
             "    EKF_Type, Cost_Matrices_Type>;\n\n"
 
-        code_text += "inline auto make() -> type {\n\n"
+        code_text += "inline auto make(void) -> type {\n\n"
 
         code_text += f"    auto kalman_filter = {ekf_file_name_no_extension}::make();\n\n"
 

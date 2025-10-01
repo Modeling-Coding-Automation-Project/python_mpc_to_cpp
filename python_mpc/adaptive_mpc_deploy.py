@@ -320,7 +320,7 @@ class AdaptiveMPC_Deploy:
             "  EKF_Type, PredictionMatrices_Type, ReferenceTrajectory_Type,\n" + \
             "  Parameter_Type, SolverFactor_Type>;\n\n"
 
-        code_text += "inline auto make() -> type {\n\n"
+        code_text += "inline auto make(void) -> type {\n\n"
 
         code_text += f"  auto kalman_filter = {ekf_file_name_no_extension}::make();\n\n"
 
@@ -772,7 +772,7 @@ class AdaptiveMPC_Deploy:
             "  Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,\n" + \
             "  Y_Max_Type, SolverFactor_Type>;\n\n"
 
-        code_text += "inline auto make() -> type {\n\n"
+        code_text += "inline auto make(void) -> type {\n\n"
 
         code_text += f"  auto kalman_filter = {ekf_file_name_no_extension}::make();\n\n"
 
