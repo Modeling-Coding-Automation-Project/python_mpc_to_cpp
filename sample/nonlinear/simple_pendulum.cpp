@@ -40,7 +40,7 @@ int main(void) {
 
   auto X_initial = nonlinear_mpc.get_X();
 
-  StateSpaceState_Type<double, STATE_SIZE> X;
+  StateSpaceState_Type<double, STATE_SIZE> X = X_initial;
   StateSpaceInput_Type<double, INPUT_SIZE> U;
   StateSpaceOutput_Type<double, OUTPUT_SIZE> Y;
 
