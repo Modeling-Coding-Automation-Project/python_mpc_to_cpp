@@ -1,3 +1,18 @@
+/**
+ * @file simple_pendulum.cpp
+ *
+ * @brief Example of Nonlinear MPC for a simple pendulum system with nonlinear
+ * dynamics.
+ *
+ * This code demonstrates the implementation of a Nonlinear Model Predictive
+ * Control (MPC) system for a simple pendulum. The pendulum dynamics are defined
+ * using symbolic expressions, and the MPC controller is designed to track a
+ * reference trajectory for the pendulum angle. The simulation runs a
+ * closed-loop control scenario, where the MPC computes the optimal control
+ * inputs at each time step based on the current state and reference. The
+ * results are printed to the console, showing the pendulum angle, control
+ * input, and the number of solver iterations at each time step.
+ */
 #include <iostream>
 
 // You must run "simple_pendulum.py" to use

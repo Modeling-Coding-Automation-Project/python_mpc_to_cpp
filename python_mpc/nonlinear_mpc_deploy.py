@@ -1,3 +1,13 @@
+"""
+File: nonlinear_mpc_deploy.py
+
+This module provides functionality to deploy a Nonlinear Model Predictive Control (MPC)
+system to C++ code. It includes methods to generate C++ code for the Nonlinear MPC
+based on the provided Python implementation.
+It includes the `NonlinearMPC_Deploy` class with a static method
+`generate_Nonlinear_MPC_cpp_code` that takes a `NonlinearMPC_TwiceDifferentiable` object
+and generates the corresponding C++ code files.
+"""
 import os
 import sys
 sys.path.append(os.getcwd())
@@ -14,19 +24,92 @@ from external_libraries.MCAP_python_control.python_control.control_deploy import
 from external_libraries.python_control_to_cpp.python_control.kalman_filter_deploy import KalmanFilterDeploy
 from external_libraries.python_optimization_to_cpp.optimization_utility.sqp_matrix_utility_deploy import SQP_MatrixUtilityDeploy
 
-from mpc_utility.adaptive_matrices_deploy import AdaptiveMatricesDeploy
-from python_mpc.common_mpc_deploy import convert_SparseAvailable_for_deploy
-from external_libraries.python_optimization_to_cpp.optimization_utility.common_optimization_deploy import MinMaxCodeGenerator
-
 from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
 
 
 class NonlinearMPC_Deploy:
+    """
+    NonlinearMPC_Deploy
+
+    This class provides static methods for deploying a
+      nonlinear Model Predictive Controller (MPC) by generating corresponding
+        C++ code from a Python-based nonlinear MPC object.
+
+    Methods
+    -------
+    generate_Nonlinear_MPC_cpp_code(nonlinear_mpc: NonlinearMPC_TwiceDifferentiable, file_name=None)
+        Generates C++ header files for the provided nonlinear MPC object,
+          including its Kalman filter, cost matrices, and all required type definitions.
+
+        Parameters
+        ----------
+        nonlinear_mpc : NonlinearMPC_TwiceDifferentiable
+            The nonlinear MPC object to be deployed.
+              This object should contain all necessary model, filter,
+                and cost matrix information.
+        file_name : str, optional
+            The base name for the generated C++ files. If not provided,
+              the caller's file name will be used.
+
+        Returns
+        -------
+        deployed_file_names : list of str
+            A list of generated C++ file names, including EKF, parameter,
+              cost matrices, and the main MPC header file.
+
+        Raises
+        ------
+        ValueError
+            If no parameter file is found in the EKF deployment files.
+
+        Notes
+        -----
+        - The method inspects the caller's context to determine variable
+          and file names if not explicitly provided.
+        - The generated C++ code includes type definitions, namespace encapsulation,
+          and a factory function for constructing the MPC object.
+        - Relies on auxiliary deployment utilities for Kalman filter
+          and cost matrices code generation.
+    """
 
     @staticmethod
     def generate_Nonlinear_MPC_cpp_code(
             nonlinear_mpc: NonlinearMPC_TwiceDifferentiable,
             file_name=None):
+        """
+        Generates C++ header files for deploying a nonlinear Model Predictive Controller (MPC)
+        with an Extended Kalman Filter (EKF) and associated cost matrices.
+
+        This function inspects the provided `nonlinear_mpc` object, extracts its parameters,
+        and generates C++ code that encapsulates the MPC, EKF, and cost matrices in a
+        deployable format. The generated code includes type definitions, constants, and
+        a factory function for constructing the MPC object in C++. The function also
+        handles file naming based on the caller's context or a provided file name.
+
+        Args:
+            nonlinear_mpc (NonlinearMPC_TwiceDifferentiable):
+                The nonlinear MPC object to be deployed. Must contain a Kalman filter,
+                cost matrices, and model parameters.
+            file_name (str, optional):
+                The base name for the generated C++ files. If not provided, the name
+                is inferred from the caller's file and variable name.
+
+        Returns:
+            list of str:
+                A list of file names for the generated C++ header files, including
+                EKF, cost matrices, and the main MPC deployment file.
+
+        Raises:
+            ValueError:
+                If no parameter file is found in the EKF deployment files.
+
+        Notes:
+            - The function uses introspection to determine variable and file names
+                if not explicitly provided.
+            - The generated C++ code assumes the existence of certain type definitions
+                and namespaces (e.g., PythonNumpy, PythonControl, PythonMPC).
+            - Deep copies of cost matrices are made to avoid modifying the original object.
+        """
 
         parameters = nonlinear_mpc.kalman_filter.Parameters
         number_of_delay = nonlinear_mpc.kalman_filter.Number_of_Delay
