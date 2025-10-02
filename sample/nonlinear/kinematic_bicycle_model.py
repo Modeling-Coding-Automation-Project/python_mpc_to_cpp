@@ -27,6 +27,63 @@ from sample.simulation_manager.visualize.simulation_plotter import SimulationPlo
 from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_path import interpolate_path_csv
 
 
+def load_cpp_run_data(cpp_csv_relpath=None):
+    """
+    Load C++ run CSV produced by the C++ demo.
+
+    Args:
+        cpp_csv_relpath: relative path from cwd to csv (default: 'sample/nonlinear/cpp_run_data.csv')
+
+    Returns:
+        (exists, px, py, yaw, v, delta, iteration, absolute_path)
+        where each time-series is a (N,1) numpy array or None if missing.
+    """
+    if cpp_csv_relpath is None:
+        cpp_csv_relpath = os.path.join(
+            'sample', 'nonlinear', 'cpp_run_data.csv')
+
+    cpp_csv_path = os.path.join(os.getcwd(), cpp_csv_relpath)
+    cpp_run_data_exists = False
+    px_cpp = py_cpp = yaw_cpp = v_cpp = delta_cpp = iteration_cpp = None
+
+    try:
+        if os.path.exists(cpp_csv_path):
+            # The CSV header is: px,py,yaw,v,delta,iteration
+            # Use numpy.genfromtxt to robustly skip header and handle missing values.
+            cpp_data = np.genfromtxt(
+                cpp_csv_path, delimiter=',', names=True, dtype=None, encoding='utf-8')
+
+            # If the file was empty or only header, genfromtxt may return an empty array
+            if cpp_data is None or getattr(cpp_data, 'size', 0) == 0:
+                cpp_data = None
+
+            if cpp_data is not None:
+                def col(name):
+                    if name in cpp_data.dtype.names:
+                        arr = np.asarray(cpp_data[name], dtype=float)
+                        return arr.reshape(-1, 1)
+                    return None
+
+                px_cpp = col('px')
+                py_cpp = col('py')
+                yaw_cpp = col('yaw')
+                v_cpp = col('v')
+                delta_cpp = col('delta')
+                iteration_cpp = None
+                if 'iteration' in cpp_data.dtype.names:
+                    iteration_cpp = np.asarray(
+                        cpp_data['iteration']).reshape(-1, 1)
+
+                print(
+                    f"Loaded C++ run data from: {cpp_csv_path} (rows={px_cpp.shape[0] if px_cpp is not None else 0})")
+
+                cpp_run_data_exists = True
+    except Exception as e:
+        print(f"Failed to load C++ run data: {e}")
+
+    return cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp, iteration_cpp, cpp_csv_path
+
+
 def create_plant_model():
     """
     Creates the symbolic nonlinear kinematic bicycle plant model using SymPy.
@@ -244,24 +301,61 @@ def main():
         plotter.append_name(delta, "delta")
         plotter.append_name(solver_iteration, "solver_iteration")
 
+    # Read C++ run data.
+    # Read C++ run data using helper function
+    cpp_csv_relpath = os.path.join('sample', 'nonlinear', 'cpp_run_data.csv')
+    cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp, iteration_cpp, cpp_csv_path = \
+        load_cpp_run_data(cpp_csv_relpath)
+
+    if cpp_run_data_exists:
+        plotter.append_sequence_name(px_cpp, "px_cpp")
+        plotter.append_sequence_name(py_cpp, "py_cpp")
+        plotter.append_sequence_name(yaw_cpp, "yaw_cpp")
+        plotter.append_sequence_name(v_cpp, "v_cpp")
+        plotter.append_sequence_name(delta_cpp, "delta_cpp")
+        plotter.append_sequence_name(iteration_cpp, "solver_iteration_cpp")
+
     plotter.assign("px_ref", column=0, row=0, position=(0, 0),
                    x_sequence=times, label="px_ref")
     plotter.assign("px_measured", column=0, row=0, position=(0, 0),
                    x_sequence=times, label="px_measured")
+    if cpp_run_data_exists:
+        plotter.assign("px_cpp", column=0, row=0, position=(0, 0),
+                       x_sequence=times, label="px_cpp")
+
     plotter.assign("py_ref", column=0, row=0, position=(1, 0),
                    x_sequence=times, label="py_ref")
     plotter.assign("py_measured", column=0, row=0, position=(1, 0),
                    x_sequence=times, label="py_measured")
+    if cpp_run_data_exists:
+        plotter.assign("py_cpp", column=0, row=0, position=(1, 0),
+                       x_sequence=times, label="py_cpp")
+
     plotter.assign("yaw_ref", column=0, row=0, position=(2, 0),
                    x_sequence=times, label="yaw_ref")
     plotter.assign("yaw_measured", column=0, row=0, position=(2, 0),
                    x_sequence=times, label="yaw_measured")
+    if cpp_run_data_exists:
+        plotter.assign("yaw_cpp", column=0, row=0, position=(2, 0),
+                       x_sequence=times, label="yaw_cpp")
+
     plotter.assign("v", column=0, row=0, position=(0, 1),
                    x_sequence=times, label="v")
+    if cpp_run_data_exists:
+        plotter.assign("v_cpp", column=0, row=0, position=(0, 1),
+                       x_sequence=times, label="v_cpp")
+
     plotter.assign("delta", column=0, row=0, position=(1, 1),
                    x_sequence=times, label="delta")
+    if cpp_run_data_exists:
+        plotter.assign("delta_cpp", column=0, row=0, position=(1, 1),
+                       x_sequence=times, label="delta_cpp")
+
     plotter.assign("solver_iteration", column=0, row=0, position=(2, 1),
                    x_sequence=times, label="solver_iteration")
+    if cpp_run_data_exists:
+        plotter.assign("solver_iteration_cpp", column=0, row=0, position=(2, 1),
+                       x_sequence=times, label="solver_iteration_cpp")
 
     plotter.plot()
 

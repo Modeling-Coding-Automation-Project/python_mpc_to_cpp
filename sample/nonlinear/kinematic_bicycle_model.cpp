@@ -26,20 +26,82 @@
 #include <array>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
 
 using namespace PythonNumpy;
 using namespace PythonControl;
 using namespace PythonMPC;
 
+// Helper: load reference CSV (px,py,q0,q3) into vector of 4-element arrays
+static std::vector<std::array<double, 4>>
+load_reference_path(const std::string &filename) {
+  std::vector<std::array<double, 4>> reference_data;
+
+  std::ifstream ifs(filename);
+  if (!ifs) {
+    std::cerr << "Warning: could not open " << filename << ", using zeros"
+              << std::endl;
+    return reference_data;
+  }
+
+  std::string line;
+  // skip header if present
+  if (std::getline(ifs, line)) {
+    // check if header contains non-numeric characters
+    bool header = false;
+    for (char c : line) {
+      if (!std::isdigit(c) && c != '+' && c != '-' && c != '.' && c != 'e' &&
+          c != 'E' && c != ',') {
+        header = true;
+        break;
+      }
+    }
+    if (!header) {
+      // first line is data
+      std::stringstream ss(line);
+      std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
+      for (int k = 0; k < 4; ++k) {
+        std::string cell;
+        if (!std::getline(ss, cell, ','))
+          break;
+        row[k] = std::stod(cell);
+      }
+      reference_data.push_back(row);
+    }
+  }
+
+  // read remaining lines
+  while (std::getline(ifs, line)) {
+    if (line.empty())
+      continue;
+    std::stringstream ss(line);
+    std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
+    for (int k = 0; k < 4; ++k) {
+      std::string cell;
+      if (!std::getline(ss, cell, ','))
+        break;
+      try {
+        row[k] = std::stod(cell);
+      } catch (...) {
+        row[k] = 0.0;
+      }
+    }
+    reference_data.push_back(row);
+  }
+
+  return reference_data;
+}
+
 int main(void) {
   /* Simulation Setting */
   constexpr double SIMULATION_TIME = 60.0;
   constexpr double DELTA_TIME = 0.1;
   constexpr std::size_t MAX_STEP =
-      static_cast<std::size_t>(SIMULATION_TIME / DELTA_TIME);
+      static_cast<std::size_t>(SIMULATION_TIME / DELTA_TIME) + 1;
 
   constexpr std::size_t NUMBER_OF_DELAY = 0;
 
@@ -75,61 +137,32 @@ int main(void) {
 
   // You must run "kinematic_bicycle_model.py" to generate "reference_path.csv".
   // --- Load reference CSV (px,py,q0,q3) ---
-  std::vector<std::array<double, 4>> reference_data;
-  {
-    std::ifstream ifs("reference_path.csv");
-    if (!ifs) {
-      std::cerr << "Warning: could not open reference_path.csv, using zeros"
-                << std::endl;
-    } else {
-      std::string line;
-      // skip header if present
-      if (std::getline(ifs, line)) {
-        // check if header contains non-numeric characters
-        bool header = false;
-        for (char c : line) {
-          if (!std::isdigit(c) && c != '+' && c != '-' && c != '.' &&
-              c != 'e' && c != 'E' && c != ',') {
-            header = true;
-            break;
-          }
-        }
-        if (!header) {
-          // first line is data
-          std::stringstream ss(line);
-          std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
-          for (int k = 0; k < 4; ++k) {
-            std::string cell;
-            if (!std::getline(ss, cell, ','))
-              break;
-            row[k] = std::stod(cell);
-          }
-          reference_data.push_back(row);
-        }
-      }
-
-      // read remaining lines
-      while (std::getline(ifs, line)) {
-        if (line.empty())
-          continue;
-        std::stringstream ss(line);
-        std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
-        for (int k = 0; k < 4; ++k) {
-          std::string cell;
-          if (!std::getline(ss, cell, ','))
-            break;
-          try {
-            row[k] = std::stod(cell);
-          } catch (...) {
-            row[k] = 0.0;
-          }
-        }
-        reference_data.push_back(row);
-      }
-    }
-  }
+  std::vector<std::array<double, 4>> reference_data =
+      load_reference_path("reference_path.csv");
 
   const std::size_t reference_length = reference_data.size();
+
+  // Determine CSV output file path in the same directory as this source file
+  std::string source_file = __FILE__;
+  std::string source_dir;
+  auto pos = source_file.find_last_of("/\\");
+  if (pos == std::string::npos) {
+    source_dir = ".";
+  } else {
+    source_dir = source_file.substr(0, pos);
+  }
+  std::string csv_path = source_dir + "/cpp_run_data.csv";
+
+  // Open CSV and write header (overwrite existing file)
+  std::ofstream ofs(csv_path);
+  if (!ofs) {
+    std::cerr << "Warning: could not open " << csv_path
+              << " for writing. CSV output disabled." << std::endl;
+  } else {
+    ofs << "px,py,yaw,v,delta,iteration\n";
+    // set precision for floating output
+    ofs << std::fixed << std::setprecision(6);
+  }
 
   for (std::size_t step = 0; step < MAX_STEP; ++step) {
     /* system response */
@@ -193,7 +226,14 @@ int main(void) {
     std::cout << "iteration: " << solver_iteration << ", ";
 
     std::cout << std::endl;
+
+    // Write data row to CSV if file is open
+    if (ofs) {
+      ofs << Y(0, 0) << ',' << Y(1, 0) << ',' << yaw << ',' << U(0, 0) << ','
+          << U(1, 0) << ',' << solver_iteration << '\n';
+    }
   }
 
+  // close file (ofs destructor will close automatically)
   return 0;
 }
