@@ -572,6 +572,8 @@ public:
       this->_hvp_function = {};
 
       this->_solver = std::move(input._solver);
+
+      this->_bind_cost_functions();
     }
     return *this;
   }
@@ -725,8 +727,8 @@ public:
    * compatible with the expected output size and prediction horizon.
    */
   template <typename Reference_Type_In>
-  inline auto update_manipulation(Reference_Type_In &reference,
-                                  const Y_Type &Y) -> U_Type {
+  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
+      -> U_Type {
 
     auto U_latest = this->calculate_this_U(this->U_horizon);
 
