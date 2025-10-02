@@ -514,7 +514,9 @@ public:
         _delta_time(input._delta_time), _Y_store(input._Y_store),
         _cost_function(input._cost_function),
         _cost_and_gradient_function(input._cost_and_gradient_function),
-        _hvp_function(input._hvp_function), _solver(input._solver) {}
+        _hvp_function(input._hvp_function), _solver(input._solver) {
+    this->_bind_cost_functions();
+  }
 
   NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type> &
   operator=(const NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>
@@ -525,10 +527,14 @@ public:
       this->_sqp_cost_matrices = input._sqp_cost_matrices;
       this->_delta_time = input._delta_time;
       this->_Y_store = input._Y_store;
-      this->_cost_function = input._cost_function;
-      this->_cost_and_gradient_function = input._cost_and_gradient_function;
-      this->_hvp_function = input._hvp_function;
+
+      this->_cost_function = {};
+      this->_cost_and_gradient_function = {};
+      this->_hvp_function = {};
+
       this->_solver = input._solver;
+
+      this->_bind_cost_functions();
     }
     return *this;
   }
@@ -546,7 +552,10 @@ public:
         _cost_and_gradient_function(
             std::move(input._cost_and_gradient_function)),
         _hvp_function(std::move(input._hvp_function)),
-        _solver(std::move(input._solver)) {}
+        _solver(std::move(input._solver)) {
+
+    this->_bind_cost_functions();
+  }
 
   NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type> &
   operator=(NonlinearMPC_TwiceDifferentiable<EKF_Type, Cost_Matrices_Type>
@@ -557,10 +566,11 @@ public:
       this->_sqp_cost_matrices = std::move(input._sqp_cost_matrices);
       this->_delta_time = std::move(input._delta_time);
       this->_Y_store = std::move(input._Y_store);
-      this->_cost_function = std::move(input._cost_function);
-      this->_cost_and_gradient_function =
-          std::move(input._cost_and_gradient_function);
-      this->_hvp_function = std::move(input._hvp_function);
+
+      this->_cost_function = {};
+      this->_cost_and_gradient_function = {};
+      this->_hvp_function = {};
+
       this->_solver = std::move(input._solver);
     }
     return *this;
@@ -715,8 +725,8 @@ public:
    * compatible with the expected output size and prediction horizon.
    */
   template <typename Reference_Type_In>
-  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
-      -> U_Type {
+  inline auto update_manipulation(Reference_Type_In &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     auto U_latest = this->calculate_this_U(this->U_horizon);
 
@@ -745,17 +755,14 @@ protected:
   /* Function */
 
   /**
-   * @brief Initializes the solver with the initial state and cost functions.
+   * @brief Binds the cost functions to the solver.
    *
-   * This function sets up the solver by defining the cost function, cost
-   * gradient function, and Hessian-vector product (HVP) function based on the
-   * provided cost matrices. It also configures the solver with the initial
-   * state and sets a default maximum number of iterations.
-   *
-   * @param X_initial The initial state to be used for solver initialization.
+   * This function sets up the cost function, cost gradient function, and
+   * Hessian-vector product (HVP) function for the solver using lambda
+   * expressions. These functions are essential for the optimization process
+   * and are defined based on the provided cost matrices.
    */
-  inline void _initialize_solver(const X_Type &X_initial) {
-
+  inline void _bind_cost_functions() {
     this->_cost_function = [this](const X_Type &X, const U_Horizon_Type &U) ->
         typename X_Type::Value_Type {
           return this->_sqp_cost_matrices.compute_cost(X, U);
@@ -771,6 +778,21 @@ protected:
                                  const _V_Horizon_Type &V) -> _HVP_Type {
       return this->_sqp_cost_matrices.hvp_analytic(X, U, V);
     };
+  }
+
+  /**
+   * @brief Initializes the solver with the initial state and cost functions.
+   *
+   * This function sets up the solver by defining the cost function, cost
+   * gradient function, and Hessian-vector product (HVP) function based on the
+   * provided cost matrices. It also configures the solver with the initial
+   * state and sets a default maximum number of iterations.
+   *
+   * @param X_initial The initial state to be used for solver initialization.
+   */
+  inline void _initialize_solver(const X_Type &X_initial) {
+
+    this->_bind_cost_functions();
 
     this->_solver =
         PythonOptimization::make_SQP_ActiveSet_PCG_PLS<Cost_Matrices_Type>();
