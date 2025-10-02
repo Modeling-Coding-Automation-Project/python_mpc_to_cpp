@@ -101,7 +101,7 @@ int main(void) {
   constexpr double SIMULATION_TIME = 60.0;
   constexpr double DELTA_TIME = 0.1;
   constexpr std::size_t MAX_STEP =
-      static_cast<std::size_t>(SIMULATION_TIME / DELTA_TIME);
+      static_cast<std::size_t>(SIMULATION_TIME / DELTA_TIME) + 1;
 
   constexpr std::size_t NUMBER_OF_DELAY = 0;
 
