@@ -26,8 +26,10 @@
 #include <array>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
 
 using namespace PythonNumpy;
@@ -131,6 +133,28 @@ int main(void) {
 
   const std::size_t reference_length = reference_data.size();
 
+  // Determine CSV output file path in the same directory as this source file
+  std::string source_file = __FILE__;
+  std::string source_dir;
+  auto pos = source_file.find_last_of("/\\");
+  if (pos == std::string::npos) {
+    source_dir = ".";
+  } else {
+    source_dir = source_file.substr(0, pos);
+  }
+  std::string csv_path = source_dir + "/cpp_run_data.csv";
+
+  // Open CSV and write header (overwrite existing file)
+  std::ofstream ofs(csv_path);
+  if (!ofs) {
+    std::cerr << "Warning: could not open " << csv_path
+              << " for writing. CSV output disabled." << std::endl;
+  } else {
+    ofs << "px,py,yaw,v,delta,iteration\n";
+    // set precision for floating output
+    ofs << std::fixed << std::setprecision(6);
+  }
+
   for (std::size_t step = 0; step < MAX_STEP; ++step) {
     /* system response */
     X = kinematic_bicycle_model_nonlinear_mpc_ekf_state_function::function(
@@ -193,7 +217,14 @@ int main(void) {
     std::cout << "iteration: " << solver_iteration << ", ";
 
     std::cout << std::endl;
+
+    // Write data row to CSV if file is open
+    if (ofs) {
+      ofs << Y(0, 0) << ',' << Y(1, 0) << ',' << yaw << ',' << U(0, 0) << ','
+          << U(1, 0) << ',' << solver_iteration << '\n';
+    }
   }
 
+  // close file (ofs destructor will close automatically)
   return 0;
 }
