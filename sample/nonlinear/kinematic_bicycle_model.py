@@ -27,6 +27,63 @@ from sample.simulation_manager.visualize.simulation_plotter import SimulationPlo
 from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_path import interpolate_path_csv
 
 
+def load_cpp_run_data(cpp_csv_relpath=None):
+    """
+    Load C++ run CSV produced by the C++ demo.
+
+    Args:
+        cpp_csv_relpath: relative path from cwd to csv (default: 'sample/nonlinear/cpp_run_data.csv')
+
+    Returns:
+        (exists, px, py, yaw, v, delta, iteration, absolute_path)
+        where each time-series is a (N,1) numpy array or None if missing.
+    """
+    if cpp_csv_relpath is None:
+        cpp_csv_relpath = os.path.join(
+            'sample', 'nonlinear', 'cpp_run_data.csv')
+
+    cpp_csv_path = os.path.join(os.getcwd(), cpp_csv_relpath)
+    cpp_run_data_exists = False
+    px_cpp = py_cpp = yaw_cpp = v_cpp = delta_cpp = iteration_cpp = None
+
+    try:
+        if os.path.exists(cpp_csv_path):
+            # The CSV header is: px,py,yaw,v,delta,iteration
+            # Use numpy.genfromtxt to robustly skip header and handle missing values.
+            cpp_data = np.genfromtxt(
+                cpp_csv_path, delimiter=',', names=True, dtype=None, encoding='utf-8')
+
+            # If the file was empty or only header, genfromtxt may return an empty array
+            if cpp_data is None or getattr(cpp_data, 'size', 0) == 0:
+                cpp_data = None
+
+            if cpp_data is not None:
+                def col(name):
+                    if name in cpp_data.dtype.names:
+                        arr = np.asarray(cpp_data[name], dtype=float)
+                        return arr.reshape(-1, 1)
+                    return None
+
+                px_cpp = col('px')
+                py_cpp = col('py')
+                yaw_cpp = col('yaw')
+                v_cpp = col('v')
+                delta_cpp = col('delta')
+                iteration_cpp = None
+                if 'iteration' in cpp_data.dtype.names:
+                    iteration_cpp = np.asarray(
+                        cpp_data['iteration']).reshape(-1, 1)
+
+                print(
+                    f"Loaded C++ run data from: {cpp_csv_path} (rows={px_cpp.shape[0] if px_cpp is not None else 0})")
+
+                cpp_run_data_exists = True
+    except Exception as e:
+        print(f"Failed to load C++ run data: {e}")
+
+    return cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp, iteration_cpp, cpp_csv_path
+
+
 def create_plant_model():
     """
     Creates the symbolic nonlinear kinematic bicycle plant model using SymPy.
@@ -245,50 +302,10 @@ def main():
         plotter.append_name(solver_iteration, "solver_iteration")
 
     # Read C++ run data.
-    # If the CSV produced by the C++ demo exists, load it into matrices for plotting/analysis.
-    cpp_run_data_exists = False
-    try:
-        cpp_csv_path = os.path.join(
-            os.getcwd(), 'sample', 'nonlinear', 'cpp_run_data.csv')
-        if os.path.exists(cpp_csv_path):
-            # The CSV header is: px,py,yaw,v,delta,iteration
-            # Use numpy.genfromtxt to robustly skip header and handle missing values.
-            cpp_data = np.genfromtxt(
-                cpp_csv_path, delimiter=',', names=True, dtype=None, encoding='utf-8')
-
-            # If the file was empty or only header, genfromtxt may return an empty array
-            if cpp_data.size == 0:
-                cpp_data = None
-
-            if cpp_data is not None:
-                # Ensure fields exist and convert to column vectors (2D arrays) to match plotting code expectations
-                def col(name):
-                    if name in cpp_data.dtype.names:
-                        arr = np.asarray(cpp_data[name], dtype=float)
-                        return arr.reshape(-1, 1)
-                    return None
-
-                px_cpp = col('px')
-                py_cpp = col('py')
-                yaw_cpp = col('yaw')
-                v_cpp = col('v')
-                delta_cpp = col('delta')
-                iteration_cpp = None
-                if 'iteration' in cpp_data.dtype.names:
-                    iteration_cpp = np.asarray(
-                        cpp_data['iteration']).reshape(-1, 1)
-
-                # Optionally, you can register these with the plotter if desired (not done automatically here).
-                # Example: plotter.append_name(px_cpp[0,0], 'px_cpp') is not appropriate for full series.
-                print(
-                    f"Loaded C++ run data from: {cpp_csv_path} (rows={px_cpp.shape[0] if px_cpp is not None else 0})")
-
-                cpp_run_data_exists = True
-        else:
-            # CSV not present: nothing to do (per requirement)
-            cpp_data = None
-    except Exception as e:
-        print(f"Failed to load C++ run data: {e}")
+    # Read C++ run data using helper function
+    cpp_csv_relpath = os.path.join('sample', 'nonlinear', 'cpp_run_data.csv')
+    cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp, iteration_cpp, cpp_csv_path = \
+        load_cpp_run_data(cpp_csv_relpath)
 
     if cpp_run_data_exists:
         plotter.append_sequence_name(px_cpp, "px_cpp")
