@@ -36,6 +36,66 @@ using namespace PythonNumpy;
 using namespace PythonControl;
 using namespace PythonMPC;
 
+// Helper: load reference CSV (px,py,q0,q3) into vector of 4-element arrays
+static std::vector<std::array<double, 4>>
+load_reference_path(const std::string &filename) {
+  std::vector<std::array<double, 4>> reference_data;
+
+  std::ifstream ifs(filename);
+  if (!ifs) {
+    std::cerr << "Warning: could not open " << filename << ", using zeros"
+              << std::endl;
+    return reference_data;
+  }
+
+  std::string line;
+  // skip header if present
+  if (std::getline(ifs, line)) {
+    // check if header contains non-numeric characters
+    bool header = false;
+    for (char c : line) {
+      if (!std::isdigit(c) && c != '+' && c != '-' && c != '.' && c != 'e' &&
+          c != 'E' && c != ',') {
+        header = true;
+        break;
+      }
+    }
+    if (!header) {
+      // first line is data
+      std::stringstream ss(line);
+      std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
+      for (int k = 0; k < 4; ++k) {
+        std::string cell;
+        if (!std::getline(ss, cell, ','))
+          break;
+        row[k] = std::stod(cell);
+      }
+      reference_data.push_back(row);
+    }
+  }
+
+  // read remaining lines
+  while (std::getline(ifs, line)) {
+    if (line.empty())
+      continue;
+    std::stringstream ss(line);
+    std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
+    for (int k = 0; k < 4; ++k) {
+      std::string cell;
+      if (!std::getline(ss, cell, ','))
+        break;
+      try {
+        row[k] = std::stod(cell);
+      } catch (...) {
+        row[k] = 0.0;
+      }
+    }
+    reference_data.push_back(row);
+  }
+
+  return reference_data;
+}
+
 int main(void) {
   /* Simulation Setting */
   constexpr double SIMULATION_TIME = 60.0;
@@ -77,59 +137,8 @@ int main(void) {
 
   // You must run "kinematic_bicycle_model.py" to generate "reference_path.csv".
   // --- Load reference CSV (px,py,q0,q3) ---
-  std::vector<std::array<double, 4>> reference_data;
-  {
-    std::ifstream ifs("reference_path.csv");
-    if (!ifs) {
-      std::cerr << "Warning: could not open reference_path.csv, using zeros"
-                << std::endl;
-    } else {
-      std::string line;
-      // skip header if present
-      if (std::getline(ifs, line)) {
-        // check if header contains non-numeric characters
-        bool header = false;
-        for (char c : line) {
-          if (!std::isdigit(c) && c != '+' && c != '-' && c != '.' &&
-              c != 'e' && c != 'E' && c != ',') {
-            header = true;
-            break;
-          }
-        }
-        if (!header) {
-          // first line is data
-          std::stringstream ss(line);
-          std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
-          for (int k = 0; k < 4; ++k) {
-            std::string cell;
-            if (!std::getline(ss, cell, ','))
-              break;
-            row[k] = std::stod(cell);
-          }
-          reference_data.push_back(row);
-        }
-      }
-
-      // read remaining lines
-      while (std::getline(ifs, line)) {
-        if (line.empty())
-          continue;
-        std::stringstream ss(line);
-        std::array<double, 4> row{0.0, 0.0, 0.0, 0.0};
-        for (int k = 0; k < 4; ++k) {
-          std::string cell;
-          if (!std::getline(ss, cell, ','))
-            break;
-          try {
-            row[k] = std::stod(cell);
-          } catch (...) {
-            row[k] = 0.0;
-          }
-        }
-        reference_data.push_back(row);
-      }
-    }
-  }
+  std::vector<std::array<double, 4>> reference_data =
+      load_reference_path("reference_path.csv");
 
   const std::size_t reference_length = reference_data.size();
 
