@@ -436,9 +436,7 @@ public:
 
     auto delta_U = this->_solve(X_augmented);
 
-    AdaptiveMPC_Operation::Integrate_U<
-        U_Type, U_Horizon_Type, (INPUT_SIZE - 1)>::calculate(this->_U_latest,
-                                                             delta_U);
+    this->_U_latest = this->_calculate_this_U(delta_U);
 
     this->_X_inner_model = X_compensated;
 
@@ -540,6 +538,26 @@ protected:
     this->_phi_f_updater_function(X, U, parameters,
                                   this->_prediction_matrices.Phi,
                                   this->_prediction_matrices.F);
+  }
+
+  /**
+   * @brief Calculates the current control input U based on the change in
+   * control input delta_U.
+   *
+   * This function integrates the change in control input over the horizon to
+   * compute the current control input U.
+   *
+   * @param delta_U The change in control input.
+   * @return The calculated control input U.
+   */
+  inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
+
+    auto U = this->_U_latest;
+
+    AdaptiveMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
+                                       (INPUT_SIZE - 1)>::calculate(U, delta_U);
+
+    return U;
   }
 
 protected:

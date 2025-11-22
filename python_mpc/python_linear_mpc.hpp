@@ -162,23 +162,27 @@ inline void solve_LMPC_No_Constraints(
 }
 
 /**
- * @brief Calculates the control input U based on the latest control input and
- * the delta control input.
+ * @brief Calculates the current control input based on the latest control
+ * input and the change in control input (delta_U).
  *
- * This function computes the new control input U by adding the delta_U to the
- * latest control input U_latest.
+ * This function updates the control input by adding the change in control
+ * input to the latest control input.
  *
  * @tparam U_Type Type of the control input.
+ * @tparam U_Horizon_Type Type of the control input horizon.
  *
  * @param U_latest The latest control input.
  * @param delta_U The change in control input to be applied.
- * @return The updated control input U.
+ * @return The updated control input.
  */
-template <typename U_Type>
-inline auto calculate_this_U(const U_Type &U_latest, const U_Type &delta_U)
-    -> U_Type {
+template <std::size_t INPUT_SIZE, typename U_Type, typename U_Horizon_Type>
+inline auto calculate_this_U(const U_Type &U_latest,
+                             const U_Horizon_Type &delta_U) -> U_Type {
 
-  auto U = U_latest + delta_U;
+  auto U = U_latest;
+
+  LMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
+                              (INPUT_SIZE - 1)>::calculate(U, delta_U);
 
   return U;
 }
@@ -392,9 +396,7 @@ public:
 
     auto delta_U = this->_solve(X_augmented);
 
-    LMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
-                                (INPUT_SIZE - 1)>::calculate(this->_U_latest,
-                                                             delta_U);
+    this->_U_latest = this->_calculate_this_U(delta_U);
 
     this->_X_inner_model = X_compensated;
 
@@ -446,8 +448,8 @@ protected:
   }
 
   /**
-   * @brief Calculates the new control input based on the latest control input
-   * and the change in control input (delta_U).
+   * @brief Calculates the current control input based on the latest control
+   * input and the change in control input (delta_U).
    *
    * This function updates the control input by adding the change in control
    * input to the latest control input.
@@ -455,9 +457,10 @@ protected:
    * @param delta_U The change in control input to be applied.
    * @return The updated control input.
    */
-  inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
+  inline auto _calculate_this_U(const U_Horizon_Type &delta_U) -> U_Type {
 
-    auto U = LMPC_Operation::calculate_this_U(this->_U_latest, delta_U);
+    auto U =
+        LMPC_Operation::calculate_this_U<INPUT_SIZE>(this->_U_latest, delta_U);
 
     return U;
   }
@@ -654,7 +657,8 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other) noexcept
+  LTI_MPC(LTI_MPC &&other)
+  noexcept
       : _LTI_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 
@@ -1066,9 +1070,7 @@ public:
 
     auto delta_U = this->_solve(X_augmented);
 
-    LMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
-                                (INPUT_SIZE - 1)>::calculate(this->_U_latest,
-                                                             delta_U);
+    this->_U_latest = this->_calculate_this_U(delta_U);
 
     this->_X_inner_model = X_compensated;
 
@@ -1190,9 +1192,10 @@ protected:
    * @param delta_U The change in control input to be applied.
    * @return The updated control input.
    */
-  inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
+  inline auto _calculate_this_U(const U_Horizon_Type &delta_U) -> U_Type {
 
-    auto U = LMPC_Operation::calculate_this_U(this->_U_latest, delta_U);
+    auto U =
+        LMPC_Operation::calculate_this_U<INPUT_SIZE>(this->_U_latest, delta_U);
 
     return U;
   }
@@ -1392,7 +1395,8 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other) noexcept
+  LTV_MPC(LTV_MPC &&other)
+  noexcept
       : _LTV_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 

@@ -666,26 +666,6 @@ public:
   /* Function */
 
   /**
-   * @brief Calculates the current control input from the control input
-   * horizon.
-   *
-   * This function extracts the first control input from the control input
-   * horizon, which represents the immediate action to be taken by the system.
-   * The control input horizon is typically a sequence of future control inputs
-   * computed by the MPC algorithm.
-   *
-   * @param U_horizon_in The control input horizon from which to extract the
-   * current control input.
-   * @return U_Type The current control input extracted from the horizon.
-   */
-  inline auto calculate_this_U(const U_Horizon_Type &U_horizon_in) -> U_Type {
-
-    auto U = PythonNumpy::get_row<0>(U_horizon_in);
-
-    return U;
-  }
-
-  /**
    * @brief Updates the parameters of the Kalman filter and cost matrices.
    *
    * This function allows updating the parameters used by both the Extended
@@ -730,7 +710,7 @@ public:
   inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
       -> U_Type {
 
-    auto U_latest = this->calculate_this_U(this->U_horizon);
+    auto U_latest = this->_calculate_this_U(this->U_horizon);
 
     this->_kalman_filter.predict_and_update(U_latest, Y);
 
@@ -748,13 +728,33 @@ public:
         this->_sqp_cost_matrices.get_U_min_matrix(),
         this->_sqp_cost_matrices.get_U_max_matrix());
 
-    U_latest = this->calculate_this_U(this->U_horizon);
+    U_latest = this->_calculate_this_U(this->U_horizon);
 
     return U_latest;
   }
 
 protected:
   /* Function */
+
+  /**
+   * @brief Calculates the current control input from the control input
+   * horizon.
+   *
+   * This function extracts the first control input from the control input
+   * horizon, which represents the immediate action to be taken by the system.
+   * The control input horizon is typically a sequence of future control inputs
+   * computed by the MPC algorithm.
+   *
+   * @param U_horizon_in The control input horizon from which to extract the
+   * current control input.
+   * @return U_Type The current control input extracted from the horizon.
+   */
+  inline auto _calculate_this_U(const U_Horizon_Type &U_horizon_in) -> U_Type {
+
+    auto U = PythonNumpy::get_row<0>(U_horizon_in);
+
+    return U;
+  }
 
   /**
    * @brief Binds the cost functions to the solver.
