@@ -145,9 +145,16 @@ class NonlinearMPC_Deploy:
         code_file_name_ext = code_file_name + ".hpp"
 
         # %% create EKF code
-        exec(f"{variable_name}_ekf = nonlinear_mpc.kalman_filter")
+        locals_map = {
+            f"{variable_name}_ekf": nonlinear_mpc.kalman_filter,
+            "caller_file_name_no_extension": caller_file_name_no_extension,
+            "number_of_delay": number_of_delay
+        }
         ekf_file_names = eval(
-            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
+            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_no_extension, number_of_delay=number_of_delay)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(ekf_file_names)
         ekf_file_name = ekf_file_names[-1]
