@@ -75,9 +75,9 @@ int main(void) {
   servo_motor_ltv_constraints_parameters::Parameter controller_parameters;
 
   /* Define controller */
-  servo_motor_ltv_constraints_ltv_mpc::Ref_Type ref;
-  for (std::size_t i = 0; i < ref.rows(); ++i) {
-    ref(0, i) = 1.0;
+  servo_motor_ltv_constraints_ltv_mpc::Reference_Type reference;
+  for (std::size_t i = 0; i < reference.rows(); ++i) {
+    reference(0, i) = 1.0;
   }
 
   auto ltv_mpc_nc = servo_motor_ltv_constraints_ltv_mpc::make();
@@ -98,8 +98,8 @@ int main(void) {
           MPC_StateSpace_Updater::update(plant_parameters, sys);
       parameter_changed = true;
 
-      for (std::size_t i = 0; i < ref.rows(); ++i) {
-        ref(0, i) = -1.0;
+      for (std::size_t i = 0; i < reference.rows(); ++i) {
+        reference(0, i) = -1.0;
       }
     }
 
@@ -112,12 +112,12 @@ int main(void) {
       ltv_mpc_nc.update_parameters(controller_parameters);
       MPC_updated = true;
 
-      for (std::size_t i = 0; i < ref.rows(); ++i) {
-        ref(0, i) = 1.0;
+      for (std::size_t i = 0; i < reference.rows(); ++i) {
+        reference(0, i) = 1.0;
       }
     }
 
-    U = ltv_mpc_nc.update_manipulation(ref, sys.get_Y());
+    U = ltv_mpc_nc.update_manipulation(reference, sys.get_Y());
 
     std::cout << "Y_0: " << sys.get_Y()(0, 0) << ", ";
     std::cout << "Y_1: " << sys.get_Y()(1, 0) << ", ";
