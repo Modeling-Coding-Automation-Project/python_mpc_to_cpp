@@ -1070,9 +1070,7 @@ public:
 
     auto delta_U = this->_solve(X_augmented);
 
-    LMPC_Operation::Integrate_U<U_Type, U_Horizon_Type,
-                                (INPUT_SIZE - 1)>::calculate(this->_U_latest,
-                                                             delta_U);
+    this->_U_latest = this->_calculate_this_U(delta_U);
 
     this->_X_inner_model = X_compensated;
 
@@ -1194,7 +1192,7 @@ protected:
    * @param delta_U The change in control input to be applied.
    * @return The updated control input.
    */
-  inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
+  inline auto _calculate_this_U(const U_Horizon_Type &delta_U) -> U_Type {
 
     auto U =
         LMPC_Operation::calculate_this_U<INPUT_SIZE>(this->_U_latest, delta_U);
