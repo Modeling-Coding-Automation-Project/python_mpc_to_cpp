@@ -174,7 +174,7 @@ def main():
     plotter.assign("y_measured", column=0, row=0, position=(0, 0),
                    x_sequence=time, label="theta")
     plotter.assign("reference", column=0, row=0, position=(0, 0),
-                   x_sequence=time, label="theta_ref")
+                   x_sequence=time, label="theta_reference")
 
     plotter.assign("x_true", column=0, row=0, position=(1, 0),
                    x_sequence=time, label="x_0")
