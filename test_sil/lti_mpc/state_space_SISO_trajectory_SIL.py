@@ -75,7 +75,7 @@ def main():
     lti_mpc = LTI_MPC_NoConstraints(
         ideal_plant_model, Np=Np, Nc=Nc,
         Weight_U=Weight_U, Weight_Y=Weight_Y,
-        is_ref_trajectory=PATH_FOLLOWING)
+        is_reference_trajectory=PATH_FOLLOWING)
 
     deployed_file_names = LinearMPC_Deploy.generate_LTI_MPC_NC_cpp_code(
         lti_mpc)

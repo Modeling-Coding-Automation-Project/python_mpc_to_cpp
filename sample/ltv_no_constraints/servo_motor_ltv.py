@@ -258,24 +258,26 @@ def main():
         y_measured = y_store[delay_index]
 
         # controller
-        ref = np.array([[input_signal[i, 0]], [0.0]])
+        reference = np.array([[input_signal[i, 0]], [0.0]])
 
         if not MPC_updated and time[i] > MPC_UPDATE_TIME:
             controller_parameters.Mmotor = 250.0
             ltv_mpc.update_parameters(controller_parameters)
             MPC_updated = True
 
-        U = ltv_mpc.update_manipulation(ref, y_measured)
+        U = ltv_mpc.update_manipulation(reference, y_measured)
 
-        plotter.append_name(ref, "ref")
+        plotter.append_name(reference, "reference")
         plotter.append_name(U, "U")
         plotter.append_name(y_measured, "y_measured")
         plotter.append_name(X, "X")
 
-    plotter.assign("ref", position=(0, 0), column=0, row=0, x_sequence=time)
+    plotter.assign("reference", position=(0, 0),
+                   column=0, row=0, x_sequence=time)
     plotter.assign("y_measured", position=(0, 0),
                    column=0, row=0, x_sequence=time)
-    plotter.assign("ref", position=(0, 1), column=1, row=0, x_sequence=time)
+    plotter.assign("reference", position=(0, 1),
+                   column=1, row=0, x_sequence=time)
     plotter.assign("y_measured", position=(0, 1),
                    column=1, row=0, x_sequence=time)
 

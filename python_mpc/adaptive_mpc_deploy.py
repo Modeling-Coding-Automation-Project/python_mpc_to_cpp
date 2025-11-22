@@ -300,7 +300,7 @@ class AdaptiveMPC_Deploy:
             "  F_Type, Phi_Type, NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;\n\n"
 
         ref_row_size_text = "1"
-        if ada_mpc_nc.is_ref_trajectory:
+        if ada_mpc_nc.is_reference_trajectory:
             ref_row_size_text = "NP"
 
         code_text += f"using Reference_Type = DenseMatrix_Type<{type_name}, OUTPUT_SIZE, " + \
@@ -750,7 +750,7 @@ class AdaptiveMPC_Deploy:
             "  F_Type, Phi_Type, NP, NC, INPUT_SIZE, AUGMENTED_STATE_SIZE, OUTPUT_SIZE>;\n\n"
 
         ref_row_size_text = "1"
-        if ada_mpc.is_ref_trajectory:
+        if ada_mpc.is_reference_trajectory:
             ref_row_size_text = "NP"
 
         code_text += f"using Reference_Type = DenseMatrix_Type<{type_name}, OUTPUT_SIZE, " + \

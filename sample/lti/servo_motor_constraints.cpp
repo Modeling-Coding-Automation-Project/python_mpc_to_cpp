@@ -63,7 +63,7 @@ int main(void) {
   auto sys = make_DiscreteStateSpace(A, B, C, D, dt);
 
   /* Define controller */
-  servo_motor_constraints_lti_mpc::Ref_Type ref;
+  servo_motor_constraints_lti_mpc::Reference_Type reference;
 
   auto lti_mpc = servo_motor_constraints_lti_mpc::make();
 
@@ -75,11 +75,11 @@ int main(void) {
     sys.update(U);
 
     /* controller */
-    for (std::size_t i = 0; i < ref.rows(); ++i) {
-      ref(0, i) = 1.0;
+    for (std::size_t i = 0; i < reference.rows(); ++i) {
+      reference(0, i) = 1.0;
     }
 
-    U = lti_mpc.update(ref, sys.get_Y());
+    U = lti_mpc.update(reference, sys.get_Y());
 
     std::cout << "Y_0: " << sys.get_Y()(0, 0) << ", ";
     std::cout << "Y_1: " << sys.get_Y()(1, 0) << ", ";
