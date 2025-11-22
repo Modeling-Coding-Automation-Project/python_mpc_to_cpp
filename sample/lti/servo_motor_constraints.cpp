@@ -63,7 +63,7 @@ int main(void) {
   auto sys = make_DiscreteStateSpace(A, B, C, D, dt);
 
   /* Define controller */
-  servo_motor_constraints_lti_mpc::Ref_Type ref;
+  servo_motor_constraints_lti_mpc::Reference_Type ref;
 
   auto lti_mpc = servo_motor_constraints_lti_mpc::make();
 
