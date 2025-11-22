@@ -7,7 +7,7 @@
  * model of a servo motor, and apply a Model Predictive Controller (MPC) with
  * constraints. The code initializes the system matrices, constructs the
  * state-space system, and runs a closed-loop simulation where the MPC computes
- * the control input at each time step to track a referenceerence signal.
+ * the control input at each time step to track a reference signal.
  */
 #include <iostream>
 
