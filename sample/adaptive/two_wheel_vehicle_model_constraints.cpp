@@ -54,62 +54,63 @@ ReferenceSequence create_reference(const std::vector<double> &time,
 
   const size_t time_size = time.size();
 
-  ReferenceSequence ref;
-  ref.x_sequence.resize(time_size, 0.0);
-  ref.y_sequence.resize(time_size, 0.0);
-  ref.theta_sequence.resize(time_size, 0.0);
-  ref.r_sequence.resize(time_size, 0.0);
-  ref.V_sequence.resize(time_size, 0.0);
+  ReferenceSequence reference;
+  reference.x_sequence.resize(time_size, 0.0);
+  reference.y_sequence.resize(time_size, 0.0);
+  reference.theta_sequence.resize(time_size, 0.0);
+  reference.r_sequence.resize(time_size, 0.0);
+  reference.V_sequence.resize(time_size, 0.0);
 
   for (size_t i = 0; i < time_size; ++i) {
     if (time[i] < curve_timing) {
       if (i > 0) {
-        ref.x_sequence[i] = ref.x_sequence[i - 1] + vehicle_speed * delta_time;
+        reference.x_sequence[i] =
+            reference.x_sequence[i - 1] + vehicle_speed * delta_time;
       } else {
-        ref.x_sequence[i] = vehicle_speed * delta_time;
+        reference.x_sequence[i] = vehicle_speed * delta_time;
       }
-      ref.y_sequence[i] = 0.0;
-      ref.theta_sequence[i] = 0.0;
-      ref.r_sequence[i] = 0.0;
-      ref.V_sequence[i] = vehicle_speed;
+      reference.y_sequence[i] = 0.0;
+      reference.theta_sequence[i] = 0.0;
+      reference.r_sequence[i] = 0.0;
+      reference.V_sequence[i] = vehicle_speed;
 
     } else if (time[i] > curve_timing &&
-               (i == 0 || ref.theta_sequence[i - 1] < yaw_reference)) {
+               (i == 0 || reference.theta_sequence[i - 1] < yaw_reference)) {
 
-      double prev_theta = (i > 0) ? ref.theta_sequence[i - 1] : 0.0;
-      double prev_x = (i > 0) ? ref.x_sequence[i - 1] : 0.0;
-      double prev_y = (i > 0) ? ref.y_sequence[i - 1] : 0.0;
+      double prev_theta = (i > 0) ? reference.theta_sequence[i - 1] : 0.0;
+      double prev_x = (i > 0) ? reference.x_sequence[i - 1] : 0.0;
+      double prev_y = (i > 0) ? reference.y_sequence[i - 1] : 0.0;
 
-      ref.x_sequence[i] =
+      reference.x_sequence[i] =
           prev_x + vehicle_speed * delta_time * std::cos(prev_theta);
-      ref.y_sequence[i] =
+      reference.y_sequence[i] =
           prev_y + vehicle_speed * delta_time * std::sin(prev_theta);
-      ref.theta_sequence[i] = prev_theta + curve_yaw_rate * delta_time;
+      reference.theta_sequence[i] = prev_theta + curve_yaw_rate * delta_time;
 
-      if (ref.theta_sequence[i] > yaw_reference) {
-        ref.theta_sequence[i] = yaw_reference;
+      if (reference.theta_sequence[i] > yaw_reference) {
+        reference.theta_sequence[i] = yaw_reference;
       }
 
-      ref.r_sequence[i] = curve_yaw_rate;
-      ref.V_sequence[i] = vehicle_speed;
+      reference.r_sequence[i] = curve_yaw_rate;
+      reference.V_sequence[i] = vehicle_speed;
 
     } else {
-      double prev_theta = (i > 0) ? ref.theta_sequence[i - 1] : 0.0;
-      double prev_x = (i > 0) ? ref.x_sequence[i - 1] : 0.0;
-      double prev_y = (i > 0) ? ref.y_sequence[i - 1] : 0.0;
+      double prev_theta = (i > 0) ? reference.theta_sequence[i - 1] : 0.0;
+      double prev_x = (i > 0) ? reference.x_sequence[i - 1] : 0.0;
+      double prev_y = (i > 0) ? reference.y_sequence[i - 1] : 0.0;
 
-      ref.x_sequence[i] =
+      reference.x_sequence[i] =
           prev_x + vehicle_speed * delta_time * std::cos(prev_theta);
-      ref.y_sequence[i] =
+      reference.y_sequence[i] =
           prev_y + vehicle_speed * delta_time * std::sin(prev_theta);
-      ref.theta_sequence[i] = prev_theta;
+      reference.theta_sequence[i] = prev_theta;
 
-      ref.r_sequence[i] = 0.0;
-      ref.V_sequence[i] = vehicle_speed;
+      reference.r_sequence[i] = 0.0;
+      reference.V_sequence[i] = vehicle_speed;
     }
   }
 
-  return ref;
+  return reference;
 }
 
 int main(void) {
@@ -148,7 +149,7 @@ int main(void) {
   StateSpaceInput_Type<double, INPUT_SIZE> U;
   StateSpaceOutput_Type<double, OUTPUT_SIZE> Y;
 
-  two_wheel_vehicle_model_constraints_ada_mpc::Ref_Type ref;
+  two_wheel_vehicle_model_constraints_ada_mpc::Reference_Type reference;
   ReferenceSequence reference_sequence =
       create_reference(time, DELTA_TIME, SIMULATION_TIME);
 
@@ -161,13 +162,12 @@ int main(void) {
         function(X, parameters);
 
     /* controller */
-    ref(0, 0) = reference_sequence.x_sequence[sim_step];
-    ref(1, 0) = reference_sequence.y_sequence[sim_step];
-    ref(2, 0) = reference_sequence.theta_sequence[sim_step];
-    ref(3, 0) = reference_sequence.r_sequence[sim_step];
-    ref(4, 0) = reference_sequence.V_sequence[sim_step];
-
-    U = ada_mpc_nc.update_manipulation(ref, Y);
+    reference(0, 0) = reference_sequence.x_sequence[sim_step];
+    reference(1, 0) = reference_sequence.y_sequence[sim_step];
+    reference(2, 0) = reference_sequence.theta_sequence[sim_step];
+    reference(3, 0) = reference_sequence.r_sequence[sim_step];
+    reference(4, 0) = reference_sequence.V_sequence[sim_step];
+    U = ada_mpc_nc.update_manipulation(reference, Y);
 
     std::cout << "Y_0: " << Y(0, 0) << ", ";
     std::cout << "Y_1: " << Y(1, 0) << ", ";

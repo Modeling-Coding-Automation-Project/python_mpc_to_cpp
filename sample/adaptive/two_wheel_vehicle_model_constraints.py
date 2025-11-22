@@ -258,7 +258,7 @@ def main():
         y_measured = y_store[delay_index]
 
         # controller
-        ref = np.array([
+        reference = np.array([
             [x_sequence[i, 0]],
             [y_sequence[i, 0]],
             [theta_sequence[i, 0]],
@@ -266,41 +266,41 @@ def main():
             [V_sequence[i, 0]]
         ])
 
-        u_from_mpc = ada_mpc.update_manipulation(ref, y_measured)
+        u_from_mpc = ada_mpc.update_manipulation(reference, y_measured)
 
         plotter.append_name(x_true, "x_true")
-        plotter.append_name(ref, "ref")
+        plotter.append_name(reference, "reference")
         plotter.append_name(y_measured, "y_measured")
         plotter.append_name(u_from_mpc, "u")
 
     # plot
     plotter.assign("x_true", column=0, row=0, position=(0, 0),
                    x_sequence=time, label="px_true")
-    plotter.assign("ref", column=0, row=0, position=(0, 0),
-                   x_sequence=time, label="px_ref")
+    plotter.assign("reference", column=0, row=0, position=(0, 0),
+                   x_sequence=time, label="px_reference")
 
     plotter.assign("x_true", column=1, row=0, position=(1, 0),
                    x_sequence=time, label="py_true")
-    plotter.assign("ref", column=1, row=0, position=(1, 0),
-                   x_sequence=time, label="py_ref")
+    plotter.assign("reference", column=1, row=0, position=(1, 0),
+                   x_sequence=time, label="py_reference")
 
     plotter.assign("x_true", column=2, row=0, position=(2, 0),
                    x_sequence=time, label="theta_true")
-    plotter.assign("ref", column=2, row=0, position=(2, 0),
-                   x_sequence=time, label="theta_ref")
+    plotter.assign("reference", column=2, row=0, position=(2, 0),
+                   x_sequence=time, label="theta_reference")
 
     plotter.assign("x_true", column=3, row=0, position=(0, 1),
                    x_sequence=time, label="r_true")
-    plotter.assign("ref", column=3, row=0, position=(0, 1),
-                   x_sequence=time, label="r_ref")
+    plotter.assign("reference", column=3, row=0, position=(0, 1),
+                   x_sequence=time, label="r_reference")
 
     plotter.assign("x_true", column=4, row=0, position=(1, 1),
                    x_sequence=time, label="beta_true")
 
     plotter.assign("x_true", column=5, row=0, position=(2, 1),
                    x_sequence=time, label="V_true")
-    plotter.assign("ref", column=4, row=0, position=(2, 1),
-                   x_sequence=time, label="V_ref")
+    plotter.assign("reference", column=4, row=0, position=(2, 1),
+                   x_sequence=time, label="V_reference")
 
     plotter.assign("u", column=0, row=0, position=(0, 2),
                    x_sequence=time, label="delta")
