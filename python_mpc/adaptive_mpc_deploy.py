@@ -111,11 +111,16 @@ class AdaptiveMPC_Deploy:
 
         B_matrix_name = f"{variable_name}_B"
 
-        exec(
-            f"{B_matrix_name} = B_symbolic_SparseAvailable_list[0]")
+        locals_map = {
+            B_matrix_name: B_symbolic_SparseAvailable_list[0],
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         B_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={B_matrix_name}, " +
-            "file_name=caller_file_name_no_extension)")
+            f"file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(B_file_name)
         B_file_name_no_extension = B_file_name.split(".")[0]
@@ -171,9 +176,16 @@ class AdaptiveMPC_Deploy:
         deployed_file_names.append(Adaptive_MPC_Phi_F_updater_hpp_name_ext)
 
         # %% create EKF, F, Phi, solver_factor, Weight_U_Nc code
-        exec(f"{variable_name}_ekf = ada_mpc_nc.kalman_filter")
+        locals_map = {
+            f"{variable_name}_ekf": ada_mpc_nc.kalman_filter,
+            "caller_file_name_no_extension": caller_file_name_no_extension,
+            "number_of_delay": number_of_delay
+        }
         ekf_file_names = eval(
-            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
+            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_no_extension, number_of_delay=number_of_delay)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(ekf_file_names)
         ekf_file_name = ekf_file_names[-1]
@@ -196,11 +208,19 @@ class AdaptiveMPC_Deploy:
         # create F
         F_SparseAvailable = convert_SparseAvailable_for_deploy(
             ada_mpc_nc.prediction_matrices.F_SparseAvailable)
-        exec(f"{variable_name}_F = ada_mpc_nc.prediction_matrices.F_ndarray")
+
+        locals_map = {
+            f"{variable_name}_F": ada_mpc_nc.prediction_matrices.F_ndarray,
+            "F_SparseAvailable": F_SparseAvailable,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
             "SparseAvailable=F_SparseAvailable, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
@@ -208,12 +228,19 @@ class AdaptiveMPC_Deploy:
         # create Phi
         Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
             ada_mpc_nc.prediction_matrices.Phi_SparseAvailable)
-        exec(
-            f"{variable_name}_Phi = ada_mpc_nc.prediction_matrices.Phi_ndarray")
+
+        locals_map = {
+            f"{variable_name}_Phi": ada_mpc_nc.prediction_matrices.Phi_ndarray,
+            "Phi_SparseAvailable": Phi_SparseAvailable,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
             "SparseAvailable=Phi_SparseAvailable, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
@@ -221,20 +248,34 @@ class AdaptiveMPC_Deploy:
         # create solver_factor
         solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
             ada_mpc_nc.solver_factor_SparseAvailable)
-        exec(f"{variable_name}_solver_factor = ada_mpc_nc.solver_factor")
+
+        locals_map = {
+            f"{variable_name}_solver_factor": ada_mpc_nc.solver_factor,
+            "solver_factor_SparseAvailable": solver_factor_SparseAvailable,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
             "SparseAvailable=solver_factor_SparseAvailable, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
             0]
 
-        exec(f"{variable_name}_Weight_U_Nc = ada_mpc_nc.Weight_U_Nc")
+        locals_map = {
+            f"{variable_name}_Weight_U_Nc": ada_mpc_nc.Weight_U_Nc,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         Weight_U_Nc_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
@@ -447,11 +488,16 @@ class AdaptiveMPC_Deploy:
 
         B_matrix_name = f"{variable_name}_B"
 
-        exec(
-            f"{B_matrix_name} = B_symbolic_SparseAvailable_list[0]")
+        locals_map = {
+            B_matrix_name: B_symbolic_SparseAvailable_list[0],
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         B_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={B_matrix_name}, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(B_file_name)
         B_file_name_no_extension = B_file_name.split(".")[0]
@@ -507,9 +553,16 @@ class AdaptiveMPC_Deploy:
         deployed_file_names.append(Adaptive_MPC_Phi_F_updater_hpp_name_ext)
 
         # %% create EKF, F, Phi, solver_factor, Weight_U_Nc code
-        exec(f"{variable_name}_ekf = ada_mpc.kalman_filter")
+        locals_map = {
+            f"{variable_name}_ekf": ada_mpc.kalman_filter,
+            "caller_file_name_no_extension": caller_file_name_no_extension,
+            "number_of_delay": number_of_delay
+        }
         ekf_file_names = eval(
-            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_no_extension, number_of_delay={number_of_delay})")
+            f"KalmanFilterDeploy.generate_EKF_cpp_code({variable_name}_ekf, caller_file_name_no_extension, number_of_delay=number_of_delay)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(ekf_file_names)
         ekf_file_name = ekf_file_names[-1]
@@ -532,11 +585,19 @@ class AdaptiveMPC_Deploy:
         # create F
         F_SparseAvailable = convert_SparseAvailable_for_deploy(
             ada_mpc.prediction_matrices.F_SparseAvailable)
-        exec(f"{variable_name}_F = ada_mpc.prediction_matrices.F_ndarray")
+
+        locals_map = {
+            f"{variable_name}_F": ada_mpc.prediction_matrices.F_ndarray,
+            "F_SparseAvailable": F_SparseAvailable,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         F_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_F, " +
             "SparseAvailable=F_SparseAvailable, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(F_file_name)
         F_file_name_no_extension = F_file_name.split(".")[0]
@@ -544,12 +605,19 @@ class AdaptiveMPC_Deploy:
         # create Phi
         Phi_SparseAvailable = convert_SparseAvailable_for_deploy(
             ada_mpc.prediction_matrices.Phi_SparseAvailable)
-        exec(
-            f"{variable_name}_Phi = ada_mpc.prediction_matrices.Phi_ndarray")
+
+        locals_map = {
+            f"{variable_name}_Phi": ada_mpc.prediction_matrices.Phi_ndarray,
+            "Phi_SparseAvailable": Phi_SparseAvailable,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         Phi_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Phi, " +
             "SparseAvailable=Phi_SparseAvailable, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(Phi_file_name)
         Phi_file_name_no_extension = Phi_file_name.split(".")[0]
@@ -557,20 +625,34 @@ class AdaptiveMPC_Deploy:
         # create solver_factor
         solver_factor_SparseAvailable = convert_SparseAvailable_for_deploy(
             ada_mpc.solver_factor_SparseAvailable)
-        exec(f"{variable_name}_solver_factor = ada_mpc.solver_factor")
+
+        locals_map = {
+            f"{variable_name}_solver_factor": ada_mpc.solver_factor,
+            "solver_factor_SparseAvailable": solver_factor_SparseAvailable,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         solver_factor_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_solver_factor, " +
             "SparseAvailable=solver_factor_SparseAvailable, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(solver_factor_file_name)
         solver_factor_file_name_no_extension = solver_factor_file_name.split(".")[
             0]
 
-        exec(f"{variable_name}_Weight_U_Nc = ada_mpc.Weight_U_Nc")
+        locals_map = {
+            f"{variable_name}_Weight_U_Nc": ada_mpc.Weight_U_Nc,
+            "caller_file_name_no_extension": caller_file_name_no_extension
+        }
         Weight_U_Nc_file_name = eval(
             f"NumpyDeploy.generate_matrix_cpp_code(matrix_in={variable_name}_Weight_U_Nc, " +
-            "file_name=caller_file_name_no_extension)")
+            "file_name=caller_file_name_no_extension)",
+            globals(),
+            locals_map
+        )
 
         deployed_file_names.append(Weight_U_Nc_file_name)
         Weight_U_Nc_file_name_no_extension = Weight_U_Nc_file_name.split(".")[
