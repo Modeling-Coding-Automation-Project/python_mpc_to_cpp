@@ -487,4 +487,4 @@ $RECYCLE.BIN/
 *.exe
 
 # build directory
-build/
+test_sil/*/build/
