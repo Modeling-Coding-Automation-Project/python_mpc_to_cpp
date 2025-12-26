@@ -5,6 +5,7 @@
 
 namespace PythonMPC_TwoWheelVehicleModelData {
 
+using namespace PythonMath;
 using namespace PythonNumpy;
 using namespace PythonControl;
 
