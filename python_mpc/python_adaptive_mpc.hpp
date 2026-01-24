@@ -26,6 +26,7 @@
 #include "python_optimization.hpp"
 
 #include <functional>
+#include <tuple>
 #include <type_traits>
 
 namespace PythonMPC {
@@ -46,22 +47,24 @@ namespace AdaptiveMPC_Operation {
  */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename EKF_Type>
-inline typename std::enable_if<(Number_Of_Delay > 0), void>::type
-compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
-                     Y_Type &Y_out, Y_Store_Type &Y_store,
-                     EKF_Type &kalman_filter) {
+inline typename std::enable_if<(Number_Of_Delay > 0),
+                               std::tuple<X_Type, Y_Type>>::type
+compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
+                     Y_Store_Type &Y_store, EKF_Type &kalman_filter) {
 
   static_cast<void>(X_in);
 
   Y_Type Y_measured = Y_in;
 
-  X_out = kalman_filter.get_x_hat_without_delay();
+  X_Type X_out = kalman_filter.get_x_hat_without_delay();
   auto Y = kalman_filter.calculate_measurement_function(X_out);
 
   Y_store.push(Y);
   auto Y_diff = Y_measured - Y_store.get();
 
-  Y_out = Y + Y_diff;
+  Y_Type Y_out = Y + Y_diff;
+
+  return std::make_tuple(std::move(X_out), std::move(Y_out));
 }
 
 /**
@@ -79,17 +82,19 @@ compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
  */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename EKF_Type>
-inline typename std::enable_if<(Number_Of_Delay == 0), void>::type
-compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
-                     Y_Type &Y_out, Y_Store_Type &Y_store,
-                     EKF_Type &kalman_filter) {
+inline typename std::enable_if<(Number_Of_Delay == 0),
+                               std::tuple<X_Type, Y_Type>>::type
+compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
+                     Y_Store_Type &Y_store, EKF_Type &kalman_filter) {
 
   static_cast<void>(kalman_filter);
 
   Y_store.push(Y_in);
 
-  X_out = X_in;
-  Y_out = Y_in;
+  X_Type X_out = X_in;
+  Y_Type Y_out = Y_in;
+
+  return std::make_tuple(std::move(X_out), std::move(Y_out));
 }
 
 template <typename U_Type, typename U_Horizon_Type, std::size_t Index>
@@ -419,7 +424,7 @@ public:
 
     X_Type X_compensated;
     Y_Type Y_compensated;
-    this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
+    std::tie(X_compensated, Y_compensated) = this->_compensate_X_Y_delay(X, Y);
 
     this->_update_Phi_F_adaptive_runtime(X_compensated, this->_U_latest,
                                          this->_kalman_filter.parameters);
@@ -485,7 +490,7 @@ protected:
   /* Function */
 
   /**
-   * @brief Compensates for delays in the state and output vectors.
+   * @brief Compensates the delay in the state and output vectors.
    *
    * This function adjusts the state and output vectors to account for delays
    * in the system, ensuring that the control inputs are correctly aligned with
@@ -493,14 +498,13 @@ protected:
    *
    * @param X_in The input state vector.
    * @param Y_in The input output vector.
-   * @param X_out The compensated output state vector.
-   * @param Y_out The compensated output vector.
+   * @return A tuple containing the compensated state and output vectors.
    */
-  inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
-                                    X_Type &X_out, Y_Type &Y_out) {
+  inline auto _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in)
+      -> std::tuple<X_Type, Y_Type> {
 
-    AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
+    return AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
+        X_in, Y_in, this->_Y_store, this->_kalman_filter);
   }
 
   /**

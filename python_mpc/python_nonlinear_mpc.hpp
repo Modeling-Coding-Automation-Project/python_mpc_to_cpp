@@ -25,6 +25,7 @@
 #include "python_optimization.hpp"
 
 #include <functional>
+#include <tuple>
 #include <type_traits>
 
 namespace PythonMPC {
@@ -718,7 +719,7 @@ public:
 
     X_Type X_compensated;
     Y_Type Y_compensated;
-    this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
+    std::tie(X_compensated, Y_compensated) = this->_compensate_X_Y_delay(X, Y);
 
     this->set_reference_trajectory(reference);
 
@@ -807,11 +808,24 @@ protected:
     this->_solver.set_solver_max_iteration(NMPC_SOLVER_MAX_ITERATION_DEFAULT);
   }
 
-  inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
-                                    X_Type &X_out, Y_Type &Y_out) {
+  /**
+   * @brief Compensates for delays in the state and measurement.
+   *
+   * This function adjusts the state and measurement to account for any
+   * delays present in the system. It utilizes the stored measurements and the
+   * Kalman filter to perform the compensation, ensuring that the state and
+   * measurement are aligned correctly for further processing.
+   *
+   * @param X_in The input state to be compensated.
+   * @param Y_in The input measurement to be compensated.
+   * @return std::tuple<X_Type, Y_Type> A tuple containing the compensated
+   * state and measurement.
+   */
+  inline auto _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in)
+      -> std::tuple<X_Type, Y_Type> {
 
-    AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
+    return AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
+        X_in, Y_in, this->_Y_store, this->_kalman_filter);
   }
 
 public:
