@@ -23,7 +23,6 @@
 #include <tuple>
 #include <type_traits>
 
-
 namespace PythonMPC {
 
 namespace LMPC_Operation {
@@ -410,7 +409,7 @@ protected:
   /* Function */
 
   /**
-   * @brief Compensates for delays in the state and output vectors.
+   * @brief Compensates the delay in the state and output vectors.
    *
    * This function adjusts the state and output vectors to account for delays
    * in the system, ensuring that the control inputs are correctly aligned with
@@ -418,8 +417,7 @@ protected:
    *
    * @param X_in The input state vector.
    * @param Y_in The input output vector.
-   * @param X_out The compensated output state vector.
-   * @param Y_out The compensated output vector.
+   * @return A tuple containing the compensated state and output vectors.
    */
   inline std::tuple<X_Type, Y_Type> _compensate_X_Y_delay(const X_Type &X_in,
                                                           const Y_Type &Y_in) {
@@ -1147,14 +1145,13 @@ protected:
   /**
    * @brief Compensates for delays in the state and output vectors.
    *
-   * This function adjusts the state and output vectors to account for delays
-   * in the system, ensuring that the control inputs are correctly aligned with
-   * the measured outputs.
+   * This function adjusts the state vector (X_in) and output vector (Y_in)
+   * to account for any delays in the system, using the stored output values
+   * and the Kalman filter.
    *
    * @param X_in The input state vector.
    * @param Y_in The input output vector.
-   * @param X_out The compensated output state vector.
-   * @param Y_out The compensated output vector.
+   * @return A tuple containing the compensated state vector and output vector.
    */
   inline std::tuple<X_Type, Y_Type> _compensate_X_Y_delay(const X_Type &X_in,
                                                           const Y_Type &Y_in) {
