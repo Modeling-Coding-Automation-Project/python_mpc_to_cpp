@@ -20,7 +20,9 @@
 #include "python_optimization.hpp"
 
 #include <functional>
+#include <tuple>
 #include <type_traits>
+
 
 namespace PythonMPC {
 
@@ -42,22 +44,24 @@ namespace LMPC_Operation {
  */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename LKF_Type>
-inline typename std::enable_if<(Number_Of_Delay > 0), void>::type
-compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
-                     Y_Type &Y_out, Y_Store_Type &Y_store,
-                     LKF_Type &kalman_filter) {
+inline typename std::enable_if<(Number_Of_Delay > 0),
+                               std::tuple<X_Type, Y_Type>>::type
+compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
+                     Y_Store_Type &Y_store, LKF_Type &kalman_filter) {
 
   static_cast<void>(X_in);
 
   Y_Type Y_measured = Y_in;
 
-  X_out = kalman_filter.get_x_hat_without_delay();
+  X_Type X_out = kalman_filter.get_x_hat_without_delay();
   auto Y = kalman_filter.state_space.C * X_out;
 
   Y_store.push(Y);
   auto Y_diff = Y_measured - Y_store.get();
 
-  Y_out = Y + Y_diff;
+  Y_Type Y_out = Y + Y_diff;
+
+  return std::make_tuple(X_out, Y_out);
 }
 
 /**
@@ -76,16 +80,15 @@ compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
  */
 template <std::size_t Number_Of_Delay, typename X_Type, typename Y_Type,
           typename Y_Store_Type, typename LKF_Type>
-inline typename std::enable_if<(Number_Of_Delay == 0), void>::type
-compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in, X_Type &X_out,
-                     Y_Type &Y_out, Y_Store_Type &Y_store,
-                     LKF_Type &kalman_filter) {
+inline typename std::enable_if<(Number_Of_Delay == 0),
+                               std::tuple<X_Type, Y_Type>>::type
+compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
+                     Y_Store_Type &Y_store, LKF_Type &kalman_filter) {
 
   static_cast<void>(Y_store);
   static_cast<void>(kalman_filter);
 
-  X_out = X_in;
-  Y_out = Y_in;
+  return std::make_tuple(X_in, Y_in);
 }
 
 template <typename U_Type, typename U_Horizon_Type, std::size_t Index>
@@ -386,7 +389,7 @@ public:
 
     X_Type X_compensated;
     Y_Type Y_compensated;
-    this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
+    std::tie(X_compensated, Y_compensated) = this->_compensate_X_Y_delay(X, Y);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto X_augmented =
@@ -418,11 +421,11 @@ protected:
    * @param X_out The compensated output state vector.
    * @param Y_out The compensated output vector.
    */
-  inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
-                                    X_Type &X_out, Y_Type &Y_out) {
+  inline std::tuple<X_Type, Y_Type> _compensate_X_Y_delay(const X_Type &X_in,
+                                                          const Y_Type &Y_in) {
 
-    LMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
+    return LMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
+        X_in, Y_in, this->_Y_store, this->_kalman_filter);
   }
 
   /**
@@ -1060,7 +1063,7 @@ public:
 
     X_Type X_compensated;
     Y_Type Y_compensated;
-    this->_compensate_X_Y_delay(X, Y, X_compensated, Y_compensated);
+    std::tie(X_compensated, Y_compensated) = this->_compensate_X_Y_delay(X, Y);
 
     auto delta_X = X_compensated - this->_X_inner_model;
     auto X_augmented =
@@ -1153,11 +1156,11 @@ protected:
    * @param X_out The compensated output state vector.
    * @param Y_out The compensated output vector.
    */
-  inline void _compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
-                                    X_Type &X_out, Y_Type &Y_out) {
+  inline std::tuple<X_Type, Y_Type> _compensate_X_Y_delay(const X_Type &X_in,
+                                                          const Y_Type &Y_in) {
 
-    LMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, X_out, Y_out, this->_Y_store, this->_kalman_filter);
+    return LMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
+        X_in, Y_in, this->_Y_store, this->_kalman_filter);
   }
 
   /**
