@@ -1,6 +1,15 @@
+"""
+File: common_mpc_deploy.py
+Description: Common functions for deploying MPC code,
+ including conversion of SymPy matrices to NumPy arrays for use in C++ code generation.
+"""
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import numpy as np
 import sympy as sp

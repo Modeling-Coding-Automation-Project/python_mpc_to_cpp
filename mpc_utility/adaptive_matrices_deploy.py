@@ -8,9 +8,13 @@ specifically for Linear Time-Varying (LTV) Model Predictive Control (MPC) matrix
 The generated C++ code is intended for use in control systems and MPC applications,
 leveraging templates and namespaces for type safety and modularity.
 """
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 

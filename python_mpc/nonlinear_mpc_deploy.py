@@ -8,9 +8,13 @@ It includes the `NonlinearMPC_Deploy` class with a static method
 `generate_Nonlinear_MPC_cpp_code` that takes a `NonlinearMPC_TwiceDifferentiable` object
 and generates the corresponding C++ code files.
 """
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 sys.path.append(os.path.join(

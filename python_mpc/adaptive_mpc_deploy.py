@@ -7,9 +7,13 @@ It includes the `AdaptiveMPC_Deploy` class, which contains static methods for ge
 C++ header files representing the structure and parameters of an Adaptive MPC controller,
 including its Kalman filter, prediction matrices, solver factors, and weight matrices.
 """
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 
