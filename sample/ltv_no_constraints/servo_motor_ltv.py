@@ -10,10 +10,14 @@ References:
 A. Bemporad and E. Mosca, "Fulfilling hard constraints in uncertain linear systems
  by reference managing," Automatica, vol. 34, no. 4, pp. 451-461, 1998.
 """
+from __future__ import annotations
 
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(os.path.join(
     os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
 

@@ -7,10 +7,16 @@ using Model Predictive Control (MPC) without constraints.
 The code defines a plant model, sets up an MPC controller,
 generates input and reference signals, simulates the closed-loop system with delay,
 and visualizes the results. It also provides functionality
-to export the MPC controller as C++ code for deployment."""
+to export the MPC controller as C++ code for deployment.
+"""
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(os.path.join(
     os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
 

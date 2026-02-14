@@ -6,9 +6,13 @@ It contains utilities to generate C++ header files from Python-based MPC models,
 and unconstrained LTI MPCs. The generated code includes all necessary matrices, parameters, and type definitions
 to instantiate and use the MPC controller in a C++ environment.
 """
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 

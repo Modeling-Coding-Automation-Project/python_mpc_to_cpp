@@ -8,9 +8,13 @@ transform Python code into C++ code, handling specific constructs
 such as class definitions, function definitions, assignments, and
 return statements.
 """
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 sys.path.append(os.path.join(
     os.getcwd(), "external_libraries", "python_control_to_cpp"))
 

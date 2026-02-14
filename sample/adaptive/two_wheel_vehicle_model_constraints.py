@@ -10,9 +10,14 @@ where the MPC tracks a reference trajectory for vehicle position and speed.
 The code also visualizes the results using a custom plotter,
 allowing analysis of the controller's performance over time.
 """
+from __future__ import annotations
+
 import os
 import sys
-sys.path.append(os.getcwd())
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+sys.path.append(str(Path(__file__).resolve().parents[2]))
 sys.path.append(os.path.join(
     os.getcwd(), 'external_libraries', 'MCAP_python_mpc'))
 
