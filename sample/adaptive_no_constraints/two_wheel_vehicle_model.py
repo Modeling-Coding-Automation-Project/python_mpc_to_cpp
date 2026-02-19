@@ -29,7 +29,7 @@ from dataclasses import dataclass
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC_NoConstraints
 from python_mpc.adaptive_mpc_deploy import AdaptiveMPC_Deploy
 
-from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
+from sample.simulation_manager.visualize.simulation_plotter_dash import SimulationPlotterDash
 
 
 def create_model(delta_time: float):
@@ -224,7 +224,7 @@ def main():
     x_sequence, y_sequence, theta_sequence, r_sequence, V_sequence = \
         create_reference(time, sim_delta_time, simulation_time)
 
-    plotter = SimulationPlotter()
+    plotter = SimulationPlotterDash()
 
     y_measured = np.array([[0.0], [0.0], [0.0], [0.0], [0.0]])
     y_store = [y_measured] * (Number_of_Delay + 1)

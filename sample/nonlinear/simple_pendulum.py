@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
 from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_Deploy
 
-from sample.simulation_manager.visualize.simulation_plotter import SimulationPlotter
+from sample.simulation_manager.visualize.simulation_plotter_dash import SimulationPlotterDash
 
 
 def create_plant_model():
@@ -140,7 +140,7 @@ def main():
     x_true = X_initial
     u = np.array([[0.0]])
 
-    plotter = SimulationPlotter()
+    plotter = SimulationPlotterDash()
 
     y_measured = np.array([[0.0]])
     y_store = [y_measured] * (Number_of_Delay + 1)
