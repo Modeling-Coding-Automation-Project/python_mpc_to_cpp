@@ -137,7 +137,7 @@ def main():
     X_initial = np.array([[1.0], [0.0]])
 
     Np = 20
-    Nc = 1
+    Nc = 2
 
     Number_of_Delay = 0
 
