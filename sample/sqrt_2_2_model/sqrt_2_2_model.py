@@ -38,6 +38,7 @@ import sympy as sp
 from dataclasses import dataclass
 
 from external_libraries.MCAP_python_mpc.python_mpc.adaptive_mpc import AdaptiveMPC
+from python_mpc.adaptive_mpc_deploy import AdaptiveMPC_Deploy
 
 from sample.simulation_manager.visualize.simulation_plotter_dash import SimulationPlotterDash
 
@@ -169,6 +170,11 @@ def main():
         U_min=U_min,
         U_max=U_max
     )
+
+    # You can create cpp header which can easily define MPC as C++ code
+    deployed_file_names = AdaptiveMPC_Deploy.generate_Adaptive_MPC_cpp_code(
+        ada_mpc)
+    print(deployed_file_names)
 
     # X: x1, x2
     x_true = X_initial
