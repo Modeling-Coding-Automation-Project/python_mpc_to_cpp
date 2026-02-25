@@ -517,8 +517,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
-      -> U_Horizon_Type {
+  virtual inline auto
+  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
 
     return this->_solver_factor *
            this->_reference_trajectory.calculate_dif(
@@ -554,7 +554,7 @@ protected:
    * @param delta_U The change in control input.
    * @return The calculated control input U.
    */
-  inline auto _calculate_this_U(const U_Type &delta_U) -> U_Type {
+  inline auto _calculate_this_U(const U_Horizon_Type &delta_U) -> U_Type {
 
     auto U = this->_U_latest;
 
@@ -768,8 +768,8 @@ protected:
    * @return _U_Horizon_Type The computed optimal change in control input over
    * the horizon.
    */
-  inline auto _solve(const _X_Augmented_Type &X_augmented)
-      -> _U_Horizon_Type override {
+  inline auto
+  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,
