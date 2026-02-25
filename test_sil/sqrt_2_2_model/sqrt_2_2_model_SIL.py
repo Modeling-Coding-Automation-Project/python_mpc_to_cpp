@@ -167,7 +167,7 @@ def main():
     delay_index = 0
 
     tester = MCAPTester()
-    NEAR_LIMIT = 0.5
+    NEAR_LIMIT = 1e-5
 
     # simulation
     for i in range(round(simulation_time / sim_delta_time)):
