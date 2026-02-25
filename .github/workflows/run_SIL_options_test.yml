@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - develop
+    - feature/*
 
 jobs:
   test_SIL:
@@ -50,5 +51,7 @@ jobs:
       run: '/opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/state_space_SISO_trajectory_SIL.py
 
         /opt/venv_py_MCAP/bin/python3 ./test_sil/adaptive_mpc_two_wheel_vehicle_constraints_delay/two_wheel_vehicle_model_constraints_delay_SIL.py
+
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/sqrt_2_2_model/sqrt_2_2_model_SIL.py
 
         '
