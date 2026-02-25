@@ -1,0 +1,74 @@
+#include "sqrt_2_2_model_SIL_wrapper.hpp"
+
+#include "sqrt_2_2_model_SIL_ada_mpc_ekf_parameter.hpp"
+
+#include "python_control.hpp"
+
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
+using FLOAT = typename sqrt_2_2_model_SIL_wrapper::type::Value_Type;
+
+constexpr std::size_t INPUT_SIZE = sqrt_2_2_model_SIL_wrapper::INPUT_SIZE;
+constexpr std::size_t STATE_SIZE = sqrt_2_2_model_SIL_wrapper::STATE_SIZE;
+constexpr std::size_t OUTPUT_SIZE = sqrt_2_2_model_SIL_wrapper::OUTPUT_SIZE;
+
+using Reference_Type = typename sqrt_2_2_model_SIL_wrapper::Reference_Type;
+
+sqrt_2_2_model_SIL_wrapper::type ada_mpc;
+
+void initialize(void) { ada_mpc = sqrt_2_2_model_SIL_wrapper::make(); }
+
+py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
+                                       py::array_t<FLOAT> Y_in) {
+
+  py::buffer_info ref_info = ref_in.request();
+  py::buffer_info Y_info = Y_in.request();
+
+  /* check compatibility */
+  if (OUTPUT_SIZE != ref_info.shape[0]) {
+    throw std::runtime_error("ref must have " + std::to_string(OUTPUT_SIZE) +
+                             " columns.");
+  }
+
+  if (OUTPUT_SIZE != Y_info.shape[0]) {
+    throw std::runtime_error("Y must have " + std::to_string(OUTPUT_SIZE) +
+                             " outputs.");
+  }
+
+  /* substitute */
+  FLOAT *ref_data_ptr = static_cast<FLOAT *>(ref_info.ptr);
+  Reference_Type ref;
+  for (std::size_t i = 0; i < Reference_Type::COLS; ++i) {
+    for (std::size_t j = 0; j < Reference_Type::ROWS; ++j) {
+      ref.access(i, j) = ref_data_ptr[i * Reference_Type::ROWS + j];
+    }
+  }
+
+  FLOAT *Y_data_ptr = static_cast<FLOAT *>(Y_info.ptr);
+  PythonControl::StateSpaceOutput_Type<FLOAT, OUTPUT_SIZE> Y;
+  for (std::size_t i = 0; i < OUTPUT_SIZE; ++i) {
+    Y.access(i, 0) = Y_data_ptr[i];
+  }
+
+  /* update */
+  auto U = ada_mpc.update_manipulation(ref, Y);
+
+  /* output U */
+  py::array_t<FLOAT> result;
+  result.resize({static_cast<int>(INPUT_SIZE), static_cast<int>(1)});
+
+  for (std::size_t i = 0; i < INPUT_SIZE; ++i) {
+    result.mutable_at(i, 0) = U.access(i, 0);
+  }
+
+  return result;
+}
+
+PYBIND11_MODULE(Sqrt22ModelSIL, m) {
+  m.def("initialize", &initialize, "initialize adaptive MPC");
+  m.def("update_manipulation", &update_manipulation,
+        "update MPC with ref and output");
+}
