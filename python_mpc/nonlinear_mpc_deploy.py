@@ -4,7 +4,7 @@ File: nonlinear_mpc_deploy.py
 This module provides functionality to deploy a Nonlinear Model Predictive Control (MPC)
 system to C++ code. It includes methods to generate C++ code for the Nonlinear MPC
 based on the provided Python implementation.
-It includes the `NonlinearMPC_Deploy` class with a static method
+It includes the `NonlinearMPC_TwiceDifferentiableDeploy` class with a static method
 `generate_Nonlinear_MPC_cpp_code` that takes a `NonlinearMPC_TwiceDifferentiable` object
 and generates the corresponding C++ code files.
 """
@@ -31,9 +31,9 @@ from external_libraries.python_optimization_to_cpp.optimization_utility.sqp_matr
 from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
 
 
-class NonlinearMPC_Deploy:
+class NonlinearMPC_TwiceDifferentiableDeploy:
     """
-    NonlinearMPC_Deploy
+    NonlinearMPC_TwiceDifferentiableDeploy
 
     This class provides static methods for deploying a
       nonlinear Model Predictive Controller (MPC) by generating corresponding

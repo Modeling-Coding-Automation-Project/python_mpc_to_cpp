@@ -14,7 +14,7 @@ import sympy as sp
 from dataclasses import dataclass
 
 from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
-from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_Deploy
+from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_TwiceDifferentiableDeploy
 
 from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_path import interpolate_path_csv
 
@@ -126,7 +126,7 @@ def main():
     )
 
     # You can create cpp header which can easily define MPC as C++ code
-    deployed_file_names = NonlinearMPC_Deploy.generate_Nonlinear_MPC_cpp_code(
+    deployed_file_names = NonlinearMPC_TwiceDifferentiableDeploy.generate_Nonlinear_MPC_cpp_code(
         nonlinear_mpc)
 
     current_dir = os.path.dirname(__file__)
