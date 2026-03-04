@@ -27,6 +27,7 @@ import sympy as sp
 from dataclasses import dataclass
 
 from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_OptimizationEngine
+from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_OptimizationEngineDeploy
 
 from sample.simulation_manager.visualize.simulation_plotter_dash import SimulationPlotterDash
 from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_path import interpolate_path_csv
@@ -212,7 +213,7 @@ def main():
                           [q0_reference_path[0, 0]],
                           [q3_reference_path[0, 0]]])
 
-    nmpc = NonlinearMPC_OptimizationEngine(
+    nonlinear_mpc = NonlinearMPC_OptimizationEngine(
         delta_time=state_space_parameters.delta_time,
         X=x_syms,
         U=u_syms,
@@ -230,10 +231,15 @@ def main():
         Number_of_Delay=Number_of_Delay,
     )
 
+    # You can create cpp header which can easily define MPC as C++ code
+    deployed_file_names = NonlinearMPC_OptimizationEngineDeploy.generate_Nonlinear_MPC_cpp_code(
+        nonlinear_mpc)
+    print(deployed_file_names)
+
     x_true = X_initial
     u = np.array([[0.0], [0.0]])
 
-    nmpc.solver.set_solver_max_iteration(
+    nonlinear_mpc.solver.set_solver_max_iteration(
         outer_max_iterations=10,
         inner_max_iterations=5
     )
@@ -250,14 +256,14 @@ def main():
         if i > 0:
             u = np.copy(u_from_mpc)
 
-        x_true = nmpc.kalman_filter.state_function(
+        x_true = nonlinear_mpc.kalman_filter.state_function(
             x_true, u, state_space_parameters)
 
         q_norm = np.sqrt(x_true[2, 0]**2 + x_true[3, 0]**2)
         x_true[2, 0] = x_true[2, 0] / q_norm
         x_true[3, 0] = x_true[3, 0] / q_norm
 
-        y_store[delay_index] = nmpc.kalman_filter.measurement_function(
+        y_store[delay_index] = nonlinear_mpc.kalman_filter.measurement_function(
             x_true, state_space_parameters)
 
         # system delay
@@ -279,11 +285,12 @@ def main():
             reference_path[2, j] = q0_reference_path[index, 0]
             reference_path[3, j] = q3_reference_path[index, 0]
 
-        u_from_mpc = nmpc.update_manipulation(reference_path, y_measured)
+        u_from_mpc = nonlinear_mpc.update_manipulation(
+            reference_path, y_measured)
 
         # monitoring
         outer_solver_iteration, inner_solver_iteration = \
-            nmpc.solver.get_solver_step_iterated_number()
+            nonlinear_mpc.solver.get_solver_step_iterated_number()
 
         px_reference = reference_path[0, 0]
         py_reference = reference_path[1, 0]
