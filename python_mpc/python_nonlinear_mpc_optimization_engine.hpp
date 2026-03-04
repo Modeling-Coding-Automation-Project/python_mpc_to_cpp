@@ -643,8 +643,8 @@ protected:
   inline void _setup_alm_problem() {
 
     _ALM_Factory_Type alm_factory;
-    alm_factory.set_f(this->_cost_function);
-    alm_factory.set_df(this->_gradient_function);
+    alm_factory.set_cost_function(this->_cost_function);
+    alm_factory.set_gradient_function(this->_gradient_function);
 
     this->_alm_problem.set_parametric_cost(
         [&alm_factory](const U_Horizon_Type &u,
@@ -713,11 +713,11 @@ protected:
         };
 
     _ALM_Factory_Type alm_factory;
-    alm_factory.set_f(this->_cost_function);
-    alm_factory.set_df(this->_gradient_function);
+    alm_factory.set_cost_function(this->_cost_function);
+    alm_factory.set_gradient_function(this->_gradient_function);
     alm_factory.set_mapping_f1(mapping_f1);
     alm_factory.set_jacobian_f1_trans(jacobian_f1_trans);
-    alm_factory.set_set_c_project(set_c_project_func);
+    alm_factory.set_c_projection(set_c_project_func);
 
     this->_alm_problem.set_parametric_cost(
         [alm_factory](const U_Horizon_Type &u,
