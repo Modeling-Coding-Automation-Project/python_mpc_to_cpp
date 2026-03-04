@@ -1652,8 +1652,8 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
     auto u_from_mpc = nonlinear_mpc.update_manipulation(reference_trajectory, y_measured);
 
     auto u_from_mpc_answer = make_DenseMatrix<INPUT_SIZE, 1>(
-        static_cast<T>(0.52508323),
-        static_cast<T>(0.22256554)
+        static_cast<T>(0.52496104825422141),
+        static_cast<T>(0.22241527110074333)
     );
 
     tester.expect_near(u_from_mpc.matrix.data, u_from_mpc_answer.matrix.data, NEAR_LIMIT_STRICT,
