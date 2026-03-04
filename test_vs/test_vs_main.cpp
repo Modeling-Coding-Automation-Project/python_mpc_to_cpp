@@ -1588,7 +1588,7 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
     using Parameter_Type = kinematic_bicycle_model_nmpc_ekf_parameter::Parameter_Type<T>;
     Parameter_Type parameter;
 
-    nonlinear_mpc.set_solver_max_iteration(5);
+    nonlinear_mpc.set_solver_max_iteration(10, 5);
 
     auto reference = make_DenseMatrixOnes<T, OUTPUT_SIZE, 1>();
 

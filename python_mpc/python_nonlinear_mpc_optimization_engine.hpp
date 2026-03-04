@@ -44,11 +44,11 @@ namespace PythonMPC {
  * ========================================================================== */
 namespace NonlinearMPC_OptimizationEngine_Constants {
 
-static constexpr std::size_t NMPC_SOLVER_MAX_ITERATION_DEFAULT = 20;
 static constexpr double PANOC_TOLERANCE_DEFAULT = 1e-4;
 static constexpr std::size_t PANOC_LBFGS_MEMORY_DEFAULT = 5;
 
-static constexpr std::size_t ALM_MAX_OUTER_ITERATIONS_DEFAULT = 10;
+static constexpr std::size_t ALM_INNER_MAX_ITERATION_DEFAULT = 20;
+static constexpr std::size_t ALM_OUTER_MAX_ITERATIONS_DEFAULT = 10;
 static constexpr double ALM_EPSILON_TOLERANCE_DEFAULT = 1e-4;
 static constexpr double ALM_DELTA_TOLERANCE_DEFAULT = 1e-3;
 static constexpr double ALM_INITIAL_INNER_TOLERANCE_DEFAULT = 1e-2;
@@ -329,8 +329,10 @@ public:
   NonlinearMPC_OptimizationEngine()
       : U_horizon(), _kalman_filter(), _cost_matrices(), _delta_time(0),
         _Y_store(),
-        _solver_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
-                                  NMPC_SOLVER_MAX_ITERATION_DEFAULT),
+        _solver_outer_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
+                                        ALM_OUTER_MAX_ITERATIONS_DEFAULT),
+        _solver_inner_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
+                                        ALM_INNER_MAX_ITERATION_DEFAULT),
         _last_iteration_count(0), _cost_function(nullptr),
         _gradient_function(nullptr), _alm_problem(), _solver(),
         _solver_status() {}
@@ -340,8 +342,10 @@ public:
                                   _T delta_time, X_Type X_initial)
       : U_horizon(), _kalman_filter(kalman_filter),
         _cost_matrices(cost_matrices), _delta_time(delta_time), _Y_store(),
-        _solver_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
-                                  NMPC_SOLVER_MAX_ITERATION_DEFAULT),
+        _solver_outer_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
+                                        ALM_OUTER_MAX_ITERATIONS_DEFAULT),
+        _solver_inner_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
+                                        ALM_INNER_MAX_ITERATION_DEFAULT),
         _last_iteration_count(0), _cost_function(), _gradient_function(),
         _alm_problem(), _solver(), _solver_status() {
 
@@ -358,7 +362,8 @@ public:
       : U_horizon(input.U_horizon), _kalman_filter(input._kalman_filter),
         _cost_matrices(input._cost_matrices), _delta_time(input._delta_time),
         _Y_store(input._Y_store),
-        _solver_max_iteration(input._solver_max_iteration),
+        _solver_outer_max_iteration(input._solver_outer_max_iteration),
+        _solver_inner_max_iteration(input._solver_inner_max_iteration),
         _last_iteration_count(input._last_iteration_count),
         _cost_function(input._cost_function),
         _gradient_function(input._gradient_function),
@@ -379,7 +384,8 @@ public:
       this->_cost_matrices = input._cost_matrices;
       this->_delta_time = input._delta_time;
       this->_Y_store = input._Y_store;
-      this->_solver_max_iteration = input._solver_max_iteration;
+      this->_solver_outer_max_iteration = input._solver_outer_max_iteration;
+      this->_solver_inner_max_iteration = input._solver_inner_max_iteration;
       this->_last_iteration_count = input._last_iteration_count;
 
       this->_cost_function = {};
@@ -405,7 +411,8 @@ public:
         _cost_matrices(std::move(input._cost_matrices)),
         _delta_time(std::move(input._delta_time)),
         _Y_store(std::move(input._Y_store)),
-        _solver_max_iteration(input._solver_max_iteration),
+        _solver_outer_max_iteration(input._solver_outer_max_iteration),
+        _solver_inner_max_iteration(input._solver_inner_max_iteration),
         _last_iteration_count(input._last_iteration_count),
         _cost_function(std::move(input._cost_function)),
         _gradient_function(std::move(input._gradient_function)),
@@ -428,7 +435,8 @@ public:
       this->_cost_matrices = std::move(input._cost_matrices);
       this->_delta_time = std::move(input._delta_time);
       this->_Y_store = std::move(input._Y_store);
-      this->_solver_max_iteration = input._solver_max_iteration;
+      this->_solver_outer_max_iteration = input._solver_outer_max_iteration;
+      this->_solver_inner_max_iteration = input._solver_inner_max_iteration;
       this->_last_iteration_count = input._last_iteration_count;
 
       this->_cost_function = {};
@@ -450,15 +458,23 @@ public:
   /**
    * @brief Sets the maximum number of iterations for the solver.
    *
-   * @param max_iteration The maximum number of iterations the solver is allowed
-   * to perform.
+   * @param outer_max_iteration The maximum number of outer iterations the
+   * solver is allowed to perform.
+   * @param inner_max_iteration The maximum number of inner iterations the
+   * solver is allowed to perform.
    */
-  inline void set_solver_max_iteration(std::size_t max_iteration) {
-    this->_solver_max_iteration = max_iteration;
-    this->_solver.set_solver_max_iteration(
-        NonlinearMPC_OptimizationEngine_Constants::
-            ALM_MAX_OUTER_ITERATIONS_DEFAULT,
-        max_iteration);
+  inline void
+  set_solver_max_iteration(std::size_t outer_max_iteration =
+                               NonlinearMPC_OptimizationEngine_Constants::
+                                   ALM_OUTER_MAX_ITERATIONS_DEFAULT,
+                           std::size_t inner_max_iteration =
+                               NonlinearMPC_OptimizationEngine_Constants::
+                                   ALM_INNER_MAX_ITERATION_DEFAULT) {
+    this->_solver_outer_max_iteration = outer_max_iteration;
+    this->_solver_inner_max_iteration = inner_max_iteration;
+
+    this->_solver.set_solver_max_iteration(this->_solver_outer_max_iteration,
+                                           this->_solver_inner_max_iteration);
   }
 
   /**
@@ -754,10 +770,8 @@ protected:
 
     this->_setup_alm_problem();
 
-    this->_solver.set_solver_max_iteration(
-        NonlinearMPC_OptimizationEngine_Constants::
-            ALM_MAX_OUTER_ITERATIONS_DEFAULT,
-        this->_solver_max_iteration);
+    this->_solver.set_solver_max_iteration(this->_solver_outer_max_iteration,
+                                           this->_solver_inner_max_iteration);
 
     this->_solver.set_epsilon_tolerance(
         static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
@@ -800,7 +814,8 @@ protected:
 
   Y_Store_Type _Y_store;
 
-  std::size_t _solver_max_iteration;
+  std::size_t _solver_outer_max_iteration;
+  std::size_t _solver_inner_max_iteration;
   std::size_t _last_iteration_count;
 
   _CostFunction_Type _cost_function;
