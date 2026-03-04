@@ -59,5 +59,8 @@
     <ClInclude Include="..\python_mpc\python_nonlinear_mpc_twice_differentiable.hpp">
       <Filter>リソース ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="..\python_mpc\python_nonlinear_mpc_optimization_engine.hpp">
+      <Filter>リソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
