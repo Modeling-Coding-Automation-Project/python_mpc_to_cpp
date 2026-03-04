@@ -333,9 +333,8 @@ public:
                                         ALM_OUTER_MAX_ITERATIONS_DEFAULT),
         _solver_inner_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
                                         ALM_INNER_MAX_ITERATION_DEFAULT),
-        _last_iteration_count(0), _cost_function(nullptr),
-        _gradient_function(nullptr), _alm_problem(), _solver(),
-        _solver_status() {}
+        _cost_function(nullptr), _gradient_function(nullptr), _alm_problem(),
+        _solver(), _solver_status() {}
 
   NonlinearMPC_OptimizationEngine(EKF_Type &kalman_filter,
                                   Cost_Matrices_Type &cost_matrices,
@@ -346,8 +345,8 @@ public:
                                         ALM_OUTER_MAX_ITERATIONS_DEFAULT),
         _solver_inner_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
                                         ALM_INNER_MAX_ITERATION_DEFAULT),
-        _last_iteration_count(0), _cost_function(), _gradient_function(),
-        _alm_problem(), _solver(), _solver_status() {
+        _cost_function(), _gradient_function(), _alm_problem(), _solver(),
+        _solver_status() {
 
     this->_kalman_filter.set_x_hat(X_initial);
 
@@ -364,7 +363,6 @@ public:
         _Y_store(input._Y_store),
         _solver_outer_max_iteration(input._solver_outer_max_iteration),
         _solver_inner_max_iteration(input._solver_inner_max_iteration),
-        _last_iteration_count(input._last_iteration_count),
         _cost_function(input._cost_function),
         _gradient_function(input._gradient_function),
         _alm_problem(input._alm_problem), _solver(input._solver),
@@ -386,7 +384,6 @@ public:
       this->_Y_store = input._Y_store;
       this->_solver_outer_max_iteration = input._solver_outer_max_iteration;
       this->_solver_inner_max_iteration = input._solver_inner_max_iteration;
-      this->_last_iteration_count = input._last_iteration_count;
 
       this->_cost_function = {};
       this->_gradient_function = {};
@@ -413,7 +410,7 @@ public:
         _Y_store(std::move(input._Y_store)),
         _solver_outer_max_iteration(input._solver_outer_max_iteration),
         _solver_inner_max_iteration(input._solver_inner_max_iteration),
-        _last_iteration_count(input._last_iteration_count),
+
         _cost_function(std::move(input._cost_function)),
         _gradient_function(std::move(input._gradient_function)),
         _alm_problem(std::move(input._alm_problem)),
@@ -437,7 +434,6 @@ public:
       this->_Y_store = std::move(input._Y_store);
       this->_solver_outer_max_iteration = input._solver_outer_max_iteration;
       this->_solver_inner_max_iteration = input._solver_inner_max_iteration;
-      this->_last_iteration_count = input._last_iteration_count;
 
       this->_cost_function = {};
       this->_gradient_function = {};
@@ -503,13 +499,12 @@ public:
   /* Getter */
 
   /**
-   * @brief Retrieves the number of iterations performed in the last solver
-   * step.
    *
-   * @return std::size_t The number of inner iterations.
+
    */
-  inline auto get_solver_step_iterated_number(void) const -> std::size_t {
-    return this->_last_iteration_count;
+  inline auto get_solver_step_iterated_number(void) const
+      -> std::tuple<std::size_t, std::size_t> {
+    return this->_solver.get_solver_step_iterated_number();
   }
 
   /**
@@ -581,7 +576,6 @@ public:
     this->U_horizon = this->_solver.solve(this->U_horizon);
 
     this->_solver_status = this->_solver.get_solver_status();
-    this->_last_iteration_count = this->_solver_status.num_inner_iterations;
 
     U_latest = this->_calculate_this_U(this->U_horizon);
 
@@ -816,7 +810,6 @@ protected:
 
   std::size_t _solver_outer_max_iteration;
   std::size_t _solver_inner_max_iteration;
-  std::size_t _last_iteration_count;
 
   _CostFunction_Type _cost_function;
   _GradientFunction_Type _gradient_function;

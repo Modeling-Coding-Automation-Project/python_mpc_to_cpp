@@ -1,6 +1,8 @@
 ﻿#include <type_traits>
 #include <iostream>
 #include <cmath>
+#include <tuple>
+#include <stdexcept>
 
 #include "python_mpc.hpp"
 
@@ -1588,7 +1590,9 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
     using Parameter_Type = kinematic_bicycle_model_nmpc_ekf_parameter::Parameter_Type<T>;
     Parameter_Type parameter;
 
-    nonlinear_mpc.set_solver_max_iteration(10, 5);
+    std::size_t outer_count = 10;
+    std::size_t inner_count = 5;
+    nonlinear_mpc.set_solver_max_iteration(outer_count, inner_count);
 
     auto reference = make_DenseMatrixOnes<T, OUTPUT_SIZE, 1>();
 
@@ -1658,6 +1662,16 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
 
     tester.expect_near(u_from_mpc.matrix.data, u_from_mpc_answer.matrix.data, NEAR_LIMIT_STRICT,
         "check Nonlinear MPC OptEng, update_manipulation, U.");
+
+
+    std::tie(outer_count, inner_count) = nonlinear_mpc.get_solver_step_iterated_number();
+
+    if (outer_count == 0) {
+        throw std::runtime_error("outer_count should be greater than 0 after update_manipulation.");
+    }
+    if (inner_count == 0) {
+        throw std::runtime_error("inner_count should be greater than 0 after update_manipulation.");
+    }
 
 
     tester.throw_error_if_test_failed();
