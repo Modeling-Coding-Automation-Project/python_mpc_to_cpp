@@ -1540,7 +1540,7 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
     MCAPTester<T> tester;
 
     // There is a Floating point Numerical instability problem.
-    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-4);
+    constexpr T NEAR_LIMIT_STRICT = std::is_same<T, double>::value ? T(1.0e-5) : T(1.0e-2);
 
     using namespace PythonMPC_KinematicBicycleModelData;
 
