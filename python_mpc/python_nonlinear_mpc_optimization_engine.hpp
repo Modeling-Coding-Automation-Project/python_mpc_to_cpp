@@ -576,6 +576,39 @@ protected:
   /* Function */
 
   /**
+   * @brief Converts a matrix to a flat vector for optimization.
+   *
+   * @tparam Matrix_Type Type of the input matrix.
+   * @param matrix The input matrix to be flattened.
+   * @return PythonNumpy::DenseMatrix_Type<_T, Matrix_Type::COLS *
+   * Matrix_Type::ROWS, 1> The flattened matrix as a column vector.
+   */
+  template <typename Matrix_Type>
+  static inline auto _to_flat(Matrix_Type matrix)
+      -> PythonNumpy::DenseMatrix_Type<
+          _T, Matrix_Type::COLS * Matrix_Type::ROWS, 1> {
+
+    return PythonNumpy::reshape<Matrix_Type::COLS * Matrix_Type::ROWS, 1>(
+        matrix);
+  }
+
+  /**
+   * @brief Converts a flat vector back to a matrix of specified dimensions.
+   *
+   * @tparam M Number of rows in the output matrix.
+   * @tparam N Number of columns in the output matrix.
+   * @param vector The input flat vector to be reshaped.
+   * @return PythonNumpy::DenseMatrix_Type<_T, M, N> The reshaped matrix with
+   * dimensions M x N.
+   */
+  template <std::size_t M, std::size_t N, typename Vector_Type>
+  static inline auto _from_flat(Vector_Type vector)
+      -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
+
+    return PythonNumpy::reshape<M, N>(vector);
+  }
+
+  /**
    * @brief Calculates the current control input from the control input horizon.
    *
    * @param U_horizon_in The control input horizon.
@@ -641,10 +674,10 @@ protected:
   inline void _setup_alm_problem() {
 
     /* Create output constraint box projection */
-    _Y_Horizon_Flat_Type Y_min_flat =
-        PythonNumpy::flatten(this->_cost_matrices.get_Y_min_matrix());
-    _Y_Horizon_Flat_Type Y_max_flat =
-        PythonNumpy::flatten(this->_cost_matrices.get_Y_max_matrix());
+    _Y_Horizon_Flat_Type Y_min_flat = NonlinearMPC_OptimizationEngine::_to_flat(
+        this->_cost_matrices.get_Y_min_matrix());
+    _Y_Horizon_Flat_Type Y_max_flat = NonlinearMPC_OptimizationEngine::_to_flat(
+        this->_cost_matrices.get_Y_max_matrix());
 
     _BoxProjection_Y_Type set_c_project(Y_min_flat, Y_max_flat);
 
@@ -657,14 +690,15 @@ protected:
     _MappingF1_Type mapping_f1 =
         [this](const U_Horizon_Type &u) -> _Y_Horizon_Flat_Type {
       Y_Horizon_Type Y_horizon = this->_cost_matrices.compute_output_mapping(u);
-      return PythonNumpy::flatten(Y_horizon);
+      return NonlinearMPC_OptimizationEngine::_to_flat(Y_horizon);
     };
 
     _JacobianF1Trans_Type jacobian_f1_trans =
         [this](const U_Horizon_Type &u,
                const _Y_Horizon_Flat_Type &d) -> _Gradient_Type {
-      Y_Horizon_Type D_reshaped;
-      PythonNumpy::reshape_from_flat(D_reshaped, d);
+      Y_Horizon_Type D_reshaped =
+          NonlinearMPC_OptimizationEngine::_from_flat<Y_Horizon_Type::COLS,
+                                                      Y_Horizon_Type::ROWS>(d);
       return this->_cost_matrices.compute_output_jacobian_trans(u, D_reshaped);
     };
 
