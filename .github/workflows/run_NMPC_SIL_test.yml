@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - develop
+    - feature/*
 
 jobs:
   test_SIL:
@@ -48,5 +49,7 @@ jobs:
         '
     - name: Run SIL tests
       run: '/opt/venv_py_MCAP/bin/python3 ./test_sil/nonlinear_mpc_kinematic_bicycle_model/kinematic_bicycle_model_SIL.py
+
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/nonlinear_mpc_kinematic_bicycle_model_op_en/kinematic_bicycle_model_op_en_SIL.py
 
         '
