@@ -647,14 +647,14 @@ protected:
     alm_factory.set_gradient_function(this->_gradient_function);
 
     this->_alm_problem.set_parametric_cost(
-        [&alm_factory](const U_Horizon_Type &u,
-                       const typename _ALM_Factory_Type::Xi_Type &xi) -> _T {
+        [alm_factory](const U_Horizon_Type &u,
+                      const typename _ALM_Factory_Type::Xi_Type &xi) -> _T {
           return alm_factory.psi(u, xi);
         });
 
     this->_alm_problem.set_parametric_gradient(
-        [&alm_factory](const U_Horizon_Type &u,
-                       const typename _ALM_Factory_Type::Xi_Type &xi)
+        [alm_factory](const U_Horizon_Type &u,
+                      const typename _ALM_Factory_Type::Xi_Type &xi)
             -> _Gradient_Type { return alm_factory.d_psi(u, xi); });
 
     this->_alm_problem.set_u_min_matrix(
