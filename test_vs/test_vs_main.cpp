@@ -1396,7 +1396,7 @@ void check_Adaptive_MPC(void) {
 }
 
 template <typename T>
-void check_Nonlinear_MPC(void) {
+void check_Nonlinear_MPC_Twice_Differentiable(void) {
     using namespace PythonNumpy;
     using namespace PythonControl;
     using namespace PythonMPC;
@@ -1572,9 +1572,11 @@ int main(void) {
 
     check_Adaptive_MPC<float>();
 
-    check_Nonlinear_MPC<double>();
+    check_Nonlinear_MPC_Twice_Differentiable<double>();
 
-    check_Nonlinear_MPC<float>();
+    check_Nonlinear_MPC_Twice_Differentiable<float>();
+
+
 
 
     return 0;
