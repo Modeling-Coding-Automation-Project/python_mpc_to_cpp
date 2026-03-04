@@ -1715,7 +1715,5 @@ int main(void) {
     check_Nonlinear_MPC_Optimization_Engine<float>();
 
 
-
-
     return 0;
 }
