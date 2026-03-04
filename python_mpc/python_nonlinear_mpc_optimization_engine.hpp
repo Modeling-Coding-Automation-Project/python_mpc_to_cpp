@@ -499,8 +499,11 @@ public:
   /* Getter */
 
   /**
+   * @brief Retrieves the number of iterations taken by the solver in the last
+   * solve call.
    *
-
+   * @return std::tuple<std::size_t, std::size_t> A tuple containing the number
+   * of outer and inner iterations taken by the solver.
    */
   inline auto get_solver_step_iterated_number(void) const
       -> std::tuple<std::size_t, std::size_t> {
