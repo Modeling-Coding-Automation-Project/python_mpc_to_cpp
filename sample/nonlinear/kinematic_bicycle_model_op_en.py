@@ -1,12 +1,13 @@
 """
-File: kinematic_bicycle_model.py
+File: kinematic_bicycle_model_op_en.py
 
-Description: Example of Nonlinear MPC for a kinematic bicycle model with nonlinear dynamics.
-This script implements and simulates a Nonlinear Model Predictive Control (MPC)
-system for a kinematic bicycle model. The vehicle dynamics are symbolically derived using SymPy,
+This script implements and simulates a nonlinear Model Predictive Control (MPC)
+system for a kinematic bicycle model using the PANOC/ALM optimization engine.
+The vehicle dynamics are symbolically derived using SymPy,
 including the state-space and measurement models and their Jacobians.
 The simulation runs a closed-loop control scenario,
-where the MPC tracks a reference trajectory for vehicle position and orientation.
+where the MPC tracks a reference trajectory for vehicle position and
+orientation while respecting input constraints.
 The code also visualizes the results using a custom plotter,
 allowing analysis of the controller's performance over time.
 """
@@ -25,8 +26,8 @@ import numpy as np
 import sympy as sp
 from dataclasses import dataclass
 
-from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
-from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_TwiceDifferentiableDeploy
+from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_OptimizationEngine
+from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_OptimizationEngineDeploy
 
 from sample.simulation_manager.visualize.simulation_plotter_dash import SimulationPlotterDash
 from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_path import interpolate_path_csv
@@ -37,28 +38,33 @@ def load_cpp_run_data(cpp_csv_relpath=None):
     Load C++ run CSV produced by the C++ demo.
 
     Args:
-        cpp_csv_relpath: relative path from cwd to csv (default: 'sample/nonlinear/cpp_run_data.csv')
+        cpp_csv_relpath: relative path from cwd to csv
+            (default: 'sample/nonlinear/cpp_run_data_op_en.csv')
 
     Returns:
-        (exists, px, py, yaw, v, delta, iteration, absolute_path)
+        (exists, px, py, yaw, v, delta, outer_iteration, inner_iteration,
+         absolute_path)
         where each time-series is a (N,1) numpy array or None if missing.
     """
     if cpp_csv_relpath is None:
         cpp_csv_relpath = os.path.join(
-            'sample', 'nonlinear', 'cpp_run_data.csv')
+            'sample', 'nonlinear', 'cpp_run_data_op_en.csv')
 
     cpp_csv_path = os.path.join(os.getcwd(), cpp_csv_relpath)
     cpp_run_data_exists = False
-    px_cpp = py_cpp = yaw_cpp = v_cpp = delta_cpp = iteration_cpp = None
+    px_cpp = py_cpp = yaw_cpp = v_cpp = delta_cpp = None
+    outer_iteration_cpp = inner_iteration_cpp = None
 
     try:
         if os.path.exists(cpp_csv_path):
-            # The CSV header is: px,py,yaw,v,delta,iteration
-            # Use numpy.genfromtxt to robustly skip header and handle missing values.
+            # The CSV header is:
+            #   px,py,yaw,v,delta,outer_iteration,inner_iteration
             cpp_data = np.genfromtxt(
-                cpp_csv_path, delimiter=',', names=True, dtype=None, encoding='utf-8')
+                cpp_csv_path, delimiter=',', names=True, dtype=None,
+                encoding='utf-8')
 
-            # If the file was empty or only header, genfromtxt may return an empty array
+            # If the file was empty or only header, genfromtxt may return
+            # an empty array
             if cpp_data is None or getattr(cpp_data, 'size', 0) == 0:
                 cpp_data = None
 
@@ -74,19 +80,25 @@ def load_cpp_run_data(cpp_csv_relpath=None):
                 yaw_cpp = col('yaw')
                 v_cpp = col('v')
                 delta_cpp = col('delta')
-                iteration_cpp = None
-                if 'iteration' in cpp_data.dtype.names:
-                    iteration_cpp = np.asarray(
-                        cpp_data['iteration']).reshape(-1, 1)
+                outer_iteration_cpp = None
+                inner_iteration_cpp = None
+                if 'outer_iteration' in cpp_data.dtype.names:
+                    outer_iteration_cpp = np.asarray(
+                        cpp_data['outer_iteration']).reshape(-1, 1)
+                if 'inner_iteration' in cpp_data.dtype.names:
+                    inner_iteration_cpp = np.asarray(
+                        cpp_data['inner_iteration']).reshape(-1, 1)
 
                 print(
-                    f"Loaded C++ run data from: {cpp_csv_path} (rows={px_cpp.shape[0] if px_cpp is not None else 0})")
+                    f"Loaded C++ run data from: {cpp_csv_path}"
+                    f" (rows={px_cpp.shape[0] if px_cpp is not None else 0})")
 
                 cpp_run_data_exists = True
     except Exception as e:
         print(f"Failed to load C++ run data: {e}")
 
-    return cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp, iteration_cpp, cpp_csv_path
+    return (cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp,
+            outer_iteration_cpp, inner_iteration_cpp, cpp_csv_path)
 
 
 def create_plant_model():
@@ -212,7 +224,7 @@ def main():
                           [q0_reference_path[0, 0]],
                           [q3_reference_path[0, 0]]])
 
-    nonlinear_mpc = NonlinearMPC_TwiceDifferentiable(
+    nonlinear_mpc = NonlinearMPC_OptimizationEngine(
         delta_time=state_space_parameters.delta_time,
         X=x_syms,
         U=u_syms,
@@ -231,14 +243,17 @@ def main():
     )
 
     # You can create cpp header which can easily define MPC as C++ code
-    deployed_file_names = NonlinearMPC_TwiceDifferentiableDeploy.generate_Nonlinear_MPC_cpp_code(
+    deployed_file_names = NonlinearMPC_OptimizationEngineDeploy.generate_Nonlinear_MPC_cpp_code(
         nonlinear_mpc)
     print(deployed_file_names)
 
     x_true = X_initial
     u = np.array([[0.0], [0.0]])
 
-    nonlinear_mpc.set_solver_max_iteration(5)
+    nonlinear_mpc.solver.set_solver_max_iteration(
+        outer_max_iterations=10,
+        inner_max_iterations=5
+    )
 
     plotter = SimulationPlotterDash()
 
@@ -285,7 +300,8 @@ def main():
             reference_path, y_measured)
 
         # monitoring
-        solver_iteration = nonlinear_mpc.get_solver_step_iterated_number()
+        outer_solver_iteration, inner_solver_iteration = \
+            nonlinear_mpc.solver.get_solver_step_iterated_number()
 
         px_reference = reference_path[0, 0]
         py_reference = reference_path[1, 0]
@@ -306,12 +322,14 @@ def main():
         plotter.append_name(yaw_measured, "yaw_measured")
         plotter.append_name(v, "v")
         plotter.append_name(delta, "delta")
-        plotter.append_name(solver_iteration, "solver_iteration")
+        plotter.append_name(outer_solver_iteration, "outer_solver_iteration")
+        plotter.append_name(inner_solver_iteration, "inner_solver_iteration")
 
     # Read C++ run data.
-    # Read C++ run data using helper function
-    cpp_csv_relpath = os.path.join('sample', 'nonlinear', 'cpp_run_data.csv')
-    cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp, iteration_cpp, cpp_csv_path = \
+    cpp_csv_relpath = os.path.join(
+        'sample', 'nonlinear', 'cpp_run_data_op_en.csv')
+    (cpp_run_data_exists, px_cpp, py_cpp, yaw_cpp, v_cpp, delta_cpp,
+     outer_iteration_cpp, inner_iteration_cpp, cpp_csv_path) = \
         load_cpp_run_data(cpp_csv_relpath)
 
     if cpp_run_data_exists:
@@ -320,7 +338,10 @@ def main():
         plotter.append_sequence_name(yaw_cpp, "yaw_cpp")
         plotter.append_sequence_name(v_cpp, "v_cpp")
         plotter.append_sequence_name(delta_cpp, "delta_cpp")
-        plotter.append_sequence_name(iteration_cpp, "solver_iteration_cpp")
+        plotter.append_sequence_name(
+            outer_iteration_cpp, "outer_solver_iteration_cpp")
+        plotter.append_sequence_name(
+            inner_iteration_cpp, "inner_solver_iteration_cpp")
 
     plotter.assign("px_reference", column=0, row=0, position=(0, 0),
                    x_sequence=times, label="px_reference")
@@ -358,11 +379,17 @@ def main():
         plotter.assign("delta_cpp", column=0, row=0, position=(1, 1),
                        x_sequence=times, label="delta_cpp")
 
-    plotter.assign("solver_iteration", column=0, row=0, position=(2, 1),
-                   x_sequence=times, label="solver_iteration")
+    plotter.assign("outer_solver_iteration", column=0, row=0, position=(2, 1),
+                   x_sequence=times, label="outer_solver_iteration")
+    plotter.assign("inner_solver_iteration", column=0, row=0, position=(2, 1),
+                   x_sequence=times, label="inner_solver_iteration")
     if cpp_run_data_exists:
-        plotter.assign("solver_iteration_cpp", column=0, row=0, position=(2, 1),
-                       x_sequence=times, label="solver_iteration_cpp")
+        plotter.assign("outer_solver_iteration_cpp", column=0, row=0,
+                       position=(2, 1), x_sequence=times,
+                       label="outer_solver_iteration_cpp")
+        plotter.assign("inner_solver_iteration_cpp", column=0, row=0,
+                       position=(2, 1), x_sequence=times,
+                       label="inner_solver_iteration_cpp")
 
     plotter.plot()
 

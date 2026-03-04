@@ -13,8 +13,8 @@ import numpy as np
 import sympy as sp
 from dataclasses import dataclass
 
-from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_TwiceDifferentiable
-from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_TwiceDifferentiableDeploy
+from external_libraries.MCAP_python_mpc.python_mpc.nonlinear_mpc import NonlinearMPC_OptimizationEngine
+from python_mpc.nonlinear_mpc_deploy import NonlinearMPC_OptimizationEngineDeploy
 
 from external_libraries.MCAP_python_mpc.sample.nonlinear.support.interpolate_path import interpolate_path_csv
 
@@ -107,7 +107,7 @@ def main():
                           [q0_reference_path[0, 0]],
                           [q3_reference_path[0, 0]]])
 
-    nonlinear_mpc = NonlinearMPC_TwiceDifferentiable(
+    nonlinear_mpc = NonlinearMPC_OptimizationEngine(
         delta_time=state_space_parameters.delta_time,
         X=x_syms,
         U=u_syms,
@@ -126,27 +126,30 @@ def main():
     )
 
     # You can create cpp header which can easily define MPC as C++ code
-    deployed_file_names = NonlinearMPC_TwiceDifferentiableDeploy.generate_Nonlinear_MPC_cpp_code(
+    deployed_file_names = NonlinearMPC_OptimizationEngineDeploy.generate_Nonlinear_MPC_cpp_code(
         nonlinear_mpc)
 
     current_dir = os.path.dirname(__file__)
     generator = SIL_CodeGenerator(deployed_file_names, current_dir)
     generator.build_SIL_code()
 
-    from test_sil.nonlinear_mpc_kinematic_bicycle_model import NonlinearMpcKinematicBicycleModelSIL
-    NonlinearMpcKinematicBicycleModelSIL.initialize()
+    from test_sil.nonlinear_mpc_kinematic_bicycle_model_op_en import NonlinearMpcKinematicBicycleModelOpEnSIL
+    NonlinearMpcKinematicBicycleModelOpEnSIL.initialize()
 
     x_true = X_initial
     u = np.array([[0.0], [0.0]])
 
-    nonlinear_mpc.set_solver_max_iteration(5)
+    nonlinear_mpc.solver.set_solver_max_iteration(
+        outer_max_iterations=10,
+        inner_max_iterations=5
+    )
 
     y_measured = np.array([[0.0], [0.0], [0.0], [0.0]])
     y_store = [y_measured] * (Number_of_Delay + 1)
     delay_index = 0
 
     tester = MCAPTester()
-    NEAR_LIMIT = 0.5
+    NEAR_LIMIT = 0.1
 
     # simulation
     for i in range(round(simulation_time / delta_time)):
@@ -185,11 +188,12 @@ def main():
 
         u_from_mpc = nonlinear_mpc.update_manipulation(reference, y_measured)
 
-        u_cpp = NonlinearMpcKinematicBicycleModelSIL.update_manipulation(
+        u_cpp = NonlinearMpcKinematicBicycleModelOpEnSIL.update_manipulation(
             reference, y_measured)
 
         # monitoring
-        solver_iteration = nonlinear_mpc.get_solver_step_iterated_number()
+        outer_solver_iteration, inner_solver_iteration = \
+            nonlinear_mpc.solver.get_solver_step_iterated_number()
 
         px_ref = reference[0, 0]
         py_ref = reference[1, 0]
@@ -201,9 +205,9 @@ def main():
         v = u_from_mpc[0, 0]
         delta = u_from_mpc[1, 0]
 
-        tester.expect_near(
-            u_from_mpc, u_cpp, NEAR_LIMIT,
-            "Nonlinear MPC kinematic bicycle model SIL, check update_manipulation.")
+    tester.expect_near(
+        u_from_mpc, u_cpp, NEAR_LIMIT,
+        "Nonlinear MPC kinematic bicycle model op_en SIL, check update_manipulation.")
 
     tester.throw_error_if_test_failed()
 
