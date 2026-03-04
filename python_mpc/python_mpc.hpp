@@ -5,6 +5,6 @@
 
 #include "python_adaptive_mpc.hpp"
 #include "python_linear_mpc.hpp"
-#include "python_nonlinear_mpc.hpp"
+#include "python_nonlinear_mpc_twice_differentiable.hpp"
 
 #endif // __PYTHON_MPC_HPP__

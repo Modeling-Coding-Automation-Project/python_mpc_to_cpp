@@ -1,5 +1,5 @@
 /**
- * @file python_nonlinear_mpc.hpp
+ * @file python_nonlinear_mpc_twice_differentiable.hpp
  *
  * @brief Nonlinear Model Predictive Control (Nonlinear MPC) library
  *
