@@ -250,9 +250,9 @@ def main():
     x_true = X_initial
     u = np.array([[0.0], [0.0]])
 
-    nonlinear_mpc.solver.set_solver_max_iteration(
+    nonlinear_mpc.set_solver_max_iteration(
         outer_max_iterations=10,
-        inner_max_iterations=5
+        inner_max_iterations=15
     )
 
     plotter = SimulationPlotterDash()
@@ -301,7 +301,7 @@ def main():
 
         # monitoring
         outer_solver_iteration, inner_solver_iteration = \
-            nonlinear_mpc.solver.get_solver_step_iterated_number()
+            nonlinear_mpc.get_solver_step_iterated_number()
 
         px_reference = reference_path[0, 0]
         py_reference = reference_path[1, 0]

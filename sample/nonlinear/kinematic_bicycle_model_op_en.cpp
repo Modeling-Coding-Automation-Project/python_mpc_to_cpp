@@ -123,7 +123,7 @@ int main(void) {
 
   auto nonlinear_mpc = kinematic_bicycle_model_op_en_nonlinear_mpc::make();
 
-  nonlinear_mpc.set_solver_max_iteration(10, 5);
+  nonlinear_mpc.set_solver_max_iteration(10, 15);
 
   kinematic_bicycle_model_op_en_nonlinear_mpc::Parameter_Type parameters;
 

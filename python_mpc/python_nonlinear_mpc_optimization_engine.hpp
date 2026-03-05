@@ -559,8 +559,8 @@ public:
    * @return U_Type The updated control input to be applied.
    */
   template <typename Reference_Type_In>
-  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
-      -> U_Type {
+  inline auto update_manipulation(Reference_Type_In &reference,
+                                  const Y_Type &Y) -> U_Type {
 
     auto U_latest = this->_calculate_this_U(this->U_horizon);
 
@@ -615,8 +615,8 @@ protected:
    * dimensions M x N.
    */
   template <std::size_t M, std::size_t N, typename Vector_Type>
-  static inline auto _from_flat(Vector_Type vector)
-      -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
+  static inline auto
+  _from_flat(Vector_Type vector) -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
 
     return PythonNumpy::reshape<M, N>(vector);
   }
@@ -756,11 +756,43 @@ protected:
   }
 
   /**
+   * @brief Returns the initial inner tolerance when output constraints are
+   * present.
+   */
+  template <bool _HasOutputConstraints = HasOutputConstraints,
+            typename std::enable_if<_HasOutputConstraints, int>::type = 0>
+  inline _T _get_initial_inner_tolerance() const {
+    return static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+                               ALM_INITIAL_INNER_TOLERANCE_DEFAULT);
+  }
+
+  /**
+   * @brief Returns the initial inner tolerance when no output constraints
+   * exist. Set equal to epsilon_tolerance so the ALM outer loop exits after
+   * 1 iteration, avoiding unnecessary tolerance ramp-down overhead.
+   */
+  template <bool _HasOutputConstraints = HasOutputConstraints,
+            typename std::enable_if<!_HasOutputConstraints, int>::type = 0>
+  inline _T _get_initial_inner_tolerance() const {
+    return static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+                               ALM_EPSILON_TOLERANCE_DEFAULT);
+  }
+
+  /**
    * @brief Initializes the solver with the initial state.
    *
    * @param X_initial The initial state for solver initialization.
+   *
+   * When no output constraints exist (n1 == 0), set
+   * initial_inner_tolerance # equal to epsilon_tolerance so the ALM outer loop
+   * exits after 1 iteration. # Otherwise, the tolerance ramp-down from
+   * initial_inner_tolerance to # epsilon_tolerance unnecessarily drives the
+   * outer iteration count.
    */
   inline void _initialize_solver(const X_Type &X_initial) {
+
+    _T initial_inner_tolerance = this->_get_initial_inner_tolerance();
+
     this->_bind_cost_functions();
 
     this->_cost_matrices.X_initial = X_initial;
@@ -776,9 +808,7 @@ protected:
     this->_solver.set_delta_tolerance(
         static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
                             ALM_DELTA_TOLERANCE_DEFAULT));
-    this->_solver.set_initial_inner_tolerance(
-        static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
-                            ALM_INITIAL_INNER_TOLERANCE_DEFAULT));
+    this->_solver.set_initial_inner_tolerance(initial_inner_tolerance);
     this->_solver.set_initial_penalty(
         static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
                             ALM_INITIAL_PENALTY_DEFAULT));

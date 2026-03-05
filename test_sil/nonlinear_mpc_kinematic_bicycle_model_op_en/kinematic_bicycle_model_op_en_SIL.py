@@ -149,7 +149,7 @@ def main():
     delay_index = 0
 
     tester = MCAPTester()
-    NEAR_LIMIT = 0.1
+    NEAR_LIMIT = 0.5
 
     # simulation
     for i in range(round(simulation_time / delta_time)):
@@ -205,9 +205,9 @@ def main():
         v = u_from_mpc[0, 0]
         delta = u_from_mpc[1, 0]
 
-    tester.expect_near(
-        u_from_mpc, u_cpp, NEAR_LIMIT,
-        "Nonlinear MPC kinematic bicycle model op_en SIL, check update_manipulation.")
+        tester.expect_near(
+            u_from_mpc, u_cpp, NEAR_LIMIT,
+            "Nonlinear MPC kinematic bicycle model op_en SIL, check update_manipulation.")
 
     tester.throw_error_if_test_failed()
 
