@@ -1591,7 +1591,7 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
     Parameter_Type parameter;
 
     std::size_t outer_count = 10;
-    std::size_t inner_count = 5;
+    std::size_t inner_count = 15;
     nonlinear_mpc.set_solver_max_iteration(outer_count, inner_count);
 
     auto reference = make_DenseMatrixOnes<T, OUTPUT_SIZE, 1>();
@@ -1656,8 +1656,8 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
     auto u_from_mpc = nonlinear_mpc.update_manipulation(reference_trajectory, y_measured);
 
     auto u_from_mpc_answer = make_DenseMatrix<INPUT_SIZE, 1>(
-        static_cast<T>(0.52496104825422141),
-        static_cast<T>(0.22241527110074333)
+        static_cast<T>(0.52504609178974415),
+        static_cast<T>(0.22249161498160061)
     );
 
     tester.expect_near(u_from_mpc.matrix.data, u_from_mpc_answer.matrix.data, NEAR_LIMIT_STRICT,
