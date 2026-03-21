@@ -771,11 +771,11 @@ protected:
           return this->_sqp_cost_matrices.compute_cost(X, U);
         };
 
-    this->_cost_and_gradient_function =
-        [this](const X_Type &X, const U_Horizon_Type &U,
-               typename X_Type::Value_Type &J, _Gradient_Type &gradient) {
-          this->_sqp_cost_matrices.compute_cost_and_gradient(X, U, J, gradient);
-        };
+    this->_cost_and_gradient_function = [this](const X_Type &X,
+                                               const U_Horizon_Type &U)
+        -> std::tuple<typename X_Type::Value_Type, _Gradient_Type> {
+      return this->_sqp_cost_matrices.compute_cost_and_gradient(X, U);
+    };
 
     this->_hvp_function = [this](const X_Type &X, const U_Horizon_Type &U,
                                  const _V_Horizon_Type &V) -> _HVP_Type {
