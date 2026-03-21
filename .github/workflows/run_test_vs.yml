@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - develop
+    - feature/*
 
 jobs:
   test_vs:
@@ -16,7 +17,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: recursive
     - name: Install dependencies
