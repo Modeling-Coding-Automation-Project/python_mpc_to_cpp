@@ -658,8 +658,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : _LTI_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 
@@ -1395,8 +1394,7 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other)
-  noexcept
+  LTV_MPC(LTV_MPC &&other) noexcept
       : _LTV_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 

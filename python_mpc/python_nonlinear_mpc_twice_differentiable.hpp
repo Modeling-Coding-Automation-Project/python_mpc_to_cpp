@@ -125,8 +125,8 @@ struct Column {
                              const Reference_Type &reference) {
     Row<ReferenceTrajectory_Type, Reference_Type, I_idx, (N - 1)>::compute(
         reference_trajectory, reference);
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
-        reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N,
+           (I_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
@@ -136,8 +136,8 @@ struct Column {
  *
  * This struct template specializes the `Row` struct for the case when
  * `I_idx` is 0. It defines a static inline function `compute` that processes
- * the first column of the `reference_trajectory` object by invoking the `Column`
- * struct to copy elements from the `reference` object.
+ * the first column of the `reference_trajectory` object by invoking the
+ * `Column` struct to copy elements from the `reference` object.
  *
  * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
  * which must provide a `set<0, J_idx>()` method.
@@ -183,8 +183,8 @@ template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
 
-  Column<ReferenceTrajectory_Type, Reference_Type, ROWS, Np, (ROWS - 1)>::compute(
-      reference_trajectory, reference);
+  Column<ReferenceTrajectory_Type, Reference_Type, ROWS, Np,
+         (ROWS - 1)>::compute(reference_trajectory, reference);
 }
 
 } // namespace SubstituteReferenceTrajectory
@@ -254,7 +254,7 @@ struct Row {
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, J_idx>(reference.template get<I, 0>());
     Row<ReferenceTrajectory_Type, Reference_Type, M, N, I,
-           (J_idx - 1)>::compute(reference_trajectory, reference);
+        (J_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
@@ -314,9 +314,9 @@ struct Column {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     Row<ReferenceTrajectory_Type, Reference_Type, M, N, I_idx,
-           (N - 1)>::compute(reference_trajectory, reference);
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
-        reference_trajectory, reference);
+        (N - 1)>::compute(reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N,
+           (I_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
@@ -326,8 +326,8 @@ struct Column {
  *
  * This struct template specializes the `Row` struct for the case when
  * `I_idx` is 0. It defines a static inline function `compute` that processes
- * the first column of the `reference_trajectory` object by invoking the `Column`
- * struct to copy elements from the `reference` vector.
+ * the first column of the `reference_trajectory` object by invoking the
+ * `Column` struct to copy elements from the `reference` vector.
  *
  * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
  * which must provide a `set<0, J_idx>()` method.

@@ -94,8 +94,8 @@ struct Column {
                              const Reference_Type &reference) {
     Row<ReferenceTrajectory_Type, Reference_Type, I_idx, (N - 1)>::compute(
         reference_trajectory, reference);
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
-        reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N,
+           (I_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
@@ -114,8 +114,8 @@ template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
 
-  Column<ReferenceTrajectory_Type, Reference_Type, ROWS, Np, (ROWS - 1)>::compute(
-      reference_trajectory, reference);
+  Column<ReferenceTrajectory_Type, Reference_Type, ROWS, Np,
+         (ROWS - 1)>::compute(reference_trajectory, reference);
 }
 
 } // namespace SubstituteReferenceTrajectory
@@ -150,7 +150,7 @@ struct Row {
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, J_idx>(reference.template get<I, 0>());
     Row<ReferenceTrajectory_Type, Reference_Type, M, N, I,
-           (J_idx - 1)>::compute(reference_trajectory, reference);
+        (J_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
@@ -169,9 +169,9 @@ struct Column {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     Row<ReferenceTrajectory_Type, Reference_Type, M, N, I_idx,
-           (N - 1)>::compute(reference_trajectory, reference);
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
-        reference_trajectory, reference);
+        (N - 1)>::compute(reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N,
+           (I_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
@@ -559,8 +559,8 @@ public:
    * @return U_Type The updated control input to be applied.
    */
   template <typename Reference_Type_In>
-  inline auto update_manipulation(Reference_Type_In &reference,
-                                  const Y_Type &Y) -> U_Type {
+  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
+      -> U_Type {
 
     auto U_latest = this->_calculate_this_U(this->U_horizon);
 
@@ -615,8 +615,8 @@ protected:
    * dimensions M x N.
    */
   template <std::size_t M, std::size_t N, typename Vector_Type>
-  static inline auto
-  _from_flat(Vector_Type vector) -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
+  static inline auto _from_flat(Vector_Type vector)
+      -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
 
     return PythonNumpy::reshape<M, N>(vector);
   }
