@@ -117,7 +117,7 @@ namespace two_wheel_vehicle_model_ada_mpc_ekf_state_function {
 template <typename T>
 using A_Type = two_wheel_vehicle_model_ekf_A::type<T>;
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 template <typename T>
 using U_Type = StateSpaceInput_Type<T, 2>;
 
@@ -187,7 +187,7 @@ template <typename T>
 using A_Type = two_wheel_vehicle_model_ekf_A::type<T>;
 
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 
 template <typename T>
 using U_Type = StateSpaceInput_Type<T, 2>;
@@ -312,10 +312,10 @@ template <typename T>
 using C_Type = two_wheel_vehicle_model_ekf_C::type<T>;
 
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 
 template <typename T>
-using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::COLS>;
+using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::ROWS>;
 
 template <typename T>
 inline auto sympy_function(const T r, const T theta, const T V, const T px, const T py) -> Y_Type<T> {
@@ -359,10 +359,10 @@ template <typename T>
 using C_Type = two_wheel_vehicle_model_ekf_C::type<T>;
 
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 
 template <typename T>
-using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::COLS>;
+using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::ROWS>;
 
 template <typename T>
 inline auto sympy_function() -> C_Type<T> {

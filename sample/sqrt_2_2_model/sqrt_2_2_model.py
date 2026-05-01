@@ -222,19 +222,19 @@ def main():
         plotter.append_name(u_from_mpc, "u")
 
     # plot
-    plotter.assign("x_true", column=0, row=0, position=(0, 0),
+    plotter.assign("x_true", row=0, column=0, position=(0, 0),
                    x_sequence=time, label="x1_true")
-    plotter.assign("reference", column=0, row=0, position=(0, 0),
+    plotter.assign("reference", row=0, column=0, position=(0, 0),
                    x_sequence=time, label="x1_reference")
 
-    plotter.assign("x_true", column=1, row=0, position=(1, 0),
+    plotter.assign("x_true", row=1, column=0, position=(1, 0),
                    x_sequence=time, label="x2_true")
-    plotter.assign("reference", column=1, row=0, position=(1, 0),
+    plotter.assign("reference", row=1, column=0, position=(1, 0),
                    x_sequence=time, label="x2_reference")
 
-    plotter.assign("u", column=0, row=0, position=(0, 1),
+    plotter.assign("u", row=0, column=0, position=(0, 1),
                    x_sequence=time, label="u1")
-    plotter.assign("u", column=1, row=0, position=(1, 1),
+    plotter.assign("u", row=1, column=0, position=(1, 1),
                    x_sequence=time, label="u2")
 
     plotter.plot()

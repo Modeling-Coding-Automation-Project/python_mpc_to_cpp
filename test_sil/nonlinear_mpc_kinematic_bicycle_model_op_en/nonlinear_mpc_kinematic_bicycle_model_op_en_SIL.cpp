@@ -60,13 +60,13 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
 
   if (OUTPUT_SIZE != ref_cols) {
     throw std::runtime_error("reference_trajectory must have " +
-                             std::to_string(OUTPUT_SIZE) + " cols (outputs).");
+                             std::to_string(OUTPUT_SIZE) + " rows (outputs).");
   }
 
   if (NP != ref_rows) {
     throw std::runtime_error("reference_trajectory must have " +
-                             std::to_string(ReferenceTrajectory_Type::COLS) +
-                             " columns (horizon).");
+                             std::to_string(ReferenceTrajectory_Type::ROWS) +
+                             " rows (horizon).");
   }
 
   if (Y_info.ndim != 1 && Y_info.ndim != 2) {

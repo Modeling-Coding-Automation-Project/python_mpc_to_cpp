@@ -74,7 +74,7 @@ struct CountTrue2D_Row {
  * @brief Specialization of CountTrue2D_Row for the last row.
  *
  * This specialization sets the value to 0 when the row index is -1, indicating
- * no more rows to count.
+ * no more cols to count.
  */
 template <typename Flags, std::size_t Col>
 struct CountTrue2D_Row<Flags, Col, static_cast<std::size_t>(-1)> {
@@ -83,10 +83,10 @@ struct CountTrue2D_Row<Flags, Col, static_cast<std::size_t>(-1)> {
 
 /**
  * @brief A utility structure to count the number of true conditions in a 2D
- * boolean flag array by columns.
+ * boolean flag array by rows.
  *
  * This structure is used to count how many times a condition evaluates to
- * true in a 2D compile-time context, iterating over columns.
+ * true in a 2D compile-time context, iterating over rows.
  */
 template <typename Flags, std::size_t Col, std::size_t Row>
 struct CountTrue2D_Col {
@@ -99,7 +99,7 @@ struct CountTrue2D_Col {
  * @brief Specialization of CountTrue2D_Col for the last column.
  *
  * This specialization sets the value to 0 when the column index is -1,
- * indicating no more columns to count.
+ * indicating no more rows to count.
  */
 template <typename Flags, std::size_t Row>
 struct CountTrue2D_Col<Flags, static_cast<std::size_t>(-1), Row> {
@@ -112,11 +112,11 @@ struct CountTrue2D_Col<Flags, static_cast<std::size_t>(-1), Row> {
  *
  * This alias uses the CountTrue2D_Col metafunction to recursively count the
  * number of true values in a 2D compile-time flag array (Flags), considering
- * columns up to (Col - 1) and a specified row (Row).
+ * rows up to (Col - 1) and a specified row (Row).
  *
  * @tparam Flags The 2D array of boolean flags (typically a template parameter
  * pack or array).
- * @tparam Col The number of columns to consider (exclusive upper bound).
+ * @tparam Col The number_of_rows to consider (exclusive upper bound).
  * @tparam Row The row index to consider.
  */
 template <typename Flags, std::size_t Col, std::size_t Row>
@@ -167,20 +167,20 @@ public:
       std::is_same<typename Y_Max_Type::Value_Type, Value_Type>::value,
       "Y_Min_Type::Value_Type must be equal to Value_Type");
 
-  static_assert(Delta_U_Min_Type::COLS == Delta_U_Max_Type::COLS &&
-                    Delta_U_Min_Type::ROWS == Delta_U_Max_Type::ROWS,
+  static_assert(Delta_U_Min_Type::ROWS == Delta_U_Max_Type::ROWS &&
+                    Delta_U_Min_Type::COLS == Delta_U_Max_Type::COLS,
                 "Delta_U_Min_Type size must be equal to Delta_U_Max_Type");
 
-  static_assert(Delta_U_Min_Type::COLS == U_Min_Type::COLS &&
-                    Delta_U_Min_Type::ROWS == U_Min_Type::ROWS,
+  static_assert(Delta_U_Min_Type::ROWS == U_Min_Type::ROWS &&
+                    Delta_U_Min_Type::COLS == U_Min_Type::COLS,
                 "Delta_U_Min_Type size must be equal to U_Min_Type");
 
-  static_assert(U_Min_Type::COLS == U_Max_Type::COLS &&
-                    U_Min_Type::ROWS == U_Max_Type::ROWS,
+  static_assert(U_Min_Type::ROWS == U_Max_Type::ROWS &&
+                    U_Min_Type::COLS == U_Max_Type::COLS,
                 "U_Min_Type size must be equal to U_Max_Type");
 
-  static_assert(Y_Min_Type::COLS == Y_Max_Type::COLS &&
-                    Y_Min_Type::ROWS == Y_Max_Type::ROWS,
+  static_assert(Y_Min_Type::ROWS == Y_Max_Type::ROWS &&
+                    Y_Min_Type::COLS == Y_Max_Type::COLS,
                 "Y_Min_Type size must be equal to Y_Max_Type");
 
 protected:
@@ -189,12 +189,12 @@ protected:
 
 public:
   /* Constant */
-  static constexpr std::size_t DELTA_U_MIN_SIZE = Delta_U_Min_Type::COLS;
-  static constexpr std::size_t DELTA_U_MAX_SIZE = Delta_U_Max_Type::COLS;
-  static constexpr std::size_t U_MIN_SIZE = U_Min_Type::COLS;
-  static constexpr std::size_t U_MAX_SIZE = U_Max_Type::COLS;
-  static constexpr std::size_t Y_MIN_SIZE = Y_Min_Type::COLS;
-  static constexpr std::size_t Y_MAX_SIZE = Y_Max_Type::COLS;
+  static constexpr std::size_t DELTA_U_MIN_SIZE = Delta_U_Min_Type::ROWS;
+  static constexpr std::size_t DELTA_U_MAX_SIZE = Delta_U_Max_Type::ROWS;
+  static constexpr std::size_t U_MIN_SIZE = U_Min_Type::ROWS;
+  static constexpr std::size_t U_MAX_SIZE = U_Max_Type::ROWS;
+  static constexpr std::size_t Y_MIN_SIZE = Y_Min_Type::ROWS;
+  static constexpr std::size_t Y_MAX_SIZE = Y_Max_Type::ROWS;
 
 public:
   /* Constructor */
@@ -454,32 +454,32 @@ public:
   /* Constant */
   static constexpr std::size_t DELTA_U_MIN_CONSTRAINTS =
       SolverUtilityOperation::CountTrue2D<Delta_U_Min_Flags,
-                                          Delta_U_Min_Type::COLS,
-                                          Delta_U_Min_Type::ROWS>::value;
+                                          Delta_U_Min_Type::ROWS,
+                                          Delta_U_Min_Type::COLS>::value;
   static constexpr std::size_t DELTA_U_MAX_CONSTRAINTS =
       SolverUtilityOperation::CountTrue2D<Delta_U_Max_Flags,
-                                          Delta_U_Max_Type::COLS,
-                                          Delta_U_Max_Type::ROWS>::value;
+                                          Delta_U_Max_Type::ROWS,
+                                          Delta_U_Max_Type::COLS>::value;
 
   static constexpr std::size_t NUMBER_OF_DELTA_U_CONSTRAINTS =
       DELTA_U_MIN_CONSTRAINTS + DELTA_U_MAX_CONSTRAINTS;
 
   static constexpr std::size_t U_MIN_CONSTRAINTS =
-      SolverUtilityOperation::CountTrue2D<U_Min_Flags, U_Min_Type::COLS,
-                                          U_Min_Type::ROWS>::value;
+      SolverUtilityOperation::CountTrue2D<U_Min_Flags, U_Min_Type::ROWS,
+                                          U_Min_Type::COLS>::value;
   static constexpr std::size_t U_MAX_CONSTRAINTS =
-      SolverUtilityOperation::CountTrue2D<U_Max_Flags, U_Max_Type::COLS,
-                                          U_Max_Type::ROWS>::value;
+      SolverUtilityOperation::CountTrue2D<U_Max_Flags, U_Max_Type::ROWS,
+                                          U_Max_Type::COLS>::value;
 
   static constexpr std::size_t NUMBER_OF_U_CONSTRAINTS =
       U_MIN_CONSTRAINTS + U_MAX_CONSTRAINTS;
 
   static constexpr std::size_t Y_MIN_CONSTRAINTS =
-      SolverUtilityOperation::CountTrue2D<Y_Min_Flags, Y_Min_Type::COLS,
-                                          Y_Min_Type::ROWS>::value;
+      SolverUtilityOperation::CountTrue2D<Y_Min_Flags, Y_Min_Type::ROWS,
+                                          Y_Min_Type::COLS>::value;
   static constexpr std::size_t Y_MAX_CONSTRAINTS =
-      SolverUtilityOperation::CountTrue2D<Y_Max_Flags, Y_Max_Type::COLS,
-                                          Y_Max_Type::ROWS>::value;
+      SolverUtilityOperation::CountTrue2D<Y_Max_Flags, Y_Max_Type::ROWS,
+                                          Y_Max_Type::COLS>::value;
 
   static constexpr std::size_t NUMBER_OF_Y_CONSTRAINTS =
       Y_MIN_CONSTRAINTS + Y_MAX_CONSTRAINTS;
@@ -1284,7 +1284,7 @@ struct Set_M_Y_Min_Cols {
    * @brief Applies constraints to the matrix M based on the Phi matrix.
    *
    * This static function modifies the matrix M by setting specific entries
-   * based on the values from the Phi matrix. It iterates through the columns
+   * based on the values from the Phi matrix. It iterates through the rows
    * of the Phi matrix, applying constraints for each column until J_Dif is
    * reached.
    *
@@ -1293,7 +1293,7 @@ struct Set_M_Y_Min_Cols {
    * @tparam Y_Constraints_Prediction_Offset Offset for Y constraints in Phi.
    * @tparam I Current row index in M and Phi.
    * @tparam J Current column index in M and Phi.
-   * @tparam J_Dif The difference in columns for recursion (template parameter).
+   * @tparam J_Dif The difference in rows for recursion (template parameter).
    * @param M Reference to the matrix to be modified.
    * @param Phi Reference to the Phi matrix providing constraint values.
    * @param initial_position The starting position in M for applying the
@@ -1315,7 +1315,7 @@ template <typename M_Type, typename Phi_Type,
 struct Set_M_Y_Min_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, J,
                         0> {
   /**
-   * @brief A no-op function for the case when there are no more columns to
+   * @brief A no-op function for the case when there are no more rows to
    * process.
    *
    * This static function does nothing and is used to terminate the recursion
@@ -1385,7 +1385,7 @@ struct Calculate_M_Gamma_Y_Min_Condition<
                     std::size_t initial_position) {
 
     Set_M_Y_Min_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, 0,
-                     (Phi_Type::ROWS - 1)>::apply(M, Phi, initial_position);
+                     (Phi_Type::COLS - 1)>::apply(M, Phi, initial_position);
 
     gamma.access(initial_position + I, 0) =
         -Y_min_matrix.template get<I, 0>() +
@@ -1562,7 +1562,7 @@ struct Set_M_Y_Max_Cols {
    * @brief Applies constraints to the matrix M based on the Phi matrix.
    *
    * This static function modifies the matrix M by setting specific entries
-   * based on the values from the Phi matrix. It iterates through the columns
+   * based on the values from the Phi matrix. It iterates through the rows
    * of the Phi matrix, applying constraints for each column until J_Dif is
    * reached.
    *
@@ -1571,7 +1571,7 @@ struct Set_M_Y_Max_Cols {
    * @tparam Y_Constraints_Prediction_Offset Offset for Y constraints in Phi.
    * @tparam I Current row index in M and Phi.
    * @tparam J Current column index in M and Phi.
-   * @tparam J_Dif The difference in columns for recursion (template parameter).
+   * @tparam J_Dif The difference in rows for recursion (template parameter).
    * @param M Reference to the matrix to be modified.
    * @param Phi Reference to the Phi matrix providing constraint values.
    * @param initial_position The starting position in M for applying the
@@ -1593,7 +1593,7 @@ template <typename M_Type, typename Phi_Type,
 struct Set_M_Y_Max_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, J,
                         0> {
   /**
-   * @brief A no-op function for the case when there are no more columns to
+   * @brief A no-op function for the case when there are no more rows to
    * process.
    *
    * This static function does nothing and is used to terminate the recursion
@@ -1663,7 +1663,7 @@ struct Calculate_M_Gamma_Y_Max_Condition<
                     std::size_t initial_position) {
 
     Set_M_Y_Max_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, 0,
-                     (Phi_Type::ROWS - 1)>::apply(M, Phi, initial_position);
+                     (Phi_Type::COLS - 1)>::apply(M, Phi, initial_position);
 
     gamma.access(initial_position + I, 0) =
         Y_max_matrix.template get<I, 0>() -
@@ -1921,15 +1921,15 @@ public:
       std::is_same<typename Y_Max_Type::Value_Type, Value_Type>::value,
       "Y_Max_Type::Value_Type must be equal to Value_Type");
 
-  static_assert(U_Type::ROWS == static_cast<std::size_t>(1),
+  static_assert(U_Type::COLS == static_cast<std::size_t>(1),
                 "U_Type must be a row vector");
 
-  static_assert(X_augmented_Type::COLS == F_Type::ROWS &&
-                    X_augmented_Type::ROWS == static_cast<std::size_t>(1),
+  static_assert(X_augmented_Type::ROWS == F_Type::COLS &&
+                    X_augmented_Type::COLS == static_cast<std::size_t>(1),
                 "X_augmented_Type size doesn't match F_Type size");
 
-  static_assert(Phi_Type::COLS == F_Type::COLS &&
-                    Phi_Type::ROWS == Number_Of_Variables,
+  static_assert(Phi_Type::ROWS == F_Type::ROWS &&
+                    Phi_Type::COLS == Number_Of_Variables,
                 "Phi_Type size doesn't match F_Type size");
 
 protected:
@@ -2247,7 +2247,7 @@ protected:
 public:
   /* Constant */
   static constexpr std::size_t NUMBER_OF_VARIABLES = Number_Of_Variables;
-  static constexpr std::size_t U_SIZE = U_Type::COLS;
+  static constexpr std::size_t U_SIZE = U_Type::ROWS;
   static constexpr std::size_t Y_SIZE = Output_Size;
 
 public:

@@ -145,7 +145,7 @@ def main():
         plotter.append_name(X, "X")
 
     plotter.assign("reference", position=(0, 0),
-                   column=0, row=0, x_sequence=time)
+                   row=0, column=0, x_sequence=time)
     plotter.assign_all("y_measured", position=(0, 0), x_sequence=time)
     plotter.assign_all("X", position=(1, 0), x_sequence=time)
     plotter.assign_all("U", position=(2, 0), x_sequence=time)

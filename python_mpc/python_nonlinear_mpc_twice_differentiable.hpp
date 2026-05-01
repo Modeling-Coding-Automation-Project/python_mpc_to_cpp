@@ -60,12 +60,12 @@ namespace SubstituteReferenceTrajectory {
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t I, std::size_t J_idx>
-struct Column {
+struct Row {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, J_idx>(
         reference.template get<I, J_idx>());
-    Column<ReferenceTrajectory_Type, Reference_Type, I, (J_idx - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, I, (J_idx - 1)>::compute(
         reference_trajectory, reference);
   }
 };
@@ -90,7 +90,7 @@ struct Column {
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t I>
-struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
+struct Row<ReferenceTrajectory_Type, Reference_Type, I, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, 0>(reference.template get<I, 0>());
@@ -98,7 +98,7 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
 };
 
 /**
- * @brief Recursively processes rows of the reference trajectory to copy
+ * @brief Recursively processes cols of the reference trajectory to copy
  * elements from the reference object.
  *
  * This struct template defines a static inline function `compute` that
@@ -111,8 +111,8 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
  * which must provide a `set<I, J_idx>()` method.
  * @tparam Reference_Type Type of the reference object, which must provide a
  * `get<I, J_idx>()` method.
- * @tparam M Total number of rows in the reference trajectory.
- * @tparam N Total number of columns in the reference trajectory.
+ * @tparam M Total number_of_columns in the reference trajectory.
+ * @tparam N Total number_of_rows in the reference trajectory.
  * @tparam I_idx Current row index being processed; decremented recursively.
  *
  * @param reference_trajectory The object to which elements are copied.
@@ -120,41 +120,41 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I_idx>
-struct Row {
+struct Column {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, I_idx, (N - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, I_idx, (N - 1)>::compute(
         reference_trajectory, reference);
-    Row<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
         reference_trajectory, reference);
   }
 };
 
 /**
- * @brief Base case for the recursive processing of rows in the reference
+ * @brief Base case for the recursive processing of cols in the reference
  * trajectory.
  *
  * This struct template specializes the `Row` struct for the case when
  * `I_idx` is 0. It defines a static inline function `compute` that processes
- * the first row of the `reference_trajectory` object by invoking the `Column`
+ * the first column of the `reference_trajectory` object by invoking the `Column`
  * struct to copy elements from the `reference` object.
  *
  * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
  * which must provide a `set<0, J_idx>()` method.
  * @tparam Reference_Type Type of the reference object, which must provide a
  * `get<0, J_idx>()` method.
- * @tparam M Total number of rows in the reference trajectory.
- * @tparam N Total number of columns in the reference trajectory.
+ * @tparam M Total number_of_columns in the reference trajectory.
+ * @tparam N Total number_of_rows in the reference trajectory.
  *
  * @param reference_trajectory The object to which elements are copied.
  * @param reference The object from which elements are copied.
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N>
-struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
+struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, 0, (N - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, 0, (N - 1)>::compute(
         reference_trajectory, reference);
   }
 };
@@ -167,8 +167,8 @@ struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
  * `Row` struct. It assumes that both objects provide appropriate `get` and
  * `set` methods for element access.
  *
- * @tparam COLS Number of columns in the reference trajectory.
- * @tparam Np Number of prediction steps (rows - 1) in the reference
+ * @tparam ROWS Number of rows in the reference trajectory.
+ * @tparam Np Number of prediction steps (cols - 1) in the reference
  * trajectory.
  * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
  * which must provide a `set<I, J_idx>()` method.
@@ -178,44 +178,44 @@ struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
  * @param reference_trajectory The object to which elements are copied.
  * @param reference The object from which elements are copied.
  */
-template <std::size_t COLS, std::size_t Np, typename ReferenceTrajectory_Type,
+template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
           typename Reference_Type>
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
 
-  Row<ReferenceTrajectory_Type, Reference_Type, COLS, Np, (COLS - 1)>::compute(
+  Column<ReferenceTrajectory_Type, Reference_Type, ROWS, Np, (ROWS - 1)>::compute(
       reference_trajectory, reference);
 }
 
 } // namespace SubstituteReferenceTrajectory
 
 /**
- * @brief Substitutes a reference trajectory based on the number of rows.
+ * @brief Substitutes a reference trajectory based on the number_of_columns.
  *
  * This function substitutes the reference trajectory based on the number of
- * rows in the reference input. If the number of rows is greater than 1, it
- * copies the reference values directly to the corresponding rows in the
- * reference trajectory. If the number of rows is 1, it replicates the single
- * reference value across all rows of the reference trajectory.
+ * cols in the reference input. If the number_of_columns is greater than 1, it
+ * copies the reference values directly to the corresponding cols in the
+ * reference trajectory. If the number_of_columns is 1, it replicates the single
+ * reference value across all cols of the reference trajectory.
  *
- * @tparam ROWS Number of rows in the reference input.
- * @tparam Np Number of prediction steps (rows - 1) in the reference
+ * @tparam COLS Number of columns in the reference input.
+ * @tparam Np Number of prediction steps (cols - 1) in the reference
  * trajectory.
  * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
  * which must provide a `set<I, J_idx>()` method.
  * @tparam Reference_Type Type of the reference object, which must provide a
  * `get<I, J_idx>()` method.
  */
-template <std::size_t ROWS, std::size_t NP, typename ReferenceTrajectory_Type,
+template <std::size_t COLS, std::size_t NP, typename ReferenceTrajectory_Type,
           typename Reference_Type>
-inline typename std::enable_if<(ROWS > 1), void>::type
+inline typename std::enable_if<(COLS > 1), void>::type
 substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
                      const Reference_Type &reference) {
   static_assert(
-      ReferenceTrajectory_Type::ROWS == (NP + 1),
-      "ROWS of ReferenceTrajectory_Type must be equal to NP + 1 when ROWS > 1");
+      ReferenceTrajectory_Type::COLS == (NP + 1),
+      "COLS of ReferenceTrajectory_Type must be equal to NP + 1 when COLS > 1");
 
-  constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
+  constexpr std::size_t M = ReferenceTrajectory_Type::ROWS;
 
   SubstituteReferenceTrajectory::substitute<M, NP>(reference_trajectory,
                                                    reference);
@@ -239,8 +239,8 @@ namespace SubstituteReferenceVector {
  * which must provide a `set<I, J_idx>()` method.
  * @tparam Reference_Type Type of the reference vector, which must provide a
  * `get<I, 0>()` method.
- * @tparam M Total number of rows in the reference trajectory.
- * @tparam N Total number of columns in the reference trajectory.
+ * @tparam M Total number_of_columns in the reference trajectory.
+ * @tparam N Total number_of_rows in the reference trajectory.
  * @tparam I Current row index being processed; decremented recursively.
  * @tparam J_idx Current column index being processed; decremented recursively.
  *
@@ -249,11 +249,11 @@ namespace SubstituteReferenceVector {
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I, std::size_t J_idx>
-struct Column {
+struct Row {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, J_idx>(reference.template get<I, 0>());
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, I,
+    Row<ReferenceTrajectory_Type, Reference_Type, M, N, I,
            (J_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
@@ -271,8 +271,8 @@ struct Column {
  * which must provide a `set<I, 0>()` method.
  * @tparam Reference_Type Type of the reference vector, which must provide a
  * `get<I, 0>()` method.
- * @tparam M Total number of rows in the reference trajectory.
- * @tparam N Total number of columns in the reference trajectory.
+ * @tparam M Total number_of_columns in the reference trajectory.
+ * @tparam N Total number_of_rows in the reference trajectory.
  * @tparam I Row index for the element to be copied.
  *
  * @param reference_trajectory The object to which elements are copied.
@@ -280,7 +280,7 @@ struct Column {
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I>
-struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
+struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, 0>(reference.template get<I, 0>());
@@ -288,7 +288,7 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
 };
 
 /**
- * @brief Recursively processes rows of the reference trajectory to copy
+ * @brief Recursively processes cols of the reference trajectory to copy
  * elements from the reference vector.
  *
  * This struct template defines a static inline function `compute` that
@@ -301,8 +301,8 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
  * which must provide a `set<I, J_idx>()` method.
  * @tparam Reference_Type Type of the reference vector, which must provide a
  * `get<I, 0>()` method.
- * @tparam M Total number of rows in the reference trajectory.
- * @tparam N Total number of columns in the reference trajectory.
+ * @tparam M Total number_of_columns in the reference trajectory.
+ * @tparam N Total number_of_rows in the reference trajectory.
  * @tparam I_idx Current row index being processed; decremented recursively.
  *
  * @param reference_trajectory The object to which elements are copied.
@@ -310,41 +310,41 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I_idx>
-struct Row {
+struct Column {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, I_idx,
+    Row<ReferenceTrajectory_Type, Reference_Type, M, N, I_idx,
            (N - 1)>::compute(reference_trajectory, reference);
-    Row<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
         reference_trajectory, reference);
   }
 };
 
 /**
- * @brief Base case for the recursive processing of rows in the reference
+ * @brief Base case for the recursive processing of cols in the reference
  * trajectory.
  *
  * This struct template specializes the `Row` struct for the case when
  * `I_idx` is 0. It defines a static inline function `compute` that processes
- * the first row of the `reference_trajectory` object by invoking the `Column`
+ * the first column of the `reference_trajectory` object by invoking the `Column`
  * struct to copy elements from the `reference` vector.
  *
  * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
  * which must provide a `set<0, J_idx>()` method.
  * @tparam Reference_Type Type of the reference vector, which must provide a
  * `get<0, 0>()` method.
- * @tparam M Total number of rows in the reference trajectory.
- * @tparam N Total number of columns in the reference trajectory.
+ * @tparam M Total number_of_columns in the reference trajectory.
+ * @tparam N Total number_of_rows in the reference trajectory.
  *
  * @param reference_trajectory The object to which elements are copied.
  * @param reference The object from which elements are copied.
  */
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N>
-struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
+struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, 0, (N - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0, (N - 1)>::compute(
         reference_trajectory, reference);
   }
 };
@@ -369,11 +369,11 @@ template <typename ReferenceTrajectory_Type, typename Reference_Type>
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
 
-  constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
-  constexpr std::size_t N = ReferenceTrajectory_Type::ROWS;
+  constexpr std::size_t M = ReferenceTrajectory_Type::ROWS;
+  constexpr std::size_t N = ReferenceTrajectory_Type::COLS;
 
   static_assert(M > 0 && N > 0, "Matrix dimensions must be positive");
-  Row<ReferenceTrajectory_Type, Reference_Type, M, N, (M - 1)>::compute(
+  Column<ReferenceTrajectory_Type, Reference_Type, M, N, (M - 1)>::compute(
       reference_trajectory, reference);
 }
 
@@ -385,22 +385,22 @@ inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
  * This function substitutes the reference trajectory by copying the values
  * from a reference vector to each column of the reference trajectory matrix.
  * It assumes that the reference vector has a single column and the same number
- * of rows as the reference trajectory.
+ * of cols as the reference trajectory.
  *
- * @tparam ROWS Number of rows in the reference input.
- * @tparam Np Number of prediction steps (rows - 1) in the reference
+ * @tparam COLS Number of columns in the reference input.
+ * @tparam Np Number of prediction steps (cols - 1) in the reference
  * trajectory.
  * @tparam ReferenceTrajectory_Type Type of the reference trajectory object,
  * which must provide a `set<I, J_idx>()` method.
  * @tparam Reference_Type Type of the reference vector, which must provide a
  * `get<I, 0>()` method.
  */
-template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
+template <std::size_t COLS, std::size_t Np, typename ReferenceTrajectory_Type,
           typename Reference_Type>
-inline typename std::enable_if<(ROWS == 1), void>::type
+inline typename std::enable_if<(COLS == 1), void>::type
 substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
                      const Reference_Type &reference) {
-  static_assert(ROWS == 1, "ROWS must be equal to 1");
+  static_assert(COLS == 1, "COLS must be equal to 1");
 
   SubstituteReferenceVector::substitute(reference_trajectory, reference);
 }
@@ -606,7 +606,7 @@ public:
    * prediction horizon.
    *
    * @tparam Reference_Type_In Type of the reference input, which must have
-   * static members `ROWS` and `COLS`.
+   * static members `COLS` and `ROWS`.
    * @param reference The reference input, which can be a trajectory matrix or
    * a single vector.
    *
@@ -617,11 +617,11 @@ public:
   template <typename Reference_Type_In>
   inline void set_reference_trajectory(const Reference_Type_In &reference) {
 
-    static_assert(Reference_Type_In::COLS == OUTPUT_SIZE,
-                  "COLS of Reference_Type_In must be equal to OUTPUT_SIZE");
-    static_assert((Reference_Type_In::ROWS == NP) ||
-                      (Reference_Type_In::ROWS == 1),
-                  "ROWS of Reference_Type_In must be equal to NP, or 1");
+    static_assert(Reference_Type_In::ROWS == OUTPUT_SIZE,
+                  "ROWS of Reference_Type_In must be equal to OUTPUT_SIZE");
+    static_assert((Reference_Type_In::COLS == NP) ||
+                      (Reference_Type_In::COLS == 1),
+                  "COLS of Reference_Type_In must be equal to NP, or 1");
     // If the input is reference vector, it is copied to all time steps.
     // Reference trajectory of sqp_cost_matrices is (OUTPUT_SIZE, NP + 1),
     // but reference input is (OUTPUT_SIZE, NP)
@@ -629,7 +629,7 @@ public:
     CostMatricesReferenceTrajectory_Type reference_trajectory;
 
     NonlinearMPC_ReferenceTrajectoryOperation::substitute_reference<
-        Reference_Type_In::ROWS, NP>(reference_trajectory, reference);
+        Reference_Type_In::COLS, NP>(reference_trajectory, reference);
 
     this->_sqp_cost_matrices.reference_trajectory = reference_trajectory;
   }
@@ -699,7 +699,7 @@ public:
    * optimal control input to be applied to the system.
    *
    * @tparam Reference_Type_In Type of the reference input, which must have
-   * static members `ROWS` and `COLS`.
+   * static members `COLS` and `ROWS`.
    * @param reference The current reference input for the MPC.
    * @param Y The current measurement used for state estimation.
    * @return U_Type The updated control input to be applied to the system.

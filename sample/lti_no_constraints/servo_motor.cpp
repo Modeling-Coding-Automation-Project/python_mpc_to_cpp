@@ -76,7 +76,7 @@ int main(void) {
     sys.update(U);
 
     /* controller */
-    for (std::size_t i = 0; i < reference.rows(); ++i) {
+    for (std::size_t i = 0; i < reference.cols(); ++i) {
       reference(0, i) = 1.0;
     }
 

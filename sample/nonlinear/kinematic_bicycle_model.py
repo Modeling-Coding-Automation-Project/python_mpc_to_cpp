@@ -80,7 +80,7 @@ def load_cpp_run_data(cpp_csv_relpath=None):
                         cpp_data['iteration']).reshape(-1, 1)
 
                 print(
-                    f"Loaded C++ run data from: {cpp_csv_path} (rows={px_cpp.shape[0] if px_cpp is not None else 0})")
+                    f"Loaded C++ run data from: {cpp_csv_path} (cols={px_cpp.shape[0] if px_cpp is not None else 0})")
 
                 cpp_run_data_exists = True
     except Exception as e:
@@ -322,46 +322,46 @@ def main():
         plotter.append_sequence_name(delta_cpp, "delta_cpp")
         plotter.append_sequence_name(iteration_cpp, "solver_iteration_cpp")
 
-    plotter.assign("px_reference", column=0, row=0, position=(0, 0),
+    plotter.assign("px_reference", row=0, column=0, position=(0, 0),
                    x_sequence=times, label="px_reference")
-    plotter.assign("px_measured", column=0, row=0, position=(0, 0),
+    plotter.assign("px_measured", row=0, column=0, position=(0, 0),
                    x_sequence=times, label="px_measured")
     if cpp_run_data_exists:
-        plotter.assign("px_cpp", column=0, row=0, position=(0, 0),
+        plotter.assign("px_cpp", row=0, column=0, position=(0, 0),
                        x_sequence=times, label="px_cpp")
 
-    plotter.assign("py_reference", column=0, row=0, position=(1, 0),
+    plotter.assign("py_reference", row=0, column=0, position=(1, 0),
                    x_sequence=times, label="py_reference")
-    plotter.assign("py_measured", column=0, row=0, position=(1, 0),
+    plotter.assign("py_measured", row=0, column=0, position=(1, 0),
                    x_sequence=times, label="py_measured")
     if cpp_run_data_exists:
-        plotter.assign("py_cpp", column=0, row=0, position=(1, 0),
+        plotter.assign("py_cpp", row=0, column=0, position=(1, 0),
                        x_sequence=times, label="py_cpp")
 
-    plotter.assign("yaw_reference", column=0, row=0, position=(2, 0),
+    plotter.assign("yaw_reference", row=0, column=0, position=(2, 0),
                    x_sequence=times, label="yaw_reference")
-    plotter.assign("yaw_measured", column=0, row=0, position=(2, 0),
+    plotter.assign("yaw_measured", row=0, column=0, position=(2, 0),
                    x_sequence=times, label="yaw_measured")
     if cpp_run_data_exists:
-        plotter.assign("yaw_cpp", column=0, row=0, position=(2, 0),
+        plotter.assign("yaw_cpp", row=0, column=0, position=(2, 0),
                        x_sequence=times, label="yaw_cpp")
 
-    plotter.assign("v", column=0, row=0, position=(0, 1),
+    plotter.assign("v", row=0, column=0, position=(0, 1),
                    x_sequence=times, label="v")
     if cpp_run_data_exists:
-        plotter.assign("v_cpp", column=0, row=0, position=(0, 1),
+        plotter.assign("v_cpp", row=0, column=0, position=(0, 1),
                        x_sequence=times, label="v_cpp")
 
-    plotter.assign("delta", column=0, row=0, position=(1, 1),
+    plotter.assign("delta", row=0, column=0, position=(1, 1),
                    x_sequence=times, label="delta")
     if cpp_run_data_exists:
-        plotter.assign("delta_cpp", column=0, row=0, position=(1, 1),
+        plotter.assign("delta_cpp", row=0, column=0, position=(1, 1),
                        x_sequence=times, label="delta_cpp")
 
-    plotter.assign("solver_iteration", column=0, row=0, position=(2, 1),
+    plotter.assign("solver_iteration", row=0, column=0, position=(2, 1),
                    x_sequence=times, label="solver_iteration")
     if cpp_run_data_exists:
-        plotter.assign("solver_iteration_cpp", column=0, row=0, position=(2, 1),
+        plotter.assign("solver_iteration_cpp", row=0, column=0, position=(2, 1),
                        x_sequence=times, label="solver_iteration_cpp")
 
     plotter.plot()
