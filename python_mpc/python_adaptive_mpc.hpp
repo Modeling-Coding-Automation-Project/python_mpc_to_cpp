@@ -211,10 +211,10 @@ public:
       PythonNumpy::DenseMatrix_Type<_T, (INPUT_SIZE * NC), (OUTPUT_SIZE * NP)>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
-  static_assert(SolverFactor_Type::COLS == (INPUT_SIZE * NC),
-                "SolverFactor_Type::COLS must be equal to (INPUT_SIZE * NC)");
-  static_assert(SolverFactor_Type::ROWS == (OUTPUT_SIZE * NP),
-                "SolverFactor_Type::ROWS must be equal to (OUTPUT_SIZE * "
+  static_assert(SolverFactor_Type::ROWS == (INPUT_SIZE * NC),
+                "SolverFactor_Type::ROWS must be equal to (INPUT_SIZE * NC)");
+  static_assert(SolverFactor_Type::COLS == (OUTPUT_SIZE * NP),
+                "SolverFactor_Type::COLS must be equal to (OUTPUT_SIZE * "
                 "NP)");
 
   using EmbeddedIntegratorStateSpace_Type = typename EmbeddedIntegratorTypes<
@@ -270,14 +270,14 @@ public:
         _Weight_U_Nc(Weight_U_Nc),
         _phi_f_updater_function(phi_f_updater_function) {
 
-    static_assert(SolverFactor_Type::COLS ==
-                      SolverFactor_Type_In_Constructor::COLS,
-                  "SolverFactor_Type::COL must be equal to "
-                  "SolverFactor_Type_In_Constructor::COL");
     static_assert(SolverFactor_Type::ROWS ==
                       SolverFactor_Type_In_Constructor::ROWS,
                   "SolverFactor_Type::ROW must be equal to "
                   "SolverFactor_Type_In_Constructor::ROW");
+    static_assert(SolverFactor_Type::COLS ==
+                      SolverFactor_Type_In_Constructor::COLS,
+                  "SolverFactor_Type::COL must be equal to "
+                  "SolverFactor_Type_In_Constructor::COL");
 
     // This is because the solver_factor_in can be different type from
     // "SolverFactor_Type".
@@ -517,8 +517,8 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  virtual inline auto
-  _solve(const X_Augmented_Type &X_augmented) -> U_Horizon_Type {
+  virtual inline auto _solve(const X_Augmented_Type &X_augmented)
+      -> U_Horizon_Type {
 
     return this->_solver_factor *
            this->_reference_trajectory.calculate_dif(
@@ -685,7 +685,7 @@ protected:
       typename _AdaptiveMPC_NoConstraints_Type::Weight_U_Nc_Type;
 
   using _Solver_Type = LMPC_QP_Solver_Type<
-      _U_Horizon_Type::COLS, _AdaptiveMPC_NoConstraints_Type::OUTPUT_SIZE,
+      _U_Horizon_Type::ROWS, _AdaptiveMPC_NoConstraints_Type::OUTPUT_SIZE,
       typename _AdaptiveMPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
       typename PredictionMatrices_Type::Phi_Type,
       typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
@@ -719,7 +719,7 @@ public:
         this->_X_inner_model, this->_Y_store.get());
 
     this->_solver =
-        make_LMPC_QP_Solver<_U_Horizon_Type::COLS,
+        make_LMPC_QP_Solver<_U_Horizon_Type::ROWS,
                             _AdaptiveMPC_NoConstraints_Type::OUTPUT_SIZE>(
             this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
             this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
@@ -768,8 +768,8 @@ protected:
    * @return _U_Horizon_Type The computed optimal change in control input over
    * the horizon.
    */
-  inline auto
-  _solve(const _X_Augmented_Type &X_augmented) -> _U_Horizon_Type override {
+  inline auto _solve(const _X_Augmented_Type &X_augmented)
+      -> _U_Horizon_Type override {
 
     this->_solver.update_constraints(this->_U_latest, X_augmented,
                                      this->_prediction_matrices.Phi,

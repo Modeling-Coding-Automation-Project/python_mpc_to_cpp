@@ -76,7 +76,7 @@ int main(void) {
 
   /* Define controller */
   servo_motor_ltv_ltv_mpc::Reference_Type reference;
-  for (std::size_t i = 0; i < reference.rows(); ++i) {
+  for (std::size_t i = 0; i < reference.cols(); ++i) {
     reference(0, i) = 1.0;
   }
 
@@ -98,7 +98,7 @@ int main(void) {
           plant_parameters, sys);
       parameter_changed = true;
 
-      for (std::size_t i = 0; i < reference.rows(); ++i) {
+      for (std::size_t i = 0; i < reference.cols(); ++i) {
         reference(0, i) = -1.0;
       }
     }
@@ -112,7 +112,7 @@ int main(void) {
       ltv_mpc_nc.update_parameters(controller_parameters);
       MPC_updated = true;
 
-      for (std::size_t i = 0; i < reference.rows(); ++i) {
+      for (std::size_t i = 0; i < reference.cols(); ++i) {
         reference(0, i) = 1.0;
       }
     }

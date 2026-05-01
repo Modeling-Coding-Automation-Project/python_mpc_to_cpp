@@ -47,7 +47,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   /* check compatibility */
   if (OUTPUT_SIZE != ref_info.shape[0]) {
     throw std::runtime_error("ref must have " + std::to_string(OUTPUT_SIZE) +
-                             " columns.");
+                             " rows.");
   }
 
   if (OUTPUT_SIZE != Y_info.shape[0]) {
@@ -58,9 +58,9 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   /* substitute */
   FLOAT *ref_data_ptr = static_cast<FLOAT *>(ref_info.ptr);
   Reference_Type ref;
-  for (std::size_t i = 0; i < Reference_Type::COLS; ++i) {
-    for (std::size_t j = 0; j < Reference_Type::ROWS; ++j) {
-      ref.access(i, j) = ref_data_ptr[i * Reference_Type::ROWS + j];
+  for (std::size_t i = 0; i < Reference_Type::ROWS; ++i) {
+    for (std::size_t j = 0; j < Reference_Type::COLS; ++j) {
+      ref.access(i, j) = ref_data_ptr[i * Reference_Type::COLS + j];
     }
   }
 

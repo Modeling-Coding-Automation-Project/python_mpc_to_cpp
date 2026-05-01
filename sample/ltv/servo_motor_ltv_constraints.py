@@ -287,18 +287,18 @@ def main():
         plotter.append_name(X, "X")
 
     plotter.assign("reference", position=(0, 0),
-                   column=0, row=0, x_sequence=time)
+                   row=0, column=0, x_sequence=time)
     plotter.assign("y_measured", position=(0, 0),
-                   column=0, row=0, x_sequence=time)
+                   row=0, column=0, x_sequence=time)
     plotter.assign("reference", position=(0, 1),
-                   column=1, row=0, x_sequence=time)
+                   row=1, column=0, x_sequence=time)
     plotter.assign("y_measured", position=(0, 1),
-                   column=1, row=0, x_sequence=time)
+                   row=1, column=0, x_sequence=time)
 
-    plotter.assign("X", position=(1, 0), column=0, row=0, x_sequence=time)
-    plotter.assign("X", position=(1, 0), column=1, row=0, x_sequence=time)
-    plotter.assign("X", position=(1, 1), column=2, row=0, x_sequence=time)
-    plotter.assign("X", position=(2, 1), column=3, row=0, x_sequence=time)
+    plotter.assign("X", position=(1, 0), row=0, column=0, x_sequence=time)
+    plotter.assign("X", position=(1, 0), row=1, column=0, x_sequence=time)
+    plotter.assign("X", position=(1, 1), row=2, column=0, x_sequence=time)
+    plotter.assign("X", position=(2, 1), row=3, column=0, x_sequence=time)
 
     plotter.assign_all("U", position=(2, 0), x_sequence=time)
 

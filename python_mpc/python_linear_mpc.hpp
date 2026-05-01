@@ -251,10 +251,10 @@ public:
       PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
-  static_assert(SolverFactor_Type::COLS == CONTROL_SIZE,
-                "SolverFactor_Type::COLS must be equal to CONTROL_SIZE");
-  static_assert(SolverFactor_Type::ROWS == PREDICTION_SIZE,
-                "SolverFactor_Type::ROWS must be equal to PREDICTION_SIZE");
+  static_assert(SolverFactor_Type::ROWS == CONTROL_SIZE,
+                "SolverFactor_Type::ROWS must be equal to CONTROL_SIZE");
+  static_assert(SolverFactor_Type::COLS == PREDICTION_SIZE,
+                "SolverFactor_Type::COLS must be equal to PREDICTION_SIZE");
 
 public:
   /* Constructor */
@@ -275,14 +275,14 @@ public:
         _reference_trajectory(reference_trajectory), _solver_factor(),
         _X_inner_model(), _U_latest(), _Y_store() {
 
-    static_assert(SolverFactor_Type::COLS ==
-                      SolverFactor_Type_In_Constructor::COLS,
-                  "SolverFactor_Type::COL must be equal to "
-                  "SolverFactor_Type_In_Constructor::COL");
     static_assert(SolverFactor_Type::ROWS ==
                       SolverFactor_Type_In_Constructor::ROWS,
                   "SolverFactor_Type::ROW must be equal to "
                   "SolverFactor_Type_In_Constructor::ROW");
+    static_assert(SolverFactor_Type::COLS ==
+                      SolverFactor_Type_In_Constructor::COLS,
+                  "SolverFactor_Type::COL must be equal to "
+                  "SolverFactor_Type_In_Constructor::COL");
 
     // This is because the solver_factor_in can be different type from
     // "SolverFactor_Type".
@@ -608,7 +608,7 @@ protected:
                                     _LTI_MPC_NoConstraints_Type::NC)>;
 
   using _Solver_Type = LMPC_QP_Solver_Type<
-      _U_Horizon_Type::COLS, _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE,
+      _U_Horizon_Type::ROWS, _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE,
       typename _LTI_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
       typename PredictionMatrices_Type::Phi_Type,
       typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
@@ -638,7 +638,7 @@ public:
         this->_X_inner_model, this->_Y_store.get());
 
     this->_solver =
-        make_LMPC_QP_Solver<_U_Horizon_Type::COLS,
+        make_LMPC_QP_Solver<_U_Horizon_Type::ROWS,
                             _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE>(
             this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
             this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
@@ -658,8 +658,7 @@ public:
   }
 
   /* Move Constructor */
-  LTI_MPC(LTI_MPC &&other)
-  noexcept
+  LTI_MPC(LTI_MPC &&other) noexcept
       : _LTI_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 
@@ -842,10 +841,10 @@ public:
       PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
-  static_assert(SolverFactor_Type::COLS == CONTROL_SIZE,
-                "SolverFactor_Type::COLS must be equal to CONTROL_SIZE");
-  static_assert(SolverFactor_Type::ROWS == PREDICTION_SIZE,
-                "SolverFactor_Type::ROWS must be equal to PREDICTION_SIZE");
+  static_assert(SolverFactor_Type::ROWS == CONTROL_SIZE,
+                "SolverFactor_Type::ROWS must be equal to CONTROL_SIZE");
+  static_assert(SolverFactor_Type::COLS == PREDICTION_SIZE,
+                "SolverFactor_Type::COLS must be equal to PREDICTION_SIZE");
 
   using EmbeddedIntegratorStateSpace_Type = typename EmbeddedIntegratorTypes<
       typename LKF_Type::DiscreteStateSpace_Type::A_Type,
@@ -903,14 +902,14 @@ public:
         _state_space_updater_function(state_space_updater_function),
         _phi_f_updater_function(phi_f_updater_function) {
 
-    static_assert(SolverFactor_Type::COLS ==
-                      SolverFactor_Type_In_Constructor::COLS,
-                  "SolverFactor_Type::COL must be equal to "
-                  "SolverFactor_Type_In_Constructor::COL");
     static_assert(SolverFactor_Type::ROWS ==
                       SolverFactor_Type_In_Constructor::ROWS,
                   "SolverFactor_Type::ROW must be equal to "
                   "SolverFactor_Type_In_Constructor::ROW");
+    static_assert(SolverFactor_Type::COLS ==
+                      SolverFactor_Type_In_Constructor::COLS,
+                  "SolverFactor_Type::COL must be equal to "
+                  "SolverFactor_Type_In_Constructor::COL");
 
     // This is because the solver_factor_in can be different type from
     // "SolverFactor_Type".
@@ -1333,7 +1332,7 @@ protected:
                                     _LTV_MPC_NoConstraints_Type::NC)>;
 
   using _Solver_Type = LMPC_QP_Solver_Type<
-      _U_Horizon_Type::COLS, _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE,
+      _U_Horizon_Type::ROWS, _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE,
       typename _LTV_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
       typename PredictionMatrices_Type::Phi_Type,
       typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
@@ -1375,7 +1374,7 @@ public:
         this->_X_inner_model, this->_Y_store.get());
 
     this->_solver =
-        make_LMPC_QP_Solver<_U_Horizon_Type::COLS,
+        make_LMPC_QP_Solver<_U_Horizon_Type::ROWS,
                             _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE>(
             this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
             this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
@@ -1395,8 +1394,7 @@ public:
   }
 
   /* Move Constructor */
-  LTV_MPC(LTV_MPC &&other)
-  noexcept
+  LTV_MPC(LTV_MPC &&other) noexcept
       : _LTV_MPC_NoConstraints_Type(std::move(other)),
         _solver(std::move(other._solver)) {}
 

@@ -29,12 +29,12 @@ struct EmbeddedIntegratorTypes {
   using T = typename A_Type_In::Value_Type;
 
   using O_M_T_Type =
-      PythonNumpy::SparseMatrixEmpty_Type<T, A_Type_In::COLS, C_Type_In::COLS>;
+      PythonNumpy::SparseMatrixEmpty_Type<T, A_Type_In::ROWS, C_Type_In::ROWS>;
 
   using O_M_Type =
-      PythonNumpy::SparseMatrixEmpty_Type<T, C_Type_In::COLS, A_Type_In::COLS>;
+      PythonNumpy::SparseMatrixEmpty_Type<T, C_Type_In::ROWS, A_Type_In::ROWS>;
 
-  using CC_Identity_Type = PythonNumpy::DiagMatrix_Type<T, C_Type_In::COLS>;
+  using CC_Identity_Type = PythonNumpy::DiagMatrix_Type<T, C_Type_In::ROWS>;
 
   using C_A_Type =
       decltype(std::declval<C_Type_In>() * std::declval<A_Type_In>());
@@ -51,7 +51,7 @@ struct EmbeddedIntegratorTypes {
       PythonNumpy::ConcatenateBlock_Type<1, 2, O_M_Type, CC_Identity_Type>;
 
   using D_Type =
-      PythonNumpy::SparseMatrixEmpty_Type<T, C_Type_In::COLS, B_Type_In::ROWS>;
+      PythonNumpy::SparseMatrixEmpty_Type<T, C_Type_In::ROWS, B_Type_In::COLS>;
 
   using StateSpace_Type =
       PythonControl::DiscreteStateSpace_Type<A_Type, B_Type, C_Type, D_Type>;
@@ -98,14 +98,14 @@ public:
   static_assert(std::is_same<typename Phi_Type::Value_Type, _T>::value,
                 "F_Type and Phi_Type must have the same Value_Type");
 
-  static_assert(F_Type::COLS == OUTPUT_SIZE * Np,
-                "F_Type::COLS must be equal to OUTPUT_SIZE * Np");
-  static_assert(F_Type::ROWS == STATE_SIZE,
-                "F_Type::ROWS must be equal to STATE_SIZE");
-  static_assert(Phi_Type::COLS == OUTPUT_SIZE * Np,
-                "Phi_Type::ROWS must be equal to OUTPUT_SIZE * Np");
-  static_assert(Phi_Type::ROWS == INPUT_SIZE * Nc,
-                "Phi_Type::ROWS must be equal to INPUT_SIZE * Nc");
+  static_assert(F_Type::ROWS == OUTPUT_SIZE * Np,
+                "F_Type::ROWS must be equal to OUTPUT_SIZE * Np");
+  static_assert(F_Type::COLS == STATE_SIZE,
+                "F_Type::COLS must be equal to STATE_SIZE");
+  static_assert(Phi_Type::ROWS == OUTPUT_SIZE * Np,
+                "Phi_Type::COLS must be equal to OUTPUT_SIZE * Np");
+  static_assert(Phi_Type::COLS == INPUT_SIZE * Nc,
+                "Phi_Type::COLS must be equal to INPUT_SIZE * Nc");
 
 public:
   /* Constructor */
@@ -210,7 +210,7 @@ namespace MPC_ReferenceTrajectoryOperation {
  * difference container. It uses template specialization to handle different
  * matrix dimensions.
  *
- * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam COLS Number of columns in the reference matrix.
  * @tparam Np Prediction horizon length.
  * @tparam I Row index for the operation.
  * @tparam J Column index for the operation.
@@ -218,25 +218,25 @@ namespace MPC_ReferenceTrajectoryOperation {
  * @tparam In_Type Type of the predicted matrix.
  * @tparam Dif_Type Type of the difference container.
  */
-template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+template <std::size_t COLS, std::size_t Np, std::size_t I, std::size_t J,
           typename Reference_Type, typename In_Type, typename Dif_Type>
-inline typename std::enable_if<(ROWS > 1), void>::type
+inline typename std::enable_if<(COLS > 1), void>::type
 calculate_each_dif(const Reference_Type &ref, const In_Type &In_Matrix,
                    Dif_Type &dif) {
-  static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
+  static_assert(COLS == Np, "COLS must be equal to Np when COLS > 1");
 
-  dif.template set<(I * Reference_Type::COLS) + J, 0>(
+  dif.template set<(I * Reference_Type::ROWS) + J, 0>(
       ref.template get<J, I>() -
-      In_Matrix.template get<(I * Reference_Type::COLS) + J, 0>());
+      In_Matrix.template get<(I * Reference_Type::ROWS) + J, 0>());
 }
 
 /**
- * @brief Specialization for the case when ROWS is 1.
+ * @brief Specialization for the case when COLS is 1.
  *
- * This specialization handles the case where ROWS is equal to 1, allowing for
+ * This specialization handles the case where COLS is equal to 1, allowing for
  * a different calculation method.
  *
- * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam COLS Number of columns in the reference matrix.
  * @tparam Np Prediction horizon length.
  * @tparam I Row index for the operation.
  * @tparam J Column index for the operation.
@@ -244,16 +244,16 @@ calculate_each_dif(const Reference_Type &ref, const In_Type &In_Matrix,
  * @tparam In_Type Type of the input matrix.
  * @tparam Dif_Type Type of the difference container.
  */
-template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+template <std::size_t COLS, std::size_t Np, std::size_t I, std::size_t J,
           typename Reference_Type, typename In_Type, typename Dif_Type>
-inline typename std::enable_if<(ROWS == 1), void>::type
+inline typename std::enable_if<(COLS == 1), void>::type
 calculate_each_dif(const Reference_Type &ref, const In_Type &In_Matrix,
                    Dif_Type &dif) {
-  static_assert(ROWS == 1, "ROWS must be equal to 1");
+  static_assert(COLS == 1, "COLS must be equal to 1");
 
-  dif.template set<(I * Reference_Type::COLS) + J, 0>(
+  dif.template set<(I * Reference_Type::ROWS) + J, 0>(
       ref.template get<J, 0>() -
-      In_Matrix.template get<(I * Reference_Type::COLS) + J, 0>());
+      In_Matrix.template get<(I * Reference_Type::ROWS) + J, 0>());
 }
 
 // when J_idx < N
@@ -281,7 +281,7 @@ struct DifColumn {
   static void calculate(const Reference_Type &ref, const Fx_Type &Fx,
                         Dif_Type &dif) {
 
-    calculate_each_dif<Reference_Type::ROWS, Np, I, J_idx>(ref, Fx, dif);
+    calculate_each_dif<Reference_Type::COLS, Np, I, J_idx>(ref, Fx, dif);
 
     DifColumn<Reference_Type, Fx_Type, Dif_Type, Np, I, J_idx - 1>::calculate(
         ref, Fx, dif);
@@ -293,9 +293,9 @@ template <typename Reference_Type, typename Fx_Type, typename Dif_Type,
           std::size_t Np, std::size_t I>
 struct DifColumn<Reference_Type, Fx_Type, Dif_Type, Np, I, 0> {
   /**
-   * @brief Calculates the difference for the first column index (0).
+   * @brief Calculates the difference for the first row index (0).
    *
-   * This function calculates the difference for the first column index (0) and
+   * This function calculates the difference for the first row index (0) and
    * does not call itself recursively.
    *
    * @tparam Reference_Type Type of the reference matrix.
@@ -309,7 +309,7 @@ struct DifColumn<Reference_Type, Fx_Type, Dif_Type, Np, I, 0> {
   static void calculate(const Reference_Type &ref, const Fx_Type &Fx,
                         Dif_Type &dif) {
 
-    calculate_each_dif<Reference_Type::ROWS, Np, I, 0>(ref, Fx, dif);
+    calculate_each_dif<Reference_Type::COLS, Np, I, 0>(ref, Fx, dif);
   }
 };
 
@@ -329,8 +329,8 @@ struct DifRow {
    * @tparam Fx_Type Type of the predicted matrix.
    * @tparam Dif_Type Type of the difference container.
    * @tparam Np Prediction horizon length.
-   * @tparam M Number of rows in the reference matrix.
-   * @tparam N Number of columns in the reference matrix.
+   * @tparam M Number of columns in the reference matrix.
+   * @tparam N Number of rows in the reference matrix.
    * @tparam I_idx Current row index for the operation.
    * @param ref Reference matrix.
    * @param Fx Predicted matrix.
@@ -350,9 +350,9 @@ template <typename Reference_Type, typename Fx_Type, typename Dif_Type,
           std::size_t Np, std::size_t M, std::size_t N>
 struct DifRow<Reference_Type, Fx_Type, Dif_Type, Np, M, N, 0> {
   /**
-   * @brief Calculates the difference for the first row index (0).
+   * @brief Calculates the difference for the first column index (0).
    *
-   * This function calculates the difference for the first row index (0) and
+   * This function calculates the difference for the first column index (0) and
    * does not call itself recursively.
    *
    * @tparam Reference_Type Type of the reference matrix.
@@ -405,43 +405,43 @@ inline void calculate_dif(const Reference_Type &ref, const Fx_Type &Fx,
  * reference next container. It uses template specialization to handle different
  * matrix dimensions.
  *
- * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam COLS Number of columns in the reference matrix.
  * @tparam Np Prediction horizon length.
  * @tparam I Row index for the operation.
  * @tparam J Column index for the operation.
  * @tparam Reference_Type Type of the reference matrix.
  * @tparam Y_Type Type of the output matrix.
  */
-template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+template <std::size_t COLS, std::size_t Np, std::size_t I, std::size_t J,
           typename Reference_Type, typename Y_Type>
-inline typename std::enable_if<(ROWS > 1), void>::type
+inline typename std::enable_if<(COLS > 1), void>::type
 calculate_each_ref_sub_Y(const Reference_Type &ref, const Y_Type &Y,
                          Reference_Type &ref_next) {
-  static_assert(ROWS == Np, "ROWS must be equal to Np when ROWS > 1");
+  static_assert(COLS == Np, "COLS must be equal to Np when COLS > 1");
 
   ref_next.template set<J, I>(ref.template get<J, I>() -
                               Y.template get<J, 0>());
 }
 
 /**
- * @brief Specialization for the case when ROWS is 1.
+ * @brief Specialization for the case when COLS is 1.
  *
- * This specialization handles the case where ROWS is equal to 1, allowing for
+ * This specialization handles the case where COLS is equal to 1, allowing for
  * a different calculation method.
  *
- * @tparam ROWS Number of rows in the reference matrix.
+ * @tparam COLS Number of columns in the reference matrix.
  * @tparam Np Prediction horizon length.
  * @tparam I Row index for the operation.
  * @tparam J Column index for the operation.
  * @tparam Reference_Type Type of the reference matrix.
  * @tparam Y_Type Type of the output matrix.
  */
-template <std::size_t ROWS, std::size_t Np, std::size_t I, std::size_t J,
+template <std::size_t COLS, std::size_t Np, std::size_t I, std::size_t J,
           typename Reference_Type, typename Y_Type>
-inline typename std::enable_if<(ROWS == 1), void>::type
+inline typename std::enable_if<(COLS == 1), void>::type
 calculate_each_ref_sub_Y(const Reference_Type &ref, const Y_Type &Y,
                          Reference_Type &ref_next) {
-  static_assert(ROWS == 1, "ROWS must be equal to 1");
+  static_assert(COLS == 1, "COLS must be equal to 1");
 
   ref_next.template set<J, 0>(ref.template get<J, 0>() -
                               Y.template get<J, 0>());
@@ -471,7 +471,7 @@ struct RefSubY_Column {
   static void calculate(const Reference_Type &ref, const Y_Type &Y,
                         Reference_Type &ref_next) {
 
-    calculate_each_ref_sub_Y<Reference_Type::ROWS, Np, I, J_idx>(ref, Y,
+    calculate_each_ref_sub_Y<Reference_Type::COLS, Np, I, J_idx>(ref, Y,
                                                                  ref_next);
 
     RefSubY_Column<Reference_Type, Y_Type, Np, I, J_idx - 1>::calculate(
@@ -484,9 +484,9 @@ template <typename Reference_Type, typename Y_Type, std::size_t Np,
           std::size_t I>
 struct RefSubY_Column<Reference_Type, Y_Type, Np, I, 0> {
   /**
-   * @brief Calculates the reference sub Y for the first column index (0).
+   * @brief Calculates the reference sub Y for the first row index (0).
    *
-   * This function calculates the reference sub Y for the first column index
+   * This function calculates the reference sub Y for the first row index
    * (0) and does not call itself recursively.
    *
    * @tparam Reference_Type Type of the reference matrix.
@@ -499,7 +499,7 @@ struct RefSubY_Column<Reference_Type, Y_Type, Np, I, 0> {
   static void calculate(const Reference_Type &ref, const Y_Type &Y,
                         Reference_Type &ref_next) {
 
-    calculate_each_ref_sub_Y<Reference_Type::ROWS, Np, I, 0>(ref, Y, ref_next);
+    calculate_each_ref_sub_Y<Reference_Type::COLS, Np, I, 0>(ref, Y, ref_next);
   }
 };
 
@@ -518,8 +518,8 @@ struct RefSubY_Row {
    * @tparam Reference_Type Type of the reference matrix.
    * @tparam Y_Type Type of the output matrix.
    * @tparam Np Prediction horizon length.
-   * @tparam M Number of rows in the reference matrix.
-   * @tparam N Number of columns in the reference matrix.
+   * @tparam M Number of columns in the reference matrix.
+   * @tparam N Number of rows in the reference matrix.
    * @tparam I_idx Current row index for the operation.
    * @param ref Reference matrix.
    * @param Y Output matrix.
@@ -539,9 +539,9 @@ template <typename Reference_Type, typename Y_Type, std::size_t Np,
           std::size_t M, std::size_t N>
 struct RefSubY_Row<Reference_Type, Y_Type, Np, M, N, 0> {
   /**
-   * @brief Calculates the reference sub Y for the first row index (0).
+   * @brief Calculates the reference sub Y for the first column index (0).
    *
-   * This function calculates the reference sub Y for the first row index (0)
+   * This function calculates the reference sub Y for the first column index (0)
    * and does not call itself recursively.
    *
    * @tparam Reference_Type Type of the reference matrix.
@@ -597,11 +597,11 @@ public:
   using Value_Type = _T;
 
   /* Check Compatibility */
-  static_assert((Reference_Type::ROWS == Np) || (Reference_Type::ROWS == 1),
-                "Reference_Type::ROWS must be equal to Np, or 1");
+  static_assert((Reference_Type::COLS == Np) || (Reference_Type::COLS == 1),
+                "Reference_Type::COLS must be equal to Np, or 1");
 
   using Dif_Type =
-      PythonNumpy::DenseMatrix_Type<_T, (Np * Reference_Type::COLS), 1>;
+      PythonNumpy::DenseMatrix_Type<_T, (Np * Reference_Type::ROWS), 1>;
 
 public:
   /* Constructor */
@@ -694,7 +694,7 @@ public:
 public:
   /* Constant */
   static constexpr std::size_t NP = Np;
-  static constexpr std::size_t NUMBER_OF_OUTPUT = Reference_Type::COLS;
+  static constexpr std::size_t NUMBER_OF_OUTPUT = Reference_Type::ROWS;
 
 public:
   /* Variables */

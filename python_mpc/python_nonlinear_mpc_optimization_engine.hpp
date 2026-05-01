@@ -68,19 +68,19 @@ namespace SubstituteReferenceTrajectory {
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t I, std::size_t J_idx>
-struct Column {
+struct Row {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, J_idx>(
         reference.template get<I, J_idx>());
-    Column<ReferenceTrajectory_Type, Reference_Type, I, (J_idx - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, I, (J_idx - 1)>::compute(
         reference_trajectory, reference);
   }
 };
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t I>
-struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
+struct Row<ReferenceTrajectory_Type, Reference_Type, I, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, 0>(reference.template get<I, 0>());
@@ -89,50 +89,50 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, I, 0> {
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I_idx>
-struct Row {
+struct Column {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, I_idx, (N - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, I_idx, (N - 1)>::compute(
         reference_trajectory, reference);
-    Row<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
-        reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N,
+           (I_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N>
-struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
+struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, 0, (N - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, 0, (N - 1)>::compute(
         reference_trajectory, reference);
   }
 };
 
-template <std::size_t COLS, std::size_t Np, typename ReferenceTrajectory_Type,
+template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
           typename Reference_Type>
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
 
-  Row<ReferenceTrajectory_Type, Reference_Type, COLS, Np, (COLS - 1)>::compute(
-      reference_trajectory, reference);
+  Column<ReferenceTrajectory_Type, Reference_Type, ROWS, Np,
+         (ROWS - 1)>::compute(reference_trajectory, reference);
 }
 
 } // namespace SubstituteReferenceTrajectory
 
 /**
- * @brief Substitutes a reference trajectory based on the number of rows.
+ * @brief Substitutes a reference trajectory based on the number_of_columns.
  */
-template <std::size_t ROWS, std::size_t NP, typename ReferenceTrajectory_Type,
+template <std::size_t COLS, std::size_t NP, typename ReferenceTrajectory_Type,
           typename Reference_Type>
-inline typename std::enable_if<(ROWS > 1), void>::type
+inline typename std::enable_if<(COLS > 1), void>::type
 substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
                      const Reference_Type &reference) {
   static_assert(
-      ReferenceTrajectory_Type::ROWS == (NP + 1),
-      "ROWS of ReferenceTrajectory_Type must be equal to NP + 1 when ROWS > 1");
+      ReferenceTrajectory_Type::COLS == (NP + 1),
+      "COLS of ReferenceTrajectory_Type must be equal to NP + 1 when COLS > 1");
 
-  constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
+  constexpr std::size_t M = ReferenceTrajectory_Type::ROWS;
 
   SubstituteReferenceTrajectory::substitute<M, NP>(reference_trajectory,
                                                    reference);
@@ -145,18 +145,18 @@ namespace SubstituteReferenceVector {
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I, std::size_t J_idx>
-struct Column {
+struct Row {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, J_idx>(reference.template get<I, 0>());
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, I,
-           (J_idx - 1)>::compute(reference_trajectory, reference);
+    Row<ReferenceTrajectory_Type, Reference_Type, M, N, I,
+        (J_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I>
-struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
+struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
     reference_trajectory.template set<I, 0>(reference.template get<I, 0>());
@@ -165,22 +165,22 @@ struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, I, 0> {
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N, std::size_t I_idx>
-struct Row {
+struct Column {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, I_idx,
-           (N - 1)>::compute(reference_trajectory, reference);
-    Row<ReferenceTrajectory_Type, Reference_Type, M, N, (I_idx - 1)>::compute(
-        reference_trajectory, reference);
+    Row<ReferenceTrajectory_Type, Reference_Type, M, N, I_idx,
+        (N - 1)>::compute(reference_trajectory, reference);
+    Column<ReferenceTrajectory_Type, Reference_Type, M, N,
+           (I_idx - 1)>::compute(reference_trajectory, reference);
   }
 };
 
 template <typename ReferenceTrajectory_Type, typename Reference_Type,
           std::size_t M, std::size_t N>
-struct Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
+struct Column<ReferenceTrajectory_Type, Reference_Type, M, N, 0> {
   static inline void compute(ReferenceTrajectory_Type &reference_trajectory,
                              const Reference_Type &reference) {
-    Column<ReferenceTrajectory_Type, Reference_Type, M, N, 0, (N - 1)>::compute(
+    Row<ReferenceTrajectory_Type, Reference_Type, M, N, 0, (N - 1)>::compute(
         reference_trajectory, reference);
   }
 };
@@ -189,11 +189,11 @@ template <typename ReferenceTrajectory_Type, typename Reference_Type>
 inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
                        const Reference_Type &reference) {
 
-  constexpr std::size_t M = ReferenceTrajectory_Type::COLS;
-  constexpr std::size_t N = ReferenceTrajectory_Type::ROWS;
+  constexpr std::size_t M = ReferenceTrajectory_Type::ROWS;
+  constexpr std::size_t N = ReferenceTrajectory_Type::COLS;
 
   static_assert(M > 0 && N > 0, "Matrix dimensions must be positive");
-  Row<ReferenceTrajectory_Type, Reference_Type, M, N, (M - 1)>::compute(
+  Column<ReferenceTrajectory_Type, Reference_Type, M, N, (M - 1)>::compute(
       reference_trajectory, reference);
 }
 
@@ -202,12 +202,12 @@ inline void substitute(ReferenceTrajectory_Type &reference_trajectory,
 /**
  * @brief Substitutes a reference trajectory when the reference is a vector.
  */
-template <std::size_t ROWS, std::size_t Np, typename ReferenceTrajectory_Type,
+template <std::size_t COLS, std::size_t Np, typename ReferenceTrajectory_Type,
           typename Reference_Type>
-inline typename std::enable_if<(ROWS == 1), void>::type
+inline typename std::enable_if<(COLS == 1), void>::type
 substitute_reference(ReferenceTrajectory_Type &reference_trajectory,
                      const Reference_Type &reference) {
-  static_assert(ROWS == 1, "ROWS must be equal to 1");
+  static_assert(COLS == 1, "COLS must be equal to 1");
 
   SubstituteReferenceVector::substitute(reference_trajectory, reference);
 }
@@ -482,16 +482,16 @@ public:
   template <typename Reference_Type_In>
   inline void set_reference_trajectory(const Reference_Type_In &reference) {
 
-    static_assert(Reference_Type_In::COLS == OUTPUT_SIZE,
-                  "COLS of Reference_Type_In must be equal to OUTPUT_SIZE");
-    static_assert((Reference_Type_In::ROWS == NP) ||
-                      (Reference_Type_In::ROWS == 1),
-                  "ROWS of Reference_Type_In must be equal to NP, or 1");
+    static_assert(Reference_Type_In::ROWS == OUTPUT_SIZE,
+                  "ROWS of Reference_Type_In must be equal to OUTPUT_SIZE");
+    static_assert((Reference_Type_In::COLS == NP) ||
+                      (Reference_Type_In::COLS == 1),
+                  "COLS of Reference_Type_In must be equal to NP, or 1");
 
     CostMatricesReferenceTrajectory_Type reference_trajectory;
 
     NonlinearMPC_OptEng_ReferenceTrajectoryOperation::substitute_reference<
-        Reference_Type_In::ROWS, NP>(reference_trajectory, reference);
+        Reference_Type_In::COLS, NP>(reference_trajectory, reference);
 
     this->_cost_matrices.reference_trajectory = reference_trajectory;
   }
@@ -559,8 +559,8 @@ public:
    * @return U_Type The updated control input to be applied.
    */
   template <typename Reference_Type_In>
-  inline auto update_manipulation(Reference_Type_In &reference,
-                                  const Y_Type &Y) -> U_Type {
+  inline auto update_manipulation(Reference_Type_In &reference, const Y_Type &Y)
+      -> U_Type {
 
     auto U_latest = this->_calculate_this_U(this->U_horizon);
 
@@ -593,30 +593,30 @@ protected:
    *
    * @tparam Matrix_Type Type of the input matrix.
    * @param matrix The input matrix to be flattened.
-   * @return PythonNumpy::DenseMatrix_Type<_T, Matrix_Type::COLS *
-   * Matrix_Type::ROWS, 1> The flattened matrix as a column vector.
+   * @return PythonNumpy::DenseMatrix_Type<_T, Matrix_Type::ROWS *
+   * Matrix_Type::COLS, 1> The flattened matrix as a column vector.
    */
   template <typename Matrix_Type>
   static inline auto _to_flat(Matrix_Type matrix)
       -> PythonNumpy::DenseMatrix_Type<
-          _T, Matrix_Type::COLS * Matrix_Type::ROWS, 1> {
+          _T, Matrix_Type::ROWS * Matrix_Type::COLS, 1> {
 
-    return PythonNumpy::reshape<Matrix_Type::COLS * Matrix_Type::ROWS, 1>(
+    return PythonNumpy::reshape<Matrix_Type::ROWS * Matrix_Type::COLS, 1>(
         matrix);
   }
 
   /**
    * @brief Converts a flat vector back to a matrix of specified dimensions.
    *
-   * @tparam M Number of rows in the output matrix.
-   * @tparam N Number of columns in the output matrix.
+   * @tparam M Number of columns in the output matrix.
+   * @tparam N Number of rows in the output matrix.
    * @param vector The input flat vector to be reshaped.
    * @return PythonNumpy::DenseMatrix_Type<_T, M, N> The reshaped matrix with
    * dimensions M x N.
    */
   template <std::size_t M, std::size_t N, typename Vector_Type>
-  static inline auto
-  _from_flat(Vector_Type vector) -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
+  static inline auto _from_flat(Vector_Type vector)
+      -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
 
     return PythonNumpy::reshape<M, N>(vector);
   }
@@ -710,8 +710,8 @@ protected:
         [this](const U_Horizon_Type &u,
                const _Y_Horizon_Flat_Type &d) -> _Gradient_Type {
       Y_Horizon_Type D_reshaped =
-          NonlinearMPC_OptimizationEngine::_from_flat<Y_Horizon_Type::COLS,
-                                                      Y_Horizon_Type::ROWS>(d);
+          NonlinearMPC_OptimizationEngine::_from_flat<Y_Horizon_Type::ROWS,
+                                                      Y_Horizon_Type::COLS>(d);
       return this->_cost_matrices.compute_output_jacobian_trans(u, D_reshaped);
     };
 

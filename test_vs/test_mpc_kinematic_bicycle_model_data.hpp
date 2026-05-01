@@ -83,7 +83,7 @@ template <typename T>
 using A_Type = kinematic_bicycle_model_ekf_A::type<T>;
 
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 
 template <typename T>
 using U_Type = StateSpaceInput_Type<T, 2>;
@@ -139,7 +139,7 @@ template <typename T>
 using A_Type = kinematic_bicycle_model_ekf_A::type<T>;
 
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 
 template <typename T>
 using U_Type = StateSpaceInput_Type<T, 2>;
@@ -209,10 +209,10 @@ template <typename T>
 using C_Type = kinematic_bicycle_model_ekf_C::type<T>;
 
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 
 template <typename T>
-using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::COLS>;
+using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::ROWS>;
 
 template <typename T>
 inline auto sympy_function(const T q3, const T q0, const T py, const T px) -> Y_Type<T> {
@@ -254,10 +254,10 @@ template <typename T>
 using C_Type = kinematic_bicycle_model_ekf_C::type<T>;
 
 template <typename T>
-using X_Type = StateSpaceState_Type<T, A_Type<T>::COLS>;
+using X_Type = StateSpaceState_Type<T, A_Type<T>::ROWS>;
 
 template <typename T>
-using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::COLS>;
+using Y_Type = StateSpaceOutput_Type<T, C_Type<T>::ROWS>;
 
 template <typename T>
 inline auto sympy_function() -> C_Type<T> {
