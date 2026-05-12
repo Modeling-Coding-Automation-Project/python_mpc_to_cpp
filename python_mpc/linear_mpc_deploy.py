@@ -172,7 +172,7 @@ class LinearMPC_Deploy:
         # create cpp code
         code_text = ""
 
-        file_header_macro_name = "__" + code_file_name.upper() + "_HPP__"
+        file_header_macro_name = code_file_name.upper() + "_HPP_"
 
         code_text += "#ifndef " + file_header_macro_name + "\n"
         code_text += "#define " + file_header_macro_name + "\n\n"
@@ -517,7 +517,7 @@ class LinearMPC_Deploy:
         # create cpp code
         code_text = ""
 
-        file_header_macro_name = "__" + code_file_name.upper() + "_HPP__"
+        file_header_macro_name = code_file_name.upper() + "_HPP_"
 
         code_text += "#ifndef " + file_header_macro_name + "\n"
         code_text += "#define " + file_header_macro_name + "\n\n"
@@ -887,7 +887,7 @@ class LinearMPC_Deploy:
         # %% main code generation
         code_text = ""
 
-        file_header_macro_name = "__" + code_file_name.upper() + "_HPP__"
+        file_header_macro_name = code_file_name.upper() + "_HPP_"
 
         code_text += "#ifndef " + file_header_macro_name + "\n"
         code_text += "#define " + file_header_macro_name + "\n\n"
@@ -1325,7 +1325,7 @@ class LinearMPC_Deploy:
         # %% main code generation
         code_text = ""
 
-        file_header_macro_name = "__" + code_file_name.upper() + "_HPP__"
+        file_header_macro_name = code_file_name.upper() + "_HPP_"
 
         code_text += "#ifndef " + file_header_macro_name + "\n"
         code_text += "#define " + file_header_macro_name + "\n\n"

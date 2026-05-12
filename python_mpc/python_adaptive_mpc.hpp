@@ -16,8 +16,8 @@
  * - Provide appropriate types for system, prediction, and solver components.
  * - Use update_parameters() and update_manipulation() for runtime control.
  */
-#ifndef __PYTHON_ADAPTIVE_MPC_HPP__
-#define __PYTHON_ADAPTIVE_MPC_HPP__
+#ifndef PYTHON_ADAPTIVE_MPC_HPP_
+#define PYTHON_ADAPTIVE_MPC_HPP_
 
 #include "mpc_utility.hpp"
 
@@ -861,4 +861,4 @@ using AdaptiveMPC_Type =
 
 } // namespace PythonMPC
 
-#endif // __PYTHON_ADAPTIVE_MPC_HPP__
+#endif // PYTHON_ADAPTIVE_MPC_HPP_

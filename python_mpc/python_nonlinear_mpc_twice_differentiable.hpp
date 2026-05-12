@@ -15,8 +15,8 @@
  * making it suitable for applications that require real-time control of
  * nonlinear systems.
  */
-#ifndef __PYTHON_NONLINEAR_MPC_HPP__
-#define __PYTHON_NONLINEAR_MPC_HPP__
+#ifndef PYTHON_NONLINEAR_MPC_HPP_
+#define PYTHON_NONLINEAR_MPC_HPP_
 
 #include "mpc_utility.hpp"
 
@@ -916,4 +916,4 @@ using NonlinearMPC_TwiceDifferentiable_Type =
 
 } // namespace PythonMPC
 
-#endif // __PYTHON_NONLINEAR_MPC_HPP__
+#endif // PYTHON_NONLINEAR_MPC_HPP_

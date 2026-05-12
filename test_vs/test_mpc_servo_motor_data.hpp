@@ -1,5 +1,5 @@
-#ifndef __TEST_MPC_SERVO_MOTOR_DATA_HPP__
-#define __TEST_MPC_SERVO_MOTOR_DATA_HPP__
+#ifndef TEST_MPC_SERVO_MOTOR_DATA_HPP_
+#define TEST_MPC_SERVO_MOTOR_DATA_HPP_
 
 #include "python_mpc.hpp"
 
@@ -1010,4 +1010,4 @@ namespace ltv_mpc_phi_f_updater {
 
 } // namespace PythonMPC_ServoMotorData
 
-#endif // __TEST_MPC_SERVO_MOTOR_DATA_HPP__
+#endif // TEST_MPC_SERVO_MOTOR_DATA_HPP_

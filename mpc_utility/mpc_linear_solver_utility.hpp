@@ -9,8 +9,8 @@
  * operations, and QP solver integration, designed for use with Python/C++
  * hybrid MPC frameworks.
  */
-#ifndef __MPC_LINEAR_SOLVER_UTILITY__
-#define __MPC_LINEAR_SOLVER_UTILITY__
+#ifndef MPC_LINEAR_SOLVER_UTILITY_
+#define MPC_LINEAR_SOLVER_UTILITY_
 
 #include "python_numpy.hpp"
 #include "python_optimization.hpp"
@@ -2332,4 +2332,4 @@ using LMPC_QP_Solver_Type =
 
 } // namespace PythonMPC
 
-#endif // __MPC_LINEAR_SOLVER_UTILITY__
+#endif // MPC_LINEAR_SOLVER_UTILITY_

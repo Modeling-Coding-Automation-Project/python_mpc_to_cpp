@@ -1,7 +1,7 @@
-#ifndef __MPC_UTILITY_HPP__
-#define __MPC_UTILITY_HPP__
+#ifndef MPC_UTILITY_HPP_
+#define MPC_UTILITY_HPP_
 
 #include "mpc_linear_solver_utility.hpp"
 #include "mpc_state_space_utility.hpp"
 
-#endif // __MPC_UTILITY_HPP__
+#endif // MPC_UTILITY_HPP_

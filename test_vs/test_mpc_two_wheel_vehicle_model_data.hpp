@@ -1,5 +1,5 @@
-#ifndef __TEST_MPC_TWO_WHEEL_VEHICLE_MODEL_DATA_HPP__
-#define __TEST_MPC_TWO_WHEEL_VEHICLE_MODEL_DATA_HPP__
+#ifndef TEST_MPC_TWO_WHEEL_VEHICLE_MODEL_DATA_HPP_
+#define TEST_MPC_TWO_WHEEL_VEHICLE_MODEL_DATA_HPP_
 
 #include "python_mpc.hpp"
 
@@ -1488,4 +1488,4 @@ public:
 
 } // namespace PythonMPC_TwoWheelVehicleModelData
 
-#endif // __TEST_MPC_TWO_WHEEL_VEHICLE_MODEL_DATA_HPP__
+#endif // TEST_MPC_TWO_WHEEL_VEHICLE_MODEL_DATA_HPP_
