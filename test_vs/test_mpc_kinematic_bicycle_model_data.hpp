@@ -1,5 +1,5 @@
-#ifndef __TEST_MPC_KINEMATIC_BICYCLE_MODEL_DATA_HPP__
-#define __TEST_MPC_KINEMATIC_BICYCLE_MODEL_DATA_HPP__
+#ifndef TEST_MPC_KINEMATIC_BICYCLE_MODEL_DATA_HPP_
+#define TEST_MPC_KINEMATIC_BICYCLE_MODEL_DATA_HPP_
 
 #include "python_mpc.hpp"
 
@@ -1623,4 +1623,4 @@ inline auto make() -> type<T> {
 
 } // namespace PythonMPC_KinematicBicycleModelData
 
-#endif // __TEST_MPC_KINEMATIC_BICYCLE_MODEL_DATA_HPP__
+#endif // TEST_MPC_KINEMATIC_BICYCLE_MODEL_DATA_HPP_

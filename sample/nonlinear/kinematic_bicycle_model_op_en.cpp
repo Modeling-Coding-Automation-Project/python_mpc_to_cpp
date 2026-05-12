@@ -145,7 +145,7 @@ int main(void) {
   const std::size_t reference_length = reference_data.size();
 
   // Determine CSV output file path in the same directory as this source file
-  std::string source_file = __FILE__;
+  std::string source_file = FILE_;
   std::string source_dir;
   auto pos = source_file.find_last_of("/\\");
   if (pos == std::string::npos) {

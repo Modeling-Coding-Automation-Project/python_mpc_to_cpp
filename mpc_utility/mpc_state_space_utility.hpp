@@ -9,8 +9,8 @@
  * utilities are designed to be generic and type-safe, supporting compile-time
  * checks for matrix dimensions and value types.
  */
-#ifndef __MPC_STATE_SPACE_UTILITY_HPP__
-#define __MPC_STATE_SPACE_UTILITY_HPP__
+#ifndef MPC_STATE_SPACE_UTILITY_HPP_
+#define MPC_STATE_SPACE_UTILITY_HPP_
 
 #include "python_control.hpp"
 #include "python_numpy.hpp"
@@ -727,4 +727,4 @@ using MPC_ReferenceTrajectory_Type =
 
 } // namespace PythonMPC
 
-#endif // __MPC_STATE_SPACE_UTILITY_HPP__
+#endif // MPC_STATE_SPACE_UTILITY_HPP_

@@ -24,8 +24,8 @@
  * - When no output constraints exist (N1 = 0), the ALM outer loop reduces to a
  *   single PANOC solve with no augmentation overhead.
  */
-#ifndef __PYTHON_NONLINEAR_MPC_OPTIMIZATION_ENGINE_HPP__
-#define __PYTHON_NONLINEAR_MPC_OPTIMIZATION_ENGINE_HPP__
+#ifndef PYTHON_NONLINEAR_MPC_OPTIMIZATION_ENGINE_HPP_
+#define PYTHON_NONLINEAR_MPC_OPTIMIZATION_ENGINE_HPP_
 
 #include "mpc_utility.hpp"
 
@@ -948,4 +948,4 @@ using NonlinearMPC_OptimizationEngine_Type =
 
 } // namespace PythonMPC
 
-#endif // __PYTHON_NONLINEAR_MPC_OPTIMIZATION_ENGINE_HPP__
+#endif // PYTHON_NONLINEAR_MPC_OPTIMIZATION_ENGINE_HPP_

@@ -1,5 +1,5 @@
-#ifndef __ADAPTIVE_MPC_FUNCTION_DECLARATIONS_HPP__
-#define __ADAPTIVE_MPC_FUNCTION_DECLARATIONS_HPP__
+#ifndef ADAPTIVE_MPC_FUNCTION_DECLARATIONS_HPP_
+#define ADAPTIVE_MPC_FUNCTION_DECLARATIONS_HPP_
 
 #include "python_mpc.hpp"
 #include "test_mpc_two_wheel_vehicle_model_data.hpp"
@@ -22,4 +22,4 @@ Adaptive_MPC_Phi_F_Updater_Function_Object<
     PythonMPC_TwoWheelVehicleModelData::two_wheel_vehicle_model_ekf_C::type<T>
     >::StateSpace_Type>;
 
-#endif // __ADAPTIVE_MPC_FUNCTION_DECLARATIONS_HPP__
+#endif // ADAPTIVE_MPC_FUNCTION_DECLARATIONS_HPP_

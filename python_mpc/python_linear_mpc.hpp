@@ -10,8 +10,8 @@
  * factors, and is intended for use in projects that bridge Python and C++ for
  * control system applications.
  */
-#ifndef __PYTHON_LINEAR_MPC_HPP__
-#define __PYTHON_LINEAR_MPC_HPP__
+#ifndef PYTHON_LINEAR_MPC_HPP_
+#define PYTHON_LINEAR_MPC_HPP_
 
 #include "mpc_utility.hpp"
 
@@ -1516,4 +1516,4 @@ using LTV_MPC_Type =
 
 } // namespace PythonMPC
 
-#endif // __PYTHON_LINEAR_MPC_HPP__
+#endif // PYTHON_LINEAR_MPC_HPP_
