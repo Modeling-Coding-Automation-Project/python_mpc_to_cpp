@@ -81,11 +81,11 @@ template <typename F_Type_In, typename Phi_Type_In, std::size_t Np,
 class MPC_PredictionMatrices {
 protected:
   /* Type */
-  using _T = typename F_Type_In::Value_Type;
+  using T_ = typename F_Type_In::Value_Type;
 
 public:
   /* Type */
-  using Value_Type = _T;
+  using Value_Type = T_;
 
   using F_Type = F_Type_In;
   using Phi_Type = Phi_Type_In;
@@ -95,7 +95,7 @@ public:
   static constexpr std::size_t OUTPUT_SIZE = Number_Of_Output;
 
   /* Check Compatibility */
-  static_assert(std::is_same<typename Phi_Type::Value_Type, _T>::value,
+  static_assert(std::is_same<typename Phi_Type::Value_Type, T_>::value,
                 "F_Type and Phi_Type must have the same Value_Type");
 
   static_assert(F_Type::ROWS == OUTPUT_SIZE * Np,
@@ -590,18 +590,18 @@ template <typename Reference_Type, std::size_t Np>
 class MPC_ReferenceTrajectory {
 protected:
   /* Type */
-  using _T = typename Reference_Type::Value_Type;
+  using T_ = typename Reference_Type::Value_Type;
 
 public:
   /* Type */
-  using Value_Type = _T;
+  using Value_Type = T_;
 
   /* Check Compatibility */
   static_assert((Reference_Type::COLS == Np) || (Reference_Type::COLS == 1),
                 "Reference_Type::COLS must be equal to Np, or 1");
 
   using Dif_Type =
-      PythonNumpy::DenseMatrix_Type<_T, (Np * Reference_Type::ROWS), 1>;
+      PythonNumpy::DenseMatrix_Type<T_, (Np * Reference_Type::ROWS), 1>;
 
 public:
   /* Constructor */
@@ -649,18 +649,18 @@ public:
    * Dif_Type object.
    *
    * @tparam Fx_Type The type of the function or object to compare against the
-   * reference trajectory. Must have a nested type Value_Type equal to _T.
+   * reference trajectory. Must have a nested type Value_Type equal to T_.
    * @param Fx The function or object to compare with the reference trajectory.
    * @return Dif_Type The computed difference between the reference trajectory
    * and Fx.
    *
    * @note A static assertion ensures that Fx_Type::Value_Type matches the
-   * expected Value_Type (_T).
+   * expected Value_Type (T_).
    */
   template <typename Fx_Type>
   inline auto calculate_dif(const Fx_Type &Fx) -> Dif_Type {
 
-    static_assert(std::is_same<typename Fx_Type::Value_Type, _T>::value,
+    static_assert(std::is_same<typename Fx_Type::Value_Type, T_>::value,
                   "Fx_Type::Value_Type must be equal to Value_Type");
 
     Dif_Type dif;

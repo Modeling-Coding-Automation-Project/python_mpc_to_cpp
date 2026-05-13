@@ -185,7 +185,7 @@ public:
 
 protected:
   /* Type */
-  using _T = Value_Type;
+  using T_ = Value_Type;
 
 public:
   /* Constant */
@@ -1934,13 +1934,13 @@ public:
 
 protected:
   /* Type */
-  using _T = Value_Type;
+  using T_ = Value_Type;
 
-  using _E_Empty_Type =
-      PythonNumpy::SparseMatrixEmpty_Type<_T, Number_Of_Variables,
+  using E_Empty_Type_ =
+      PythonNumpy::SparseMatrixEmpty_Type<T_, Number_Of_Variables,
                                           Number_Of_Variables>;
 
-  using _Solver_Type = PythonOptimization::QP_ActiveSetSolver_Type<
+  using Solver_Type_ = PythonOptimization::QP_ActiveSetSolver_Type<
       Value_Type, Number_Of_Variables, NUMBER_OF_ALL_CONSTRAINTS>;
 
 public:
@@ -1964,9 +1964,9 @@ public:
     this->_solver.set_max_iteration(
         PythonMPC::SolverUtility::MAX_ITERATION_DEFAULT);
     this->_solver.set_tol(
-        static_cast<_T>(PythonMPC::SolverUtility::TOL_DEFAULT));
+        static_cast<T_>(PythonMPC::SolverUtility::TOL_DEFAULT));
 
-    // this->_solver.set_kkt_inv_solver_division_min(static_cast<_T>(1.0e-5));
+    // this->_solver.set_kkt_inv_solver_division_min(static_cast<T_>(1.0e-5));
 
     this->update_E(Phi_in, weight_U_Nc_in);
   }
@@ -2089,7 +2089,7 @@ public:
    */
   inline auto get_number_of_Y_constraints_prediction_offset(void) const
       -> std::size_t {
-    return this->_Y_constraints_prediction_offset;
+    return this->Y_constraints_prediction_offset_;
   }
 
   /**
@@ -2108,7 +2108,7 @@ public:
     auto L = PythonNumpy::ATranspose_mul_B(
         Phi, reference_trajectory.calculate_dif(F * X_augmented));
 
-    auto x_opt = this->_solver.solve(_E_Empty_Type{}, L, this->M, this->gamma);
+    auto x_opt = this->_solver.solve(E_Empty_Type_{}, L, this->M, this->gamma);
 
     return x_opt;
   }
@@ -2138,7 +2138,7 @@ public:
 
     this->update_E(Phi, Weight_U_Nc);
 
-    auto x_opt = this->_solver.solve(_E_Empty_Type{}, L, this->M, this->gamma);
+    auto x_opt = this->_solver.solve(E_Empty_Type_{}, L, this->M, this->gamma);
 
     return x_opt;
   }
@@ -2259,7 +2259,7 @@ public:
 
 protected:
   /* Variable */
-  _Solver_Type _solver;
+  Solver_Type_ _solver;
 };
 
 /* make LMPC_QP_Solver */

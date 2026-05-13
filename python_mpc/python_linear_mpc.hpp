@@ -218,11 +218,11 @@ public:
 
 protected:
   /* Type */
-  using _T = typename PredictionMatrices_Type::Value_Type;
+  using T_ = typename PredictionMatrices_Type::Value_Type;
 
 public:
   /* Type */
-  using Value_Type = _T;
+  using Value_Type = T_;
 
   static constexpr std::size_t INPUT_SIZE = LKF_Type::INPUT_SIZE;
   static constexpr std::size_t STATE_SIZE = LKF_Type::STATE_SIZE;
@@ -236,19 +236,19 @@ public:
 
   static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
 
-  using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
-  using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
-  using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
+  using U_Type = PythonControl::StateSpaceInput_Type<T_, INPUT_SIZE>;
+  using X_Type = PythonControl::StateSpaceState_Type<T_, STATE_SIZE>;
+  using Y_Type = PythonControl::StateSpaceOutput_Type<T_, OUTPUT_SIZE>;
 
-  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<_T, CONTROL_SIZE>;
+  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<T_, CONTROL_SIZE>;
   using X_Augmented_Type =
-      PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
+      PythonControl::StateSpaceState_Type<T_, (STATE_SIZE + OUTPUT_SIZE)>;
   using Y_Store_Type =
       PythonControl::DelayedVectorObject<Y_Type, NUMBER_OF_DELAY>;
 
   typedef typename std::conditional<
       std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
-      PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
+      PythonNumpy::DenseMatrix_Type<T_, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
   static_assert(SolverFactor_Type::ROWS == CONTROL_SIZE,
@@ -260,7 +260,7 @@ public:
   /* Constructor */
   LTI_MPC_NoConstraints()
       : _kalman_filter(), _prediction_matrices(), _reference_trajectory(),
-        _solver_factor(), _X_inner_model(), _U_latest(), _Y_store() {}
+        _solver_factor(), X_inner_model_(), U_latest_(), Y_store_() {}
 
   template <typename LKF_Type, typename PredictionMatrices_Type,
             typename ReferenceTrajectory_Type,
@@ -273,7 +273,7 @@ public:
       : _kalman_filter(kalman_filter),
         _prediction_matrices(prediction_matrices),
         _reference_trajectory(reference_trajectory), _solver_factor(),
-        _X_inner_model(), _U_latest(), _Y_store() {
+        X_inner_model_(), U_latest_(), Y_store_() {
 
     static_assert(SolverFactor_Type::ROWS ==
                       SolverFactor_Type_In_Constructor::ROWS,
@@ -297,8 +297,8 @@ public:
         _prediction_matrices(input._prediction_matrices),
         _reference_trajectory(input._reference_trajectory),
         _solver_factor(input._solver_factor),
-        _X_inner_model(input._X_inner_model), _U_latest(input._U_latest),
-        _Y_store(input._Y_store) {}
+        X_inner_model_(input.X_inner_model_), U_latest_(input.U_latest_),
+        Y_store_(input.Y_store_) {}
 
   LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                         ReferenceTrajectory_Type> &
@@ -309,9 +309,9 @@ public:
       this->_prediction_matrices = input._prediction_matrices;
       this->_reference_trajectory = input._reference_trajectory;
       this->_solver_factor = input._solver_factor;
-      this->_X_inner_model = input._X_inner_model;
-      this->_U_latest = input._U_latest;
-      this->_Y_store = input._Y_store;
+      this->X_inner_model_ = input.X_inner_model_;
+      this->U_latest_ = input.U_latest_;
+      this->Y_store_ = input.Y_store_;
     }
     return *this;
   }
@@ -324,9 +324,9 @@ public:
         _prediction_matrices(std::move(input._prediction_matrices)),
         _reference_trajectory(std::move(input._reference_trajectory)),
         _solver_factor(std::move(input._solver_factor)),
-        _X_inner_model(std::move(input._X_inner_model)),
-        _U_latest(std::move(input._U_latest)),
-        _Y_store(std::move(input._Y_store)) {}
+        X_inner_model_(std::move(input.X_inner_model_)),
+        U_latest_(std::move(input.U_latest_)),
+        Y_store_(std::move(input.Y_store_)) {}
 
   LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                         ReferenceTrajectory_Type> &
@@ -337,9 +337,9 @@ public:
       this->_prediction_matrices = std::move(input._prediction_matrices);
       this->_reference_trajectory = std::move(input._reference_trajectory);
       this->_solver_factor = std::move(input._solver_factor);
-      this->_X_inner_model = std::move(input._X_inner_model);
-      this->_U_latest = std::move(input._U_latest);
-      this->_Y_store = std::move(input._Y_store);
+      this->X_inner_model_ = std::move(input.X_inner_model_);
+      this->U_latest_ = std::move(input.U_latest_);
+      this->Y_store_ = std::move(input.Y_store_);
     }
     return *this;
   }
@@ -359,7 +359,7 @@ public:
   template <typename Reference_Type>
   inline void set_reference_trajectory(const Reference_Type &ref) {
 
-    static_assert(std::is_same<typename Reference_Type::Value_Type, _T>::value,
+    static_assert(std::is_same<typename Reference_Type::Value_Type, T_>::value,
                   "Reference_Type::Value_Type must be equal to Value_Type");
 
     this->_reference_trajectory.reference_vector = ref;
@@ -382,7 +382,7 @@ public:
   inline auto update(const Reference_Type &reference, const Y_Type &Y)
       -> U_Type {
 
-    this->_kalman_filter.predict_and_update_with_fixed_G(this->_U_latest, Y);
+    this->_kalman_filter.predict_and_update_with_fixed_G(this->U_latest_, Y);
 
     auto X = this->_kalman_filter.get_x_hat();
 
@@ -390,7 +390,7 @@ public:
     Y_Type Y_compensated;
     std::tie(X_compensated, Y_compensated) = this->_compensate_X_Y_delay(X, Y);
 
-    auto delta_X = X_compensated - this->_X_inner_model;
+    auto delta_X = X_compensated - this->X_inner_model_;
     auto X_augmented =
         PythonNumpy::concatenate_vertically(delta_X, Y_compensated);
 
@@ -398,11 +398,11 @@ public:
 
     auto delta_U = this->_solve(X_augmented);
 
-    this->_U_latest = this->_calculate_this_U(delta_U);
+    this->U_latest_ = this->_calculate_this_U(delta_U);
 
-    this->_X_inner_model = X_compensated;
+    this->X_inner_model_ = X_compensated;
 
-    return this->_U_latest;
+    return this->U_latest_;
   }
 
 protected:
@@ -423,7 +423,7 @@ protected:
                                                           const Y_Type &Y_in) {
 
     return LMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, this->_Y_store, this->_kalman_filter);
+        X_in, Y_in, this->Y_store_, this->_kalman_filter);
   }
 
   /**
@@ -461,7 +461,7 @@ protected:
   inline auto _calculate_this_U(const U_Horizon_Type &delta_U) -> U_Type {
 
     auto U =
-        LMPC_Operation::calculate_this_U<INPUT_SIZE>(this->_U_latest, delta_U);
+        LMPC_Operation::calculate_this_U<INPUT_SIZE>(this->U_latest_, delta_U);
 
     return U;
   }
@@ -510,9 +510,9 @@ protected:
 
   SolverFactor_Type _solver_factor;
 
-  X_Type _X_inner_model;
-  U_Type _U_latest;
-  Y_Store_Type _Y_store;
+  X_Type X_inner_model_;
+  U_Type U_latest_;
+  Y_Store_Type Y_store_;
 };
 
 /* make LTI MPC No Constraints */
@@ -593,65 +593,65 @@ class LTI_MPC : public LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
 
 protected:
   /* Type */
-  using _LTI_MPC_NoConstraints_Type =
+  using LTI_MPC_NoConstraints_Type_ =
       LTI_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                             ReferenceTrajectory_Type, SolverFactor_Type_In>;
 
-  using _U_Horizon_Type = typename _LTI_MPC_NoConstraints_Type::U_Horizon_Type;
+  using U_Horizon_Type_ = typename LTI_MPC_NoConstraints_Type_::U_Horizon_Type;
 
-  using _X_Augmented_Type =
-      typename _LTI_MPC_NoConstraints_Type::X_Augmented_Type;
+  using X_Augmented_Type_ =
+      typename LTI_MPC_NoConstraints_Type_::X_Augmented_Type;
 
-  using _Weight_U_Nc_Type =
-      PythonNumpy::DiagMatrix_Type<typename _LTI_MPC_NoConstraints_Type::_T,
-                                   (_LTI_MPC_NoConstraints_Type::INPUT_SIZE *
-                                    _LTI_MPC_NoConstraints_Type::NC)>;
+  using Weight_U_Nc_Type_ =
+      PythonNumpy::DiagMatrix_Type<typename LTI_MPC_NoConstraints_Type_::T_,
+                                   (LTI_MPC_NoConstraints_Type_::INPUT_SIZE *
+                                    LTI_MPC_NoConstraints_Type_::NC)>;
 
-  using _Solver_Type = LMPC_QP_Solver_Type<
-      _U_Horizon_Type::ROWS, _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE,
-      typename _LTI_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
+  using Solver_Type_ = LMPC_QP_Solver_Type<
+      U_Horizon_Type_::ROWS, LTI_MPC_NoConstraints_Type_::OUTPUT_SIZE,
+      typename LTI_MPC_NoConstraints_Type_::U_Type, X_Augmented_Type_,
       typename PredictionMatrices_Type::Phi_Type,
-      typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
+      typename PredictionMatrices_Type::F_Type, Weight_U_Nc_Type_,
       Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
       Y_Max_Type>;
 
 public:
   /* Constructor */
-  LTI_MPC() : _LTI_MPC_NoConstraints_Type(), _solver() {}
+  LTI_MPC() : LTI_MPC_NoConstraints_Type_(), _solver() {}
 
   template <typename SolverFactor_Type>
   LTI_MPC(const LKF_Type &kalman_filter,
           const PredictionMatrices_Type &prediction_matrices,
           const ReferenceTrajectory_Type &reference_trajectory,
-          const _Weight_U_Nc_Type &Weight_U_Nc,
+          const Weight_U_Nc_Type_ &Weight_U_Nc,
           const Delta_U_Min_Type &delta_U_min,
           const Delta_U_Max_Type &delta_U_max, const U_Min_Type &U_min,
           const U_Max_Type &U_max, const Y_Min_Type &Y_min,
           const Y_Max_Type &Y_max, const SolverFactor_Type &solver_factor_in)
-      : _LTI_MPC_NoConstraints_Type(kalman_filter, prediction_matrices,
+      : LTI_MPC_NoConstraints_Type_(kalman_filter, prediction_matrices,
                                     reference_trajectory, solver_factor_in),
         _solver() {
 
-    _U_Horizon_Type delta_U_Nc;
+    U_Horizon_Type_ delta_U_Nc;
 
     auto X_augmented = PythonNumpy::concatenate_vertically(
-        this->_X_inner_model, this->_Y_store.get());
+        this->X_inner_model_, this->Y_store_.get());
 
     this->_solver =
-        make_LMPC_QP_Solver<_U_Horizon_Type::ROWS,
-                            _LTI_MPC_NoConstraints_Type::OUTPUT_SIZE>(
-            this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
+        make_LMPC_QP_Solver<U_Horizon_Type_::ROWS,
+                            LTI_MPC_NoConstraints_Type_::OUTPUT_SIZE>(
+            this->U_latest_, X_augmented, this->_prediction_matrices.Phi,
             this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
             U_min, U_max, Y_min, Y_max);
   }
 
   /* Copy Constructor */
   LTI_MPC(const LTI_MPC &other)
-      : _LTI_MPC_NoConstraints_Type(other), _solver(other._solver) {}
+      : LTI_MPC_NoConstraints_Type_(other), _solver(other._solver) {}
 
   LTI_MPC &operator=(const LTI_MPC &other) {
     if (this != &other) {
-      this->_LTI_MPC_NoConstraints_Type::operator=(other);
+      this->LTI_MPC_NoConstraints_Type_::operator=(other);
       this->_solver = other._solver;
     }
     return *this;
@@ -659,12 +659,12 @@ public:
 
   /* Move Constructor */
   LTI_MPC(LTI_MPC &&other) noexcept
-      : _LTI_MPC_NoConstraints_Type(std::move(other)),
+      : LTI_MPC_NoConstraints_Type_(std::move(other)),
         _solver(std::move(other._solver)) {}
 
   LTI_MPC &operator=(LTI_MPC &&other) noexcept {
     if (this != &other) {
-      this->_LTI_MPC_NoConstraints_Type::operator=(std::move(other));
+      this->LTI_MPC_NoConstraints_Type_::operator=(std::move(other));
       this->_solver = std::move(other._solver);
     }
     return *this;
@@ -685,10 +685,10 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto _solve(const _X_Augmented_Type &X_augmented)
-      -> _U_Horizon_Type override {
+  inline auto _solve(const X_Augmented_Type_ &X_augmented)
+      -> U_Horizon_Type_ override {
 
-    this->_solver.update_constraints(this->_U_latest, X_augmented,
+    this->_solver.update_constraints(this->U_latest_, X_augmented,
                                      this->_prediction_matrices.Phi,
                                      this->_prediction_matrices.F);
 
@@ -701,7 +701,7 @@ protected:
 
 protected:
   /* Variables */
-  _Solver_Type _solver;
+  Solver_Type_ _solver;
 };
 
 /* make LTI MPC */
@@ -808,11 +808,11 @@ public:
 
 protected:
   /* Type */
-  using _T = typename PredictionMatrices_Type::Value_Type;
+  using T_ = typename PredictionMatrices_Type::Value_Type;
 
 public:
   /* Type */
-  using Value_Type = _T;
+  using Value_Type = T_;
 
   static constexpr std::size_t INPUT_SIZE = LKF_Type::INPUT_SIZE;
   static constexpr std::size_t STATE_SIZE = LKF_Type::STATE_SIZE;
@@ -826,19 +826,19 @@ public:
 
   static constexpr std::size_t NUMBER_OF_DELAY = LKF_Type::NUMBER_OF_DELAY;
 
-  using U_Type = PythonControl::StateSpaceInput_Type<_T, INPUT_SIZE>;
-  using X_Type = PythonControl::StateSpaceState_Type<_T, STATE_SIZE>;
-  using Y_Type = PythonControl::StateSpaceOutput_Type<_T, OUTPUT_SIZE>;
+  using U_Type = PythonControl::StateSpaceInput_Type<T_, INPUT_SIZE>;
+  using X_Type = PythonControl::StateSpaceState_Type<T_, STATE_SIZE>;
+  using Y_Type = PythonControl::StateSpaceOutput_Type<T_, OUTPUT_SIZE>;
 
-  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<_T, CONTROL_SIZE>;
+  using U_Horizon_Type = PythonControl::StateSpaceInput_Type<T_, CONTROL_SIZE>;
   using X_Augmented_Type =
-      PythonControl::StateSpaceState_Type<_T, (STATE_SIZE + OUTPUT_SIZE)>;
+      PythonControl::StateSpaceState_Type<T_, (STATE_SIZE + OUTPUT_SIZE)>;
   using Y_Store_Type =
       PythonControl::DelayedVectorObject<Y_Type, NUMBER_OF_DELAY>;
 
   typedef typename std::conditional<
       std::is_same<SolverFactor_Type_In, SolverFactor_Empty>::value,
-      PythonNumpy::DenseMatrix_Type<_T, CONTROL_SIZE, PREDICTION_SIZE>,
+      PythonNumpy::DenseMatrix_Type<T_, CONTROL_SIZE, PREDICTION_SIZE>,
       SolverFactor_Type_In>::type SolverFactor_Type;
 
   static_assert(SolverFactor_Type::ROWS == CONTROL_SIZE,
@@ -854,15 +854,15 @@ public:
   using Phi_Type = typename PredictionMatrices_Type::Phi_Type;
   using F_Type = typename PredictionMatrices_Type::F_Type;
 
-  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<_T, CONTROL_SIZE>;
+  using Weight_U_Nc_Type = PythonNumpy::DiagMatrix_Type<T_, CONTROL_SIZE>;
 
 protected:
   /* Type */
-  using _MPC_StateSpace_Updater_Function_Object =
+  using MPC_StateSpace_Updater_Function_Object_ =
       MPC_StateSpace_Updater_Function_Object<
           Parameter_Type, typename LKF_Type::DiscreteStateSpace_Type>;
 
-  using _LTV_MPC_Phi_F_Updater_Function_Object =
+  using LTV_MPC_Phi_F_Updater_Function_Object_ =
       LTV_MPC_Phi_F_Updater_Function_Object<EmbeddedIntegratorStateSpace_Type,
                                             Parameter_Type, Phi_Type, F_Type>;
 
@@ -882,8 +882,8 @@ public:
   /* Constructor */
   LTV_MPC_NoConstraints()
       : _kalman_filter(), _prediction_matrices(), _reference_trajectory(),
-        _solver_factor(), _X_inner_model(), _U_latest(), _Y_store(),
-        _solver_factor_inv_solver(), _Weight_U_Nc() {}
+        _solver_factor(), X_inner_model_(), U_latest_(), Y_store_(),
+        _solver_factor_inv_solver(), Weight_U_Nc_() {}
 
   template <typename SolverFactor_Type_In_Constructor>
   LTV_MPC_NoConstraints(
@@ -892,13 +892,13 @@ public:
       const ReferenceTrajectory_Type &reference_trajectory,
       const SolverFactor_Type_In_Constructor &solver_factor_in,
       const Weight_U_Nc_Type &Weight_U_Nc,
-      _MPC_StateSpace_Updater_Function_Object &state_space_updater_function,
-      _LTV_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function)
+      MPC_StateSpace_Updater_Function_Object_ &state_space_updater_function,
+      LTV_MPC_Phi_F_Updater_Function_Object_ &phi_f_updater_function)
       : _kalman_filter(kalman_filter),
         _prediction_matrices(prediction_matrices),
         _reference_trajectory(reference_trajectory), _solver_factor(),
-        _X_inner_model(), _U_latest(), _Y_store(), _solver_factor_inv_solver(),
-        _Weight_U_Nc(Weight_U_Nc),
+        X_inner_model_(), U_latest_(), Y_store_(), _solver_factor_inv_solver(),
+        Weight_U_Nc_(Weight_U_Nc),
         _state_space_updater_function(state_space_updater_function),
         _phi_f_updater_function(phi_f_updater_function) {
 
@@ -925,10 +925,10 @@ public:
         _prediction_matrices(input._prediction_matrices),
         _reference_trajectory(input._reference_trajectory),
         _solver_factor(input._solver_factor),
-        _X_inner_model(input._X_inner_model), _U_latest(input._U_latest),
-        _Y_store(input._Y_store),
+        X_inner_model_(input.X_inner_model_), U_latest_(input.U_latest_),
+        Y_store_(input.Y_store_),
         _solver_factor_inv_solver(input._solver_factor_inv_solver),
-        _Weight_U_Nc(input._Weight_U_Nc),
+        Weight_U_Nc_(input.Weight_U_Nc_),
         _state_space_updater_function(input._state_space_updater_function),
         _phi_f_updater_function(input._phi_f_updater_function) {}
 
@@ -942,11 +942,11 @@ public:
       this->_prediction_matrices = input._prediction_matrices;
       this->_reference_trajectory = input._reference_trajectory;
       this->_solver_factor = input._solver_factor;
-      this->_X_inner_model = input._X_inner_model;
-      this->_U_latest = input._U_latest;
-      this->_Y_store = input._Y_store;
+      this->X_inner_model_ = input.X_inner_model_;
+      this->U_latest_ = input.U_latest_;
+      this->Y_store_ = input.Y_store_;
       this->_solver_factor_inv_solver = input._solver_factor_inv_solver;
-      this->_Weight_U_Nc = input._Weight_U_Nc;
+      this->Weight_U_Nc_ = input.Weight_U_Nc_;
       this->_state_space_updater_function = input._state_space_updater_function;
       this->_phi_f_updater_function = input._phi_f_updater_function;
     }
@@ -961,11 +961,11 @@ public:
         _prediction_matrices(std::move(input._prediction_matrices)),
         _reference_trajectory(std::move(input._reference_trajectory)),
         _solver_factor(std::move(input._solver_factor)),
-        _X_inner_model(std::move(input._X_inner_model)),
-        _U_latest(std::move(input._U_latest)),
-        _Y_store(std::move(input._Y_store)),
+        X_inner_model_(std::move(input.X_inner_model_)),
+        U_latest_(std::move(input.U_latest_)),
+        Y_store_(std::move(input.Y_store_)),
         _solver_factor_inv_solver(std::move(input._solver_factor_inv_solver)),
-        _Weight_U_Nc(std::move(input._Weight_U_Nc)),
+        Weight_U_Nc_(std::move(input.Weight_U_Nc_)),
         _state_space_updater_function(
             std::move(input._state_space_updater_function)),
         _phi_f_updater_function(std::move(input._phi_f_updater_function)) {}
@@ -980,12 +980,12 @@ public:
       this->_prediction_matrices = std::move(input._prediction_matrices);
       this->_reference_trajectory = std::move(input._reference_trajectory);
       this->_solver_factor = std::move(input._solver_factor);
-      this->_X_inner_model = std::move(input._X_inner_model);
-      this->_U_latest = std::move(input._U_latest);
-      this->_Y_store = std::move(input._Y_store);
+      this->X_inner_model_ = std::move(input.X_inner_model_);
+      this->U_latest_ = std::move(input.U_latest_);
+      this->Y_store_ = std::move(input.Y_store_);
       this->_solver_factor_inv_solver =
           std::move(input._solver_factor_inv_solver);
-      this->_Weight_U_Nc = std::move(input._Weight_U_Nc);
+      this->Weight_U_Nc_ = std::move(input.Weight_U_Nc_);
       this->_state_space_updater_function =
           std::move(input._state_space_updater_function);
       this->_phi_f_updater_function = std::move(input._phi_f_updater_function);
@@ -1008,7 +1008,7 @@ public:
   template <typename Reference_Type>
   inline void set_reference_trajectory(const Reference_Type &ref) {
 
-    static_assert(std::is_same<typename Reference_Type::Value_Type, _T>::value,
+    static_assert(std::is_same<typename Reference_Type::Value_Type, T_>::value,
                   "Reference_Type::Value_Type must be equal to Value_Type");
 
     this->_reference_trajectory.reference_vector = ref;
@@ -1034,7 +1034,7 @@ public:
                                   this->_prediction_matrices.F);
 
     this->_update_solver_factor(this->_prediction_matrices.Phi,
-                                this->_Weight_U_Nc);
+                                this->Weight_U_Nc_);
   }
 
   /**
@@ -1054,7 +1054,7 @@ public:
   inline auto update_manipulation(const Reference_Type &reference,
                                   const Y_Type &Y) -> U_Type {
 
-    this->_kalman_filter.predict_and_update(this->_U_latest, Y);
+    this->_kalman_filter.predict_and_update(this->U_latest_, Y);
 
     auto X = this->_kalman_filter.get_x_hat();
 
@@ -1062,7 +1062,7 @@ public:
     Y_Type Y_compensated;
     std::tie(X_compensated, Y_compensated) = this->_compensate_X_Y_delay(X, Y);
 
-    auto delta_X = X_compensated - this->_X_inner_model;
+    auto delta_X = X_compensated - this->X_inner_model_;
     auto X_augmented =
         PythonNumpy::concatenate_vertically(delta_X, Y_compensated);
 
@@ -1070,11 +1070,11 @@ public:
 
     auto delta_U = this->_solve(X_augmented);
 
-    this->_U_latest = this->_calculate_this_U(delta_U);
+    this->U_latest_ = this->_calculate_this_U(delta_U);
 
-    this->_X_inner_model = X_compensated;
+    this->X_inner_model_ = X_compensated;
 
-    return this->_U_latest;
+    return this->U_latest_;
   }
 
   /**
@@ -1156,7 +1156,7 @@ protected:
                                                           const Y_Type &Y_in) {
 
     return LMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, this->_Y_store, this->_kalman_filter);
+        X_in, Y_in, this->Y_store_, this->_kalman_filter);
   }
 
   /**
@@ -1194,7 +1194,7 @@ protected:
   inline auto _calculate_this_U(const U_Horizon_Type &delta_U) -> U_Type {
 
     auto U =
-        LMPC_Operation::calculate_this_U<INPUT_SIZE>(this->_U_latest, delta_U);
+        LMPC_Operation::calculate_this_U<INPUT_SIZE>(this->U_latest_, delta_U);
 
     return U;
   }
@@ -1207,15 +1207,15 @@ protected:
 
   SolverFactor_Type _solver_factor;
 
-  X_Type _X_inner_model;
-  U_Type _U_latest;
-  Y_Store_Type _Y_store;
+  X_Type X_inner_model_;
+  U_Type U_latest_;
+  Y_Store_Type Y_store_;
 
   SolverFactor_InvSolver_Type _solver_factor_inv_solver;
-  Weight_U_Nc_Type _Weight_U_Nc;
+  Weight_U_Nc_Type Weight_U_Nc_;
 
-  _MPC_StateSpace_Updater_Function_Object _state_space_updater_function;
-  _LTV_MPC_Phi_F_Updater_Function_Object _phi_f_updater_function;
+  MPC_StateSpace_Updater_Function_Object_ _state_space_updater_function;
+  LTV_MPC_Phi_F_Updater_Function_Object_ _phi_f_updater_function;
 };
 
 /* make LTV MPC No Constraints */
@@ -1316,78 +1316,78 @@ class LTV_MPC
 
 protected:
   /* Type */
-  using _LTV_MPC_NoConstraints_Type =
+  using LTV_MPC_NoConstraints_Type_ =
       LTV_MPC_NoConstraints<LKF_Type, PredictionMatrices_Type,
                             ReferenceTrajectory_Type, Parameter_Type,
                             SolverFactor_Type_In>;
 
-  using _U_Horizon_Type = typename _LTV_MPC_NoConstraints_Type::U_Horizon_Type;
+  using U_Horizon_Type_ = typename LTV_MPC_NoConstraints_Type_::U_Horizon_Type;
 
-  using _X_Augmented_Type =
-      typename _LTV_MPC_NoConstraints_Type::X_Augmented_Type;
+  using X_Augmented_Type_ =
+      typename LTV_MPC_NoConstraints_Type_::X_Augmented_Type;
 
-  using _Weight_U_Nc_Type =
-      PythonNumpy::DiagMatrix_Type<typename _LTV_MPC_NoConstraints_Type::_T,
-                                   (_LTV_MPC_NoConstraints_Type::INPUT_SIZE *
-                                    _LTV_MPC_NoConstraints_Type::NC)>;
+  using Weight_U_Nc_Type_ =
+      PythonNumpy::DiagMatrix_Type<typename LTV_MPC_NoConstraints_Type_::T_,
+                                   (LTV_MPC_NoConstraints_Type_::INPUT_SIZE *
+                                    LTV_MPC_NoConstraints_Type_::NC)>;
 
-  using _Solver_Type = LMPC_QP_Solver_Type<
-      _U_Horizon_Type::ROWS, _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE,
-      typename _LTV_MPC_NoConstraints_Type::U_Type, _X_Augmented_Type,
+  using Solver_Type_ = LMPC_QP_Solver_Type<
+      U_Horizon_Type_::ROWS, LTV_MPC_NoConstraints_Type_::OUTPUT_SIZE,
+      typename LTV_MPC_NoConstraints_Type_::U_Type, X_Augmented_Type_,
       typename PredictionMatrices_Type::Phi_Type,
-      typename PredictionMatrices_Type::F_Type, _Weight_U_Nc_Type,
+      typename PredictionMatrices_Type::F_Type, Weight_U_Nc_Type_,
       Delta_U_Min_Type, Delta_U_Max_Type, U_Min_Type, U_Max_Type, Y_Min_Type,
       Y_Max_Type>;
 
-  using _MPC_StateSpace_Updater_Function_Object =
-      typename _LTV_MPC_NoConstraints_Type::
-          _MPC_StateSpace_Updater_Function_Object;
+  using MPC_StateSpace_Updater_Function_Object_ =
+      typename LTV_MPC_NoConstraints_Type_::
+          MPC_StateSpace_Updater_Function_Object_;
 
-  using _LTV_MPC_Phi_F_Updater_Function_Object =
-      typename _LTV_MPC_NoConstraints_Type::
-          _LTV_MPC_Phi_F_Updater_Function_Object;
+  using LTV_MPC_Phi_F_Updater_Function_Object_ =
+      typename LTV_MPC_NoConstraints_Type_::
+          LTV_MPC_Phi_F_Updater_Function_Object_;
 
 public:
   /* Constructor */
-  LTV_MPC() : _LTV_MPC_NoConstraints_Type(), _solver() {}
+  LTV_MPC() : LTV_MPC_NoConstraints_Type_(), _solver() {}
 
   template <typename SolverFactor_Type>
   LTV_MPC(const LKF_Type &kalman_filter,
           const PredictionMatrices_Type &prediction_matrices,
           const ReferenceTrajectory_Type &reference_trajectory,
-          const _Weight_U_Nc_Type &Weight_U_Nc,
-          _MPC_StateSpace_Updater_Function_Object &state_space_updater_function,
-          _LTV_MPC_Phi_F_Updater_Function_Object &phi_f_updater_function,
+          const Weight_U_Nc_Type_ &Weight_U_Nc,
+          MPC_StateSpace_Updater_Function_Object_ &state_space_updater_function,
+          LTV_MPC_Phi_F_Updater_Function_Object_ &phi_f_updater_function,
           const Delta_U_Min_Type &delta_U_min,
           const Delta_U_Max_Type &delta_U_max, const U_Min_Type &U_min,
           const U_Max_Type &U_max, const Y_Min_Type &Y_min,
           const Y_Max_Type &Y_max, const SolverFactor_Type &solver_factor_in)
-      : _LTV_MPC_NoConstraints_Type(kalman_filter, prediction_matrices,
+      : LTV_MPC_NoConstraints_Type_(kalman_filter, prediction_matrices,
                                     reference_trajectory, solver_factor_in,
                                     Weight_U_Nc, state_space_updater_function,
                                     phi_f_updater_function),
         _solver() {
 
-    _U_Horizon_Type delta_U_Nc;
+    U_Horizon_Type_ delta_U_Nc;
 
     auto X_augmented = PythonNumpy::concatenate_vertically(
-        this->_X_inner_model, this->_Y_store.get());
+        this->X_inner_model_, this->Y_store_.get());
 
     this->_solver =
-        make_LMPC_QP_Solver<_U_Horizon_Type::ROWS,
-                            _LTV_MPC_NoConstraints_Type::OUTPUT_SIZE>(
-            this->_U_latest, X_augmented, this->_prediction_matrices.Phi,
+        make_LMPC_QP_Solver<U_Horizon_Type_::ROWS,
+                            LTV_MPC_NoConstraints_Type_::OUTPUT_SIZE>(
+            this->U_latest_, X_augmented, this->_prediction_matrices.Phi,
             this->_prediction_matrices.F, Weight_U_Nc, delta_U_min, delta_U_max,
             U_min, U_max, Y_min, Y_max);
   }
 
   /* Copy Constructor */
   LTV_MPC(const LTV_MPC &other)
-      : _LTV_MPC_NoConstraints_Type(other), _solver(other._solver) {}
+      : LTV_MPC_NoConstraints_Type_(other), _solver(other._solver) {}
 
   LTV_MPC &operator=(const LTV_MPC &other) {
     if (this != &other) {
-      this->_LTV_MPC_NoConstraints_Type::operator=(other);
+      this->LTV_MPC_NoConstraints_Type_::operator=(other);
       this->_solver = other._solver;
     }
     return *this;
@@ -1395,12 +1395,12 @@ public:
 
   /* Move Constructor */
   LTV_MPC(LTV_MPC &&other) noexcept
-      : _LTV_MPC_NoConstraints_Type(std::move(other)),
+      : LTV_MPC_NoConstraints_Type_(std::move(other)),
         _solver(std::move(other._solver)) {}
 
   LTV_MPC &operator=(LTV_MPC &&other) noexcept {
     if (this != &other) {
-      this->_LTV_MPC_NoConstraints_Type::operator=(std::move(other));
+      this->LTV_MPC_NoConstraints_Type_::operator=(std::move(other));
       this->_solver = std::move(other._solver);
     }
     return *this;
@@ -1421,10 +1421,10 @@ protected:
    * and output.
    * @return The calculated change in control input (delta_U).
    */
-  inline auto _solve(const _X_Augmented_Type &X_augmented)
-      -> _U_Horizon_Type override {
+  inline auto _solve(const X_Augmented_Type_ &X_augmented)
+      -> U_Horizon_Type_ override {
 
-    this->_solver.update_constraints(this->_U_latest, X_augmented,
+    this->_solver.update_constraints(this->U_latest_, X_augmented,
                                      this->_prediction_matrices.Phi,
                                      this->_prediction_matrices.F);
 
@@ -1437,7 +1437,7 @@ protected:
 
 protected:
   /* Variables */
-  _Solver_Type _solver;
+  Solver_Type_ _solver;
 };
 
 /* make LTI MPC */
