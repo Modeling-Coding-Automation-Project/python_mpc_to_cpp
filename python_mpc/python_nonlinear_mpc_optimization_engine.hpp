@@ -245,7 +245,7 @@ template <typename EKF_Type_In, typename Cost_Matrices_Type_In,
 class NonlinearMPC_OptimizationEngine {
 protected:
   /* Type */
-  using _T = typename EKF_Type_In::Value_Type;
+  using T_ = typename EKF_Type_In::Value_Type;
 
 public:
   /* Constant */
@@ -268,7 +268,7 @@ public:
 
 public:
   /* Type */
-  using Value_Type = _T;
+  using Value_Type = T_;
   using EKF_Type = EKF_Type_In;
   using Cost_Matrices_Type = Cost_Matrices_Type_In;
 
@@ -282,53 +282,53 @@ public:
       PythonControl::DelayedVectorObject<Y_Type, NUMBER_OF_DELAY>;
 
   using CostMatricesReferenceTrajectory_Type =
-      PythonNumpy::DenseMatrix_Type<_T, OUTPUT_SIZE, (NP + 1)>;
+      PythonNumpy::DenseMatrix_Type<T_, OUTPUT_SIZE, (NP + 1)>;
 
 protected:
   /* Type */
-  using _Parameter_Type = typename EKF_Type::Parameter_Type;
+  using Parameter_Type_ = typename EKF_Type::Parameter_Type;
 
-  using _Gradient_Type = U_Horizon_Type;
+  using Gradient_Type_ = U_Horizon_Type;
 
   /* ALM/PM types */
-  using _ALM_PM_Optimizer_Type =
+  using ALM_PM_Optimizer_Type_ =
       PythonOptimization::ALM_PM_Optimizer<Cost_Matrices_Type, N1, N2,
                                            LBFGSMemory>;
-  using _ALM_Problem_Type =
+  using ALM_Problem_Type_ =
       PythonOptimization::ALM_Problem<Cost_Matrices_Type, N1, N2>;
-  using _ALM_Factory_Type =
+  using ALM_Factory_Type_ =
       PythonOptimization::ALM_Factory<Cost_Matrices_Type, N1, N2>;
-  using _ALM_SolverStatus_Type = PythonOptimization::ALM_SolverStatus<_T, N1>;
+  using ALM_SolverStatus_Type_ = PythonOptimization::ALM_SolverStatus<T_, N1>;
 
-  using _BoxProjection_U_Type =
-      PythonOptimization::BoxProjectionOperator<_T, PROBLEM_SIZE>;
-  using _BoxProjection_Y_Type =
-      PythonOptimization::BoxProjectionOperator<_T, N1>;
-  using _BallProjection_Y_Type =
-      PythonOptimization::BallProjectionOperator<_T, N1>;
+  using BoxProjection_U_Type_ =
+      PythonOptimization::BoxProjectionOperator<T_, PROBLEM_SIZE>;
+  using BoxProjection_Y_Type_ =
+      PythonOptimization::BoxProjectionOperator<T_, N1>;
+  using BallProjection_Y_Type_ =
+      PythonOptimization::BallProjectionOperator<T_, N1>;
 
   /* Flat vector types for constraints/projections */
-  using _U_Min_Flat_Type = PythonNumpy::DenseMatrix_Type<_T, PROBLEM_SIZE, 1>;
-  using _U_Max_Flat_Type = PythonNumpy::DenseMatrix_Type<_T, PROBLEM_SIZE, 1>;
-  using _Y_Horizon_Flat_Type =
-      PythonNumpy::DenseMatrix_Type<_T, (N1 > 0 ? N1 : 1), 1>;
+  using U_Min_Flat_Type_ = PythonNumpy::DenseMatrix_Type<T_, PROBLEM_SIZE, 1>;
+  using U_Max_Flat_Type_ = PythonNumpy::DenseMatrix_Type<T_, PROBLEM_SIZE, 1>;
+  using Y_Horizon_Flat_Type_ =
+      PythonNumpy::DenseMatrix_Type<T_, (N1 > 0 ? N1 : 1), 1>;
 
   /* Function object types */
-  using _CostFunction_Type = std::function<_T(const U_Horizon_Type &)>;
-  using _GradientFunction_Type =
-      std::function<_Gradient_Type(const U_Horizon_Type &)>;
+  using CostFunction_Type_ = std::function<T_(const U_Horizon_Type &)>;
+  using GradientFunction_Type_ =
+      std::function<Gradient_Type_(const U_Horizon_Type &)>;
 
-  using _MappingF1_Type = typename _ALM_Factory_Type::Mapping_F1_Type;
-  using _JacobianF1Trans_Type =
-      typename _ALM_Factory_Type::Jacobian_F1_Trans_Type;
-  using _SetCProject_Type = typename _ALM_Factory_Type::Set_C_Project_Type;
-  using _SetYProject_Type = typename _ALM_Problem_Type::Set_Y_Project_Type;
+  using MappingF1_Type_ = typename ALM_Factory_Type_::Mapping_F1_Type;
+  using JacobianF1Trans_Type_ =
+      typename ALM_Factory_Type_::Jacobian_F1_Trans_Type;
+  using SetCProject_Type_ = typename ALM_Factory_Type_::Set_C_Project_Type;
+  using SetYProject_Type_ = typename ALM_Problem_Type_::Set_Y_Project_Type;
 
 public:
   /* Constructor */
   NonlinearMPC_OptimizationEngine()
       : U_horizon(), _kalman_filter(), _cost_matrices(), _delta_time(0),
-        _Y_store(),
+        Y_store_(),
         _solver_outer_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
                                         ALM_OUTER_MAX_ITERATIONS_DEFAULT),
         _solver_inner_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
@@ -338,9 +338,9 @@ public:
 
   NonlinearMPC_OptimizationEngine(EKF_Type &kalman_filter,
                                   Cost_Matrices_Type &cost_matrices,
-                                  _T delta_time, X_Type X_initial)
+                                  T_ delta_time, X_Type X_initial)
       : U_horizon(), _kalman_filter(kalman_filter),
-        _cost_matrices(cost_matrices), _delta_time(delta_time), _Y_store(),
+        _cost_matrices(cost_matrices), _delta_time(delta_time), Y_store_(),
         _solver_outer_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
                                         ALM_OUTER_MAX_ITERATIONS_DEFAULT),
         _solver_inner_max_iteration(NonlinearMPC_OptimizationEngine_Constants::
@@ -360,7 +360,7 @@ public:
           &input)
       : U_horizon(input.U_horizon), _kalman_filter(input._kalman_filter),
         _cost_matrices(input._cost_matrices), _delta_time(input._delta_time),
-        _Y_store(input._Y_store),
+        Y_store_(input.Y_store_),
         _solver_outer_max_iteration(input._solver_outer_max_iteration),
         _solver_inner_max_iteration(input._solver_inner_max_iteration),
         _cost_function(input._cost_function),
@@ -381,7 +381,7 @@ public:
       this->_kalman_filter = input._kalman_filter;
       this->_cost_matrices = input._cost_matrices;
       this->_delta_time = input._delta_time;
-      this->_Y_store = input._Y_store;
+      this->Y_store_ = input.Y_store_;
       this->_solver_outer_max_iteration = input._solver_outer_max_iteration;
       this->_solver_inner_max_iteration = input._solver_inner_max_iteration;
 
@@ -407,7 +407,7 @@ public:
         _kalman_filter(std::move(input._kalman_filter)),
         _cost_matrices(std::move(input._cost_matrices)),
         _delta_time(std::move(input._delta_time)),
-        _Y_store(std::move(input._Y_store)),
+        Y_store_(std::move(input.Y_store_)),
         _solver_outer_max_iteration(input._solver_outer_max_iteration),
         _solver_inner_max_iteration(input._solver_inner_max_iteration),
 
@@ -431,7 +431,7 @@ public:
       this->_kalman_filter = std::move(input._kalman_filter);
       this->_cost_matrices = std::move(input._cost_matrices);
       this->_delta_time = std::move(input._delta_time);
-      this->_Y_store = std::move(input._Y_store);
+      this->Y_store_ = std::move(input.Y_store_);
       this->_solver_outer_max_iteration = input._solver_outer_max_iteration;
       this->_solver_inner_max_iteration = input._solver_inner_max_iteration;
 
@@ -524,7 +524,7 @@ public:
    *
    * @return const _ALM_SolverStatus_Type& Reference to the solver status.
    */
-  inline auto get_solver_status(void) const -> const _ALM_SolverStatus_Type & {
+  inline auto get_solver_status(void) const -> const ALM_SolverStatus_Type_ & {
     return this->_solver_status;
   }
 
@@ -535,7 +535,7 @@ public:
    *
    * @param parameters The new parameters to be set.
    */
-  inline void update_parameters(const _Parameter_Type &parameters) {
+  inline void update_parameters(const Parameter_Type_ &parameters) {
     this->_kalman_filter.parameters = parameters;
     this->_cost_matrices.state_space_parameters = parameters;
   }
@@ -593,13 +593,13 @@ protected:
    *
    * @tparam Matrix_Type Type of the input matrix.
    * @param matrix The input matrix to be flattened.
-   * @return PythonNumpy::DenseMatrix_Type<_T, Matrix_Type::ROWS *
+   * @return PythonNumpy::DenseMatrix_Type<T_, Matrix_Type::ROWS *
    * Matrix_Type::COLS, 1> The flattened matrix as a column vector.
    */
   template <typename Matrix_Type>
   static inline auto _to_flat(Matrix_Type matrix)
       -> PythonNumpy::DenseMatrix_Type<
-          _T, Matrix_Type::ROWS * Matrix_Type::COLS, 1> {
+          T_, Matrix_Type::ROWS * Matrix_Type::COLS, 1> {
 
     return PythonNumpy::reshape<Matrix_Type::ROWS * Matrix_Type::COLS, 1>(
         matrix);
@@ -611,12 +611,12 @@ protected:
    * @tparam M Number of columns in the output matrix.
    * @tparam N Number of rows in the output matrix.
    * @param vector The input flat vector to be reshaped.
-   * @return PythonNumpy::DenseMatrix_Type<_T, M, N> The reshaped matrix with
+   * @return PythonNumpy::DenseMatrix_Type<T_, M, N> The reshaped matrix with
    * dimensions M x N.
    */
   template <std::size_t M, std::size_t N, typename Vector_Type>
   static inline auto _from_flat(Vector_Type vector)
-      -> PythonNumpy::DenseMatrix_Type<_T, M, N> {
+      -> PythonNumpy::DenseMatrix_Type<T_, M, N> {
 
     return PythonNumpy::reshape<M, N>(vector);
   }
@@ -642,7 +642,7 @@ protected:
         };
 
     this->_gradient_function =
-        [this](const U_Horizon_Type &U) -> _Gradient_Type {
+        [this](const U_Horizon_Type &U) -> Gradient_Type_ {
       return this->_cost_matrices.compute_gradient(U);
     };
   }
@@ -651,24 +651,24 @@ protected:
    * @brief Sets up the ALM problem definition.
    * Specialization for HasOutputConstraints == false: no output constraints.
    */
-  template <bool _HasOutputConstraints = HasOutputConstraints,
+  template <bool HasOutputConstraints_ = HasOutputConstraints,
             typename std::enable_if<!_HasOutputConstraints, int>::type = 0>
   inline void _setup_alm_problem() {
 
-    _ALM_Factory_Type alm_factory;
+    ALM_Factory_Type_ alm_factory;
     alm_factory.set_cost_function(this->_cost_function);
     alm_factory.set_gradient_function(this->_gradient_function);
 
     this->_alm_problem.set_parametric_cost(
         [alm_factory](const U_Horizon_Type &u,
-                      const typename _ALM_Factory_Type::Xi_Type &xi) -> _T {
+                      const typename ALM_Factory_Type_::Xi_Type &xi) -> T_ {
           return alm_factory.psi(u, xi);
         });
 
     this->_alm_problem.set_parametric_gradient(
         [alm_factory](const U_Horizon_Type &u,
-                      const typename _ALM_Factory_Type::Xi_Type &xi)
-            -> _Gradient_Type { return alm_factory.d_psi(u, xi); });
+                      const typename ALM_Factory_Type_::Xi_Type &xi)
+            -> Gradient_Type_ { return alm_factory.d_psi(u, xi); });
 
     this->_alm_problem.set_u_min_matrix(
         this->_cost_matrices.get_U_min_matrix());
@@ -682,50 +682,50 @@ protected:
    * @brief Sets up the ALM problem definition.
    * Specialization for HasOutputConstraints == true: with output constraints.
    */
-  template <bool _HasOutputConstraints = HasOutputConstraints,
-            typename std::enable_if<_HasOutputConstraints, int>::type = 0>
+  template <bool HasOutputConstraints_ = HasOutputConstraints,
+            typename std::enable_if<HasOutputConstraints_, int>::type = 0>
   inline void _setup_alm_problem() {
 
     /* Create output constraint box projection */
-    _Y_Horizon_Flat_Type Y_min_flat = NonlinearMPC_OptimizationEngine::_to_flat(
+    Y_Horizon_Flat_Type_ Y_min_flat = NonlinearMPC_OptimizationEngine::_to_flat(
         this->_cost_matrices.get_Y_min_matrix());
-    _Y_Horizon_Flat_Type Y_max_flat = NonlinearMPC_OptimizationEngine::_to_flat(
+    Y_Horizon_Flat_Type_ Y_max_flat = NonlinearMPC_OptimizationEngine::_to_flat(
         this->_cost_matrices.get_Y_max_matrix());
 
-    _BoxProjection_Y_Type set_c_project(Y_min_flat, Y_max_flat);
+    BoxProjection_Y_Type_ set_c_project(Y_min_flat, Y_max_flat);
 
     /* Create Lagrange multiplier projection (ball of large radius) */
-    _BallProjection_Y_Type set_y_project(
-        static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+    BallProjection_Y_Type_ set_y_project(
+        static_cast<T_>(NonlinearMPC_OptimizationEngine_Constants::
                             BALL_PROJECTION_RADIUS_DEFAULT));
 
     /* Create mapping F1 and Jacobian transpose */
-    _MappingF1_Type mapping_f1 =
-        [this](const U_Horizon_Type &u) -> _Y_Horizon_Flat_Type {
+    MappingF1_Type_ mapping_f1 =
+        [this](const U_Horizon_Type &u) -> Y_Horizon_Flat_Type_ {
       Y_Horizon_Type Y_horizon = this->_cost_matrices.compute_output_mapping(u);
       return NonlinearMPC_OptimizationEngine::_to_flat(Y_horizon);
     };
 
-    _JacobianF1Trans_Type jacobian_f1_trans =
+    JacobianF1Trans_Type_ jacobian_f1_trans =
         [this](const U_Horizon_Type &u,
-               const _Y_Horizon_Flat_Type &d) -> _Gradient_Type {
+               const Y_Horizon_Flat_Type_ &d) -> Gradient_Type_ {
       Y_Horizon_Type D_reshaped =
           NonlinearMPC_OptimizationEngine::_from_flat<Y_Horizon_Type::ROWS,
                                                       Y_Horizon_Type::COLS>(d);
       return this->_cost_matrices.compute_output_jacobian_trans(u, D_reshaped);
     };
 
-    _SetCProject_Type set_c_project_func =
-        [set_c_project](_Y_Horizon_Flat_Type &x) mutable {
+    SetCProject_Type_ set_c_project_func =
+        [set_c_project](Y_Horizon_Flat_Type_ &x) mutable {
           set_c_project.project(x);
         };
 
-    _SetYProject_Type set_y_project_func =
-        [set_y_project](_Y_Horizon_Flat_Type &x) mutable {
+    SetYProject_Type_ set_y_project_func =
+        [set_y_project](Y_Horizon_Flat_Type_ &x) mutable {
           set_y_project.project(x);
         };
 
-    _ALM_Factory_Type alm_factory;
+    ALM_Factory_Type_ alm_factory;
     alm_factory.set_cost_function(this->_cost_function);
     alm_factory.set_gradient_function(this->_gradient_function);
     alm_factory.set_mapping_f1(mapping_f1);
@@ -734,14 +734,14 @@ protected:
 
     this->_alm_problem.set_parametric_cost(
         [alm_factory](const U_Horizon_Type &u,
-                      const typename _ALM_Factory_Type::Xi_Type &xi) -> _T {
+                      const typename ALM_Factory_Type_::Xi_Type &xi) -> T_ {
           return alm_factory.psi(u, xi);
         });
 
     this->_alm_problem.set_parametric_gradient(
         [alm_factory](const U_Horizon_Type &u,
-                      const typename _ALM_Factory_Type::Xi_Type &xi)
-            -> _Gradient_Type { return alm_factory.d_psi(u, xi); });
+                      const typename ALM_Factory_Type_::Xi_Type &xi)
+            -> Gradient_Type_ { return alm_factory.d_psi(u, xi); });
 
     this->_alm_problem.set_u_min_matrix(
         this->_cost_matrices.get_U_min_matrix());
@@ -759,10 +759,10 @@ protected:
    * @brief Returns the initial inner tolerance when output constraints are
    * present.
    */
-  template <bool _HasOutputConstraints = HasOutputConstraints,
-            typename std::enable_if<_HasOutputConstraints, int>::type = 0>
-  inline _T _get_initial_inner_tolerance() const {
-    return static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+  template <bool HasOutputConstraints_ = HasOutputConstraints,
+            typename std::enable_if<HasOutputConstraints_, int>::type = 0>
+  inline T_ _get_initial_inner_tolerance() const {
+    return static_cast<T_>(NonlinearMPC_OptimizationEngine_Constants::
                                ALM_INITIAL_INNER_TOLERANCE_DEFAULT);
   }
 
@@ -771,10 +771,10 @@ protected:
    * exist. Set equal to epsilon_tolerance so the ALM outer loop exits after
    * 1 iteration, avoiding unnecessary tolerance ramp-down overhead.
    */
-  template <bool _HasOutputConstraints = HasOutputConstraints,
+  template <bool HasOutputConstraints_ = HasOutputConstraints,
             typename std::enable_if<!_HasOutputConstraints, int>::type = 0>
-  inline _T _get_initial_inner_tolerance() const {
-    return static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+  inline T_ _get_initial_inner_tolerance() const {
+    return static_cast<T_>(NonlinearMPC_OptimizationEngine_Constants::
                                ALM_EPSILON_TOLERANCE_DEFAULT);
   }
 
@@ -791,7 +791,7 @@ protected:
    */
   inline void _initialize_solver(const X_Type &X_initial) {
 
-    _T initial_inner_tolerance = this->_get_initial_inner_tolerance();
+    T_ initial_inner_tolerance = this->_get_initial_inner_tolerance();
 
     this->_bind_cost_functions();
 
@@ -803,14 +803,14 @@ protected:
                                            this->_solver_inner_max_iteration);
 
     this->_solver.set_epsilon_tolerance(
-        static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+        static_cast<T_>(NonlinearMPC_OptimizationEngine_Constants::
                             ALM_EPSILON_TOLERANCE_DEFAULT));
     this->_solver.set_delta_tolerance(
-        static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+        static_cast<T_>(NonlinearMPC_OptimizationEngine_Constants::
                             ALM_DELTA_TOLERANCE_DEFAULT));
     this->_solver.set_initial_inner_tolerance(initial_inner_tolerance);
     this->_solver.set_initial_penalty(
-        static_cast<_T>(NonlinearMPC_OptimizationEngine_Constants::
+        static_cast<T_>(NonlinearMPC_OptimizationEngine_Constants::
                             ALM_INITIAL_PENALTY_DEFAULT));
   }
 
@@ -825,7 +825,7 @@ protected:
       -> std::tuple<X_Type, Y_Type> {
 
     return AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, this->_Y_store, this->_kalman_filter);
+        X_in, Y_in, this->Y_store_, this->_kalman_filter);
   }
 
 public:
@@ -837,19 +837,19 @@ protected:
   EKF_Type _kalman_filter;
   Cost_Matrices_Type _cost_matrices;
 
-  _T _delta_time;
+  T_ _delta_time;
 
-  Y_Store_Type _Y_store;
+  Y_Store_Type Y_store_;
 
   std::size_t _solver_outer_max_iteration;
   std::size_t _solver_inner_max_iteration;
 
-  _CostFunction_Type _cost_function;
-  _GradientFunction_Type _gradient_function;
+  CostFunction_Type_ _cost_function;
+  GradientFunction_Type_ _gradient_function;
 
-  _ALM_Problem_Type _alm_problem;
-  _ALM_PM_Optimizer_Type _solver;
-  _ALM_SolverStatus_Type _solver_status;
+  ALM_Problem_Type_ _alm_problem;
+  ALM_PM_Optimizer_Type_ _solver;
+  ALM_SolverStatus_Type_ _solver_status;
 };
 
 /* ==========================================================================

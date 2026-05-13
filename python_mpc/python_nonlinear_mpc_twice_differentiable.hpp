@@ -431,7 +431,7 @@ template <typename EKF_Type_In, typename Cost_Matrices_Type_In>
 class NonlinearMPC_TwiceDifferentiable {
 protected:
   /* Type */
-  using _T = typename EKF_Type_In::Value_Type;
+  using T_ = typename EKF_Type_In::Value_Type;
 
 public:
   /* Constant */
@@ -456,48 +456,48 @@ public:
   using Y_Store_Type =
       PythonControl::DelayedVectorObject<Y_Type, NUMBER_OF_DELAY>;
 
-  using Weight_X_Type = PythonNumpy::DiagMatrix_Type<_T, STATE_SIZE>;
-  using Weight_U_Type = PythonNumpy::DiagMatrix_Type<_T, INPUT_SIZE>;
-  using Weight_Y_Type = PythonNumpy::DiagMatrix_Type<_T, OUTPUT_SIZE>;
+  using Weight_X_Type = PythonNumpy::DiagMatrix_Type<T_, STATE_SIZE>;
+  using Weight_U_Type = PythonNumpy::DiagMatrix_Type<T_, INPUT_SIZE>;
+  using Weight_Y_Type = PythonNumpy::DiagMatrix_Type<T_, OUTPUT_SIZE>;
 
   using CostMatricesReferenceTrajectory_Type =
-      PythonNumpy::DenseMatrix_Type<_T, OUTPUT_SIZE, (NP + 1)>;
+      PythonNumpy::DenseMatrix_Type<T_, OUTPUT_SIZE, (NP + 1)>;
 
 protected:
   /* Type */
-  using _R_Type = Weight_U_Type;
+  using R_Type_ = Weight_U_Type;
 
-  using _Parameter_Type = typename EKF_Type::Parameter_Type;
+  using Parameter_Type_ = typename EKF_Type::Parameter_Type;
 
-  using _Solver_Type =
+  using Solver_Type_ =
       PythonOptimization::SQP_ActiveSet_PCG_PLS_Type<Cost_Matrices_Type>;
 
-  using _Gradient_Type = U_Horizon_Type;
-  using _V_Horizon_Type = U_Horizon_Type;
-  using _HVP_Type = U_Horizon_Type;
+  using Gradient_Type_ = U_Horizon_Type;
+  using V_Horizon_Type_ = U_Horizon_Type;
+  using HVP_Type_ = U_Horizon_Type;
 
-  using _ConstFunction_Object_Type =
+  using ConstFunction_Object_Type_ =
       PythonOptimization::CostFunction_Object<X_Type, U_Horizon_Type>;
-  using _CostAndGradientFunction_Object_Type =
+  using CostAndGradientFunction_Object_Type_ =
       PythonOptimization::CostAndGradientFunction_Object<X_Type, U_Horizon_Type,
-                                                         _Gradient_Type>;
-  using _HVP_Function_Object_Type =
+                                                         Gradient_Type_>;
+  using HVP_Function_Object_Type_ =
       PythonOptimization::HVP_Function_Object<X_Type, U_Horizon_Type,
-                                              _V_Horizon_Type, _HVP_Type>;
+                                              V_Horizon_Type_, HVP_Type_>;
 
 public:
   /* Constructor */
   NonlinearMPC_TwiceDifferentiable()
       : U_horizon(), _kalman_filter(), _sqp_cost_matrices(), _delta_time(0),
-        _Y_store(), _cost_function(nullptr),
+        Y_store_(), _cost_function(nullptr),
         _cost_and_gradient_function(nullptr), _hvp_function(nullptr),
         _solver() {}
 
   NonlinearMPC_TwiceDifferentiable(EKF_Type &kalman_filter,
                                    Cost_Matrices_Type &cost_matrices,
-                                   _T delta_time, X_Type X_initial)
+                                   T_ delta_time, X_Type X_initial)
       : U_horizon(), _kalman_filter(kalman_filter),
-        _sqp_cost_matrices(cost_matrices), _delta_time(delta_time), _Y_store(),
+        _sqp_cost_matrices(cost_matrices), _delta_time(delta_time), Y_store_(),
         _cost_function(), _cost_and_gradient_function(), _hvp_function(),
         _solver() {
 
@@ -512,7 +512,7 @@ public:
           &input)
       : U_horizon(input.U_horizon), _kalman_filter(input._kalman_filter),
         _sqp_cost_matrices(input._sqp_cost_matrices),
-        _delta_time(input._delta_time), _Y_store(input._Y_store),
+        _delta_time(input._delta_time), Y_store_(input.Y_store_),
         _cost_function(input._cost_function),
         _cost_and_gradient_function(input._cost_and_gradient_function),
         _hvp_function(input._hvp_function), _solver(input._solver) {
@@ -527,7 +527,7 @@ public:
       this->_kalman_filter = input._kalman_filter;
       this->_sqp_cost_matrices = input._sqp_cost_matrices;
       this->_delta_time = input._delta_time;
-      this->_Y_store = input._Y_store;
+      this->Y_store_ = input.Y_store_;
 
       this->_cost_function = {};
       this->_cost_and_gradient_function = {};
@@ -548,7 +548,7 @@ public:
         _kalman_filter(std::move(input._kalman_filter)),
         _sqp_cost_matrices(std::move(input._sqp_cost_matrices)),
         _delta_time(std::move(input._delta_time)),
-        _Y_store(std::move(input._Y_store)),
+        Y_store_(std::move(input.Y_store_)),
         _cost_function(std::move(input._cost_function)),
         _cost_and_gradient_function(
             std::move(input._cost_and_gradient_function)),
@@ -566,7 +566,7 @@ public:
       this->_kalman_filter = std::move(input._kalman_filter);
       this->_sqp_cost_matrices = std::move(input._sqp_cost_matrices);
       this->_delta_time = std::move(input._delta_time);
-      this->_Y_store = std::move(input._Y_store);
+      this->Y_store_ = std::move(input.Y_store_);
 
       this->_cost_function = {};
       this->_cost_and_gradient_function = {};
@@ -680,7 +680,7 @@ public:
    * @note The function assumes that the parameter types of the EKF and cost
    * matrices are the same.
    */
-  inline void update_parameters(const _Parameter_Type &parameters) {
+  inline void update_parameters(const Parameter_Type_ &parameters) {
     // when you use this function, parameters type of EKF and CostMatrices must
     // be same
 
@@ -773,12 +773,12 @@ protected:
 
     this->_cost_and_gradient_function = [this](const X_Type &X,
                                                const U_Horizon_Type &U)
-        -> std::tuple<typename X_Type::Value_Type, _Gradient_Type> {
+        -> std::tuple<typename X_Type::Value_Type, Gradient_Type_> {
       return this->_sqp_cost_matrices.compute_cost_and_gradient(X, U);
     };
 
     this->_hvp_function = [this](const X_Type &X, const U_Horizon_Type &U,
-                                 const _V_Horizon_Type &V) -> _HVP_Type {
+                                 const V_Horizon_Type_ &V) -> HVP_Type_ {
       return this->_sqp_cost_matrices.hvp_analytic(X, U, V);
     };
   }
@@ -825,7 +825,7 @@ protected:
       -> std::tuple<X_Type, Y_Type> {
 
     return AdaptiveMPC_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X_in, Y_in, this->_Y_store, this->_kalman_filter);
+        X_in, Y_in, this->Y_store_, this->_kalman_filter);
   }
 
 public:
@@ -837,15 +837,15 @@ protected:
   EKF_Type _kalman_filter;
   Cost_Matrices_Type _sqp_cost_matrices;
 
-  _T _delta_time;
+  T_ _delta_time;
 
-  Y_Store_Type _Y_store;
+  Y_Store_Type Y_store_;
 
-  _ConstFunction_Object_Type _cost_function;
-  _CostAndGradientFunction_Object_Type _cost_and_gradient_function;
-  _HVP_Function_Object_Type _hvp_function;
+  ConstFunction_Object_Type_ _cost_function;
+  CostAndGradientFunction_Object_Type_ _cost_and_gradient_function;
+  HVP_Function_Object_Type_ _hvp_function;
 
-  _Solver_Type _solver;
+  Solver_Type_ _solver;
 }; // namespace NonlinearMPC_ReferenceTrajectoryOperation
 
 /* make NonlinearMPC_TwiceDifferentiable */
