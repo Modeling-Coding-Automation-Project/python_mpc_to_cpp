@@ -652,7 +652,7 @@ protected:
    * Specialization for HasOutputConstraints == false: no output constraints.
    */
   template <bool HasOutputConstraints_ = HasOutputConstraints,
-            typename std::enable_if<!_HasOutputConstraints, int>::type = 0>
+            typename std::enable_if<!HasOutputConstraints_, int>::type = 0>
   inline void _setup_alm_problem() {
 
     ALM_Factory_Type_ alm_factory;
@@ -772,7 +772,7 @@ protected:
    * 1 iteration, avoiding unnecessary tolerance ramp-down overhead.
    */
   template <bool HasOutputConstraints_ = HasOutputConstraints,
-            typename std::enable_if<!_HasOutputConstraints, int>::type = 0>
+            typename std::enable_if<!HasOutputConstraints_, int>::type = 0>
   inline T_ _get_initial_inner_tolerance() const {
     return static_cast<T_>(NonlinearMPC_OptimizationEngine_Constants::
                                ALM_EPSILON_TOLERANCE_DEFAULT);

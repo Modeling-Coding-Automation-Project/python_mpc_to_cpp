@@ -603,7 +603,7 @@ protected:
       typename LTI_MPC_NoConstraints_Type_::X_Augmented_Type;
 
   using Weight_U_Nc_Type_ =
-      PythonNumpy::DiagMatrix_Type<typename LTI_MPC_NoConstraints_Type_::_T,
+      PythonNumpy::DiagMatrix_Type<typename LTI_MPC_NoConstraints_Type_::T_,
                                    (LTI_MPC_NoConstraints_Type_::INPUT_SIZE *
                                     LTI_MPC_NoConstraints_Type_::NC)>;
 
@@ -1327,7 +1327,7 @@ protected:
       typename LTV_MPC_NoConstraints_Type_::X_Augmented_Type;
 
   using Weight_U_Nc_Type_ =
-      PythonNumpy::DiagMatrix_Type<typename LTV_MPC_NoConstraints_Type_::_T,
+      PythonNumpy::DiagMatrix_Type<typename LTV_MPC_NoConstraints_Type_::T_,
                                    (LTV_MPC_NoConstraints_Type_::INPUT_SIZE *
                                     LTV_MPC_NoConstraints_Type_::NC)>;
 
