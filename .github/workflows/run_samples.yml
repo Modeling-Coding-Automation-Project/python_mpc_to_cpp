@@ -47,7 +47,7 @@ jobs:
         MPLBACKEND: Agg
       run: '/opt/venv_py_mpc/bin/python3 ./sample/lti_no_constraints/servo_motor.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -59,7 +59,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/lti_no_constraints/state_space_SISO.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -71,7 +71,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/lti/servo_motor_constraints.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -83,7 +83,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/ltv_no_constraints/servo_motor_ltv.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -95,7 +95,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/ltv/servo_motor_ltv_constraints.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -107,7 +107,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/adaptive_no_constraints/two_wheel_vehicle_model.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -119,7 +119,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/adaptive/two_wheel_vehicle_model_constraints.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -131,7 +131,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/nonlinear/simple_pendulum.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -143,7 +143,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/nonlinear/kinematic_bicycle_model.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -155,7 +155,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/nonlinear/kinematic_bicycle_model_op_en.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
@@ -167,7 +167,7 @@ jobs:
 
         /opt/venv_py_mpc/bin/python3 ./sample/sqrt_2_2_model/sqrt_2_2_model.py
 
-        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        g++ -std=c++11 -Wall -O2 -I ./ -I ./mpc_utility
         -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
