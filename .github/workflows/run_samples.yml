@@ -1,0 +1,180 @@
+name: Run samples
+
+on:
+  push:
+    branches:
+    - develop
+    - feature/*
+
+jobs:
+  run_samples:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        define:
+        - ''
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Install dependencies
+      run: 'sudo apt update
+
+        sudo apt install -y build-essential
+
+        sudo apt install -y python3.12
+
+        sudo apt install -y python3.12-dev
+
+        sudo apt install -y python3.12-venv
+
+        '
+    - name: Set up Python environment
+      run: 'python3.12 -m venv /opt/venv_py_mpc
+
+        /opt/venv_py_mpc/bin/pip install --upgrade pip
+
+        /opt/venv_py_mpc/bin/pip install --upgrade setuptools
+
+        /opt/venv_py_mpc/bin/pip install numpy matplotlib mplcursors plotly dash scipy sympy control astor
+
+        '
+    - name: Run samples
+      env:
+        MPLBACKEND: Agg
+      run: '/opt/venv_py_mpc/bin/python3 ./sample/lti_no_constraints/servo_motor.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/lti_no_constraints/servo_motor.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/lti_no_constraints/state_space_SISO.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/lti_no_constraints/state_space_SISO.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/lti/servo_motor_constraints.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/lti/servo_motor_constraints.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/ltv_no_constraints/servo_motor_ltv.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/ltv_no_constraints/servo_motor_ltv.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/ltv/servo_motor_ltv_constraints.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/ltv/servo_motor_ltv_constraints.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/adaptive_no_constraints/two_wheel_vehicle_model.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/adaptive_no_constraints/two_wheel_vehicle_model.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/adaptive/two_wheel_vehicle_model_constraints.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/adaptive/two_wheel_vehicle_model_constraints.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/nonlinear/simple_pendulum.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/nonlinear/simple_pendulum.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/nonlinear/kinematic_bicycle_model.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/nonlinear/kinematic_bicycle_model.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/nonlinear/kinematic_bicycle_model_op_en.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/nonlinear/kinematic_bicycle_model_op_en.cpp
+
+        ./sample/app
+
+        /opt/venv_py_mpc/bin/python3 ./sample/sqrt_2_2_model/sqrt_2_2_model.py
+
+        g++ -std=c++11 -Wall -O2 -I ./mpc_utility
+        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+        -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
+        ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
+        -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
+        -I ./external_libraries/python_math_to_cpp/python_math -I ./external_libraries/base_utility_cpp/base_utility
+        -o ./sample/app ./sample/sqrt_2_2_model/sqrt_2_2_model.cpp
+
+        ./sample/app
+
+        '
