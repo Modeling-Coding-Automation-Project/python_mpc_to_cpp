@@ -77,7 +77,7 @@ inline auto make(void) -> type<T> {
 
 } // namespace kinematic_bicycle_model_ekf_C
 
-namespace kinematic_bicycle_model_nmpc_ekf_state_function {
+namespace kinematic_bicycle_model_nmpc_ekf_state_equation {
 
 template <typename T>
 using A_Type = kinematic_bicycle_model_ekf_A::type<T>;
@@ -131,9 +131,9 @@ inline auto function(const X_Type<T> X, const U_Type<T> U, const Parameter_Type<
     return sympy_function(delta, wheel_base, v, q3, px, delta_time, q0, py);
 }
 
-} // namespace kinematic_bicycle_model_nmpc_ekf_state_function
+} // namespace kinematic_bicycle_model_nmpc_ekf_state_equation
 
-namespace kinematic_bicycle_model_nmpc_ekf_state_function_jacobian {
+namespace kinematic_bicycle_model_nmpc_ekf_state_equation_jacobian {
 
 template <typename T>
 using A_Type = kinematic_bicycle_model_ekf_A::type<T>;
@@ -198,9 +198,9 @@ inline auto function(const X_Type<T> X, const U_Type<T> U, const Parameter_Type<
 }
 
 
-} // namespace kinematic_bicycle_model_nmpc_ekf_state_function_jacobian
+} // namespace kinematic_bicycle_model_nmpc_ekf_state_equation_jacobian
 
-namespace kinematic_bicycle_model_nmpc_ekf_measurement_function {
+namespace kinematic_bicycle_model_nmpc_ekf_measurement_equation {
 
 template <typename T>
 using A_Type = kinematic_bicycle_model_ekf_A::type<T>;
@@ -243,9 +243,9 @@ inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> Y
 }
 
 
-} // namespace kinematic_bicycle_model_nmpc_ekf_measurement_function
+} // namespace kinematic_bicycle_model_nmpc_ekf_measurement_equation
 
-namespace kinematic_bicycle_model_nmpc_ekf_measurement_function_jacobian {
+namespace kinematic_bicycle_model_nmpc_ekf_measurement_equation_jacobian {
 
 template <typename T>
 using A_Type = kinematic_bicycle_model_ekf_A::type<T>;
@@ -293,7 +293,7 @@ inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> C
 }
 
 
-} // namespace kinematic_bicycle_model_nmpc_ekf_measurement_function_jacobian
+} // namespace kinematic_bicycle_model_nmpc_ekf_measurement_equation_jacobian
 
 namespace kinematic_bicycle_model_nmpc_ekf {
 
@@ -350,37 +350,37 @@ inline auto make() -> type<T> {
 
     Parameter_Type<T> parameters;
 
-    PythonControl::StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_object =
+    PythonControl::StateEquation_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_equation_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
-        return kinematic_bicycle_model_nmpc_ekf_state_function::function<T>(X, U, Parameters);
+        return kinematic_bicycle_model_nmpc_ekf_state_equation::function<T>(X, U, Parameters);
         };
 
-    PythonControl::StateFunctionJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_jacobian_object =
+    PythonControl::StateEquationJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_equation_jacobian_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
-        return kinematic_bicycle_model_nmpc_ekf_state_function_jacobian::function<T>(X, U, Parameters);
+        return kinematic_bicycle_model_nmpc_ekf_state_equation_jacobian::function<T>(X, U, Parameters);
         };
 
-    PythonControl::MeasurementFunction_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_object =
+    PythonControl::MeasurementEquation_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_equation_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
-        return kinematic_bicycle_model_nmpc_ekf_measurement_function::function<T>(X, Parameters);
+        return kinematic_bicycle_model_nmpc_ekf_measurement_equation::function<T>(X, Parameters);
         };
 
-    PythonControl::MeasurementFunctionJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_jacobian_object =
+    PythonControl::MeasurementEquationJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_equation_jacobian_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
-        return kinematic_bicycle_model_nmpc_ekf_measurement_function_jacobian::function<T>(X, Parameters);
+        return kinematic_bicycle_model_nmpc_ekf_measurement_equation_jacobian::function<T>(X, Parameters);
         };
 
     return ExtendedKalmanFilter_Type<
         A_Type<T>, C_Type<T>, U_Type<T>, Q_Type<T>, R_Type<T>, Parameter_Type<T>, NUMBER_OF_DELAY>(
-            Q, R, state_function_object, state_function_jacobian_object,
-            measurement_function_object, measurement_function_jacobian_object,
+            Q, R, state_equation_object, state_equation_jacobian_object,
+            measurement_equation_object, measurement_equation_jacobian_object,
             parameters);
 
 }
 
 } // namespace kinematic_bicycle_model_nmpc_ekf
 
-namespace kinematic_bicycle_model_sqp_state_function {
+namespace kinematic_bicycle_model_sqp_state_equation {
 
 template <typename T, typename X_Type, typename U_Type, typename Parameter_Type>
 class Function {
@@ -428,9 +428,9 @@ public:
 
 };
 
-} // namespace kinematic_bicycle_model_sqp_state_function
+} // namespace kinematic_bicycle_model_sqp_state_equation
 
-namespace kinematic_bicycle_model_sqp_measurement_function {
+namespace kinematic_bicycle_model_sqp_measurement_equation {
 
 template <typename T, typename X_Type, typename U_Type, typename Parameter_Type, typename Y_Type>
 class Function {
@@ -465,7 +465,7 @@ public:
 
 };
 
-} // namespace kinematic_bicycle_model_sqp_measurement_function
+} // namespace kinematic_bicycle_model_sqp_measurement_equation
 
 namespace kinematic_bicycle_model_sqp_state_jacobian_x {
 
@@ -1436,47 +1436,47 @@ inline auto make() -> type<T> {
         Measurement_Hessian_XX_Matrix_Type<T>>(
             Qx, R, Qy, U_min, U_max, Y_min, Y_max);
 
-    PythonOptimization::StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_FUNCTION =
-        kinematic_bicycle_model_sqp_state_function::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+    PythonOptimization::StateEquation_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_EQUATION =
+        kinematic_bicycle_model_sqp_state_equation::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::MeasurementFunction_Object<Y_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_FUNCTION =
-        kinematic_bicycle_model_sqp_measurement_function::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>, Y_Type<T>>::function;
+    PythonOptimization::MeasurementEquation_Object<Y_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_EQUATION =
+        kinematic_bicycle_model_sqp_measurement_equation::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>, Y_Type<T>>::function;
 
-    PythonOptimization::StateFunctionJacobian_X_Object<
+    PythonOptimization::StateEquationJacobian_X_Object<
         State_Jacobian_X_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_JACOBIAN_X_FUNCTION =
         kinematic_bicycle_model_sqp_state_jacobian_x::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::StateFunctionJacobian_U_Object<
+    PythonOptimization::StateEquationJacobian_U_Object<
         State_Jacobian_U_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_JACOBIAN_U_FUNCTION =
         kinematic_bicycle_model_sqp_state_jacobian_u::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::MeasurementFunctionJacobian_X_Object<
+    PythonOptimization::MeasurementEquationJacobian_X_Object<
         Measurement_Jacobian_X_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_JACOBIAN_X_FUNCTION =
         kinematic_bicycle_model_sqp_measurement_jacobian_x::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::StateFunctionHessian_XX_Object<
+    PythonOptimization::StateEquationHessian_XX_Object<
         State_Hessian_XX_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_XX_FUNCTION =
         kinematic_bicycle_model_sqp_hessian_f_xx::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::StateFunctionHessian_XU_Object<
+    PythonOptimization::StateEquationHessian_XU_Object<
         State_Hessian_XU_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_XU_FUNCTION =
         kinematic_bicycle_model_sqp_hessian_f_xu::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::StateFunctionHessian_UX_Object<
+    PythonOptimization::StateEquationHessian_UX_Object<
         State_Hessian_UX_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_UX_FUNCTION =
         kinematic_bicycle_model_sqp_hessian_f_ux::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::StateFunctionHessian_UU_Object<
+    PythonOptimization::StateEquationHessian_UU_Object<
         State_Hessian_UU_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_HESSIAN_UU_FUNCTION =
         kinematic_bicycle_model_sqp_hessian_f_uu::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::MeasurementFunctionHessian_XX_Object<
+    PythonOptimization::MeasurementEquationHessian_XX_Object<
         Measurement_Hessian_XX_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_HESSIAN_XX_FUNCTION =
         kinematic_bicycle_model_sqp_hessian_h_xx::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
     cost_matrices.set_function_objects(
-        STATE_FUNCTION,
-        MEASUREMENT_FUNCTION,
+        STATE_EQUATION,
+        MEASUREMENT_EQUATION,
         STATE_JACOBIAN_X_FUNCTION,
         STATE_JACOBIAN_U_FUNCTION,
         MEASUREMENT_JACOBIAN_X_FUNCTION,
@@ -1588,27 +1588,27 @@ inline auto make() -> type<T> {
         Measurement_Jacobian_X_Matrix_Type<T>>(
             Qx, R, Qy, U_min, U_max, Y_min, Y_max);
 
-    PythonOptimization::StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_FUNCTION =
-        kinematic_bicycle_model_sqp_state_function::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
+    PythonOptimization::StateEquation_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_EQUATION =
+        kinematic_bicycle_model_sqp_state_equation::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::MeasurementFunction_Object<Y_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_FUNCTION =
-        kinematic_bicycle_model_sqp_measurement_function::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>, Y_Type<T>>::function;
+    PythonOptimization::MeasurementEquation_Object<Y_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_EQUATION =
+        kinematic_bicycle_model_sqp_measurement_equation::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>, Y_Type<T>>::function;
 
-    PythonOptimization::StateFunctionJacobian_X_Object<
+    PythonOptimization::StateEquationJacobian_X_Object<
         State_Jacobian_X_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_JACOBIAN_X_FUNCTION =
         kinematic_bicycle_model_sqp_state_jacobian_x::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::StateFunctionJacobian_U_Object<
+    PythonOptimization::StateEquationJacobian_U_Object<
         State_Jacobian_U_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> STATE_JACOBIAN_U_FUNCTION =
         kinematic_bicycle_model_sqp_state_jacobian_u::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
-    PythonOptimization::MeasurementFunctionJacobian_X_Object<
+    PythonOptimization::MeasurementEquationJacobian_X_Object<
         Measurement_Jacobian_X_Matrix_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> MEASUREMENT_JACOBIAN_X_FUNCTION =
         kinematic_bicycle_model_sqp_measurement_jacobian_x::Function<T, X_Type<T>, U_Type<T>, Parameter_Type<T>>::function;
 
     cost_matrices.set_function_objects(
-        STATE_FUNCTION,
-        MEASUREMENT_FUNCTION,
+        STATE_EQUATION,
+        MEASUREMENT_EQUATION,
         STATE_JACOBIAN_X_FUNCTION,
         STATE_JACOBIAN_U_FUNCTION,
         MEASUREMENT_JACOBIAN_X_FUNCTION

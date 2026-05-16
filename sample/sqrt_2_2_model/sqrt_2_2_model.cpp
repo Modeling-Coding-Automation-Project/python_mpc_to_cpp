@@ -108,8 +108,8 @@ int main(void) {
   /* Simulation */
   for (std::size_t sim_step = 0; sim_step < MAX_STEP; ++sim_step) {
     /* system response */
-    X = sqrt_2_2_model_ada_mpc_ekf_state_function::function(X, U, parameters);
-    Y = sqrt_2_2_model_ada_mpc_ekf_measurement_function::function(X,
+    X = sqrt_2_2_model_ada_mpc_ekf_state_equation::function(X, U, parameters);
+    Y = sqrt_2_2_model_ada_mpc_ekf_measurement_equation::function(X,
                                                                   parameters);
 
     /* controller */

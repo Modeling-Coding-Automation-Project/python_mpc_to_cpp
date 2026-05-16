@@ -65,9 +65,9 @@ int main(void) {
 
   for (std::size_t step = 0; step < MAX_STEP; ++step) {
     /* system response */
-    X = simple_pendulum_nonlinear_mpc_ekf_state_function::function(X, U,
+    X = simple_pendulum_nonlinear_mpc_ekf_state_equation::function(X, U,
                                                                    parameters);
-    Y = simple_pendulum_nonlinear_mpc_ekf_measurement_function::function(
+    Y = simple_pendulum_nonlinear_mpc_ekf_measurement_equation::function(
         X, parameters);
 
     /* controller */

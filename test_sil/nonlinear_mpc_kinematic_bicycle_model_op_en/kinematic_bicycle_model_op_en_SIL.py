@@ -157,14 +157,14 @@ def main():
         if i > 0:
             u = np.copy(u_from_mpc)
 
-        x_true = nonlinear_mpc.kalman_filter.state_function(
+        x_true = nonlinear_mpc.kalman_filter.state_equation(
             x_true, u, state_space_parameters)
 
         q_norm = np.sqrt(x_true[2, 0]**2 + x_true[3, 0]**2)
         x_true[2, 0] = x_true[2, 0] / q_norm
         x_true[3, 0] = x_true[3, 0] / q_norm
 
-        y_store[delay_index] = nonlinear_mpc.kalman_filter.measurement_function(
+        y_store[delay_index] = nonlinear_mpc.kalman_filter.measurement_equation(
             x_true, state_space_parameters)
 
         # system delay

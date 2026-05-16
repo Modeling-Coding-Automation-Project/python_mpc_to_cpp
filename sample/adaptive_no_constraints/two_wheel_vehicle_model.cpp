@@ -153,9 +153,9 @@ int main(void) {
   /* Simulation */
   for (std::size_t sim_step = 0; sim_step < MAX_STEP; ++sim_step) {
     /* system response */
-    X = two_wheel_vehicle_model_ada_mpc_ekf_state_function::function(
+    X = two_wheel_vehicle_model_ada_mpc_ekf_state_equation::function(
         X, U, parameters);
-    Y = two_wheel_vehicle_model_ada_mpc_ekf_measurement_function::function(
+    Y = two_wheel_vehicle_model_ada_mpc_ekf_measurement_equation::function(
         X, parameters);
 
     /* controller */

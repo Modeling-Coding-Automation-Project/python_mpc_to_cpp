@@ -112,7 +112,7 @@ using Parameter_Type = Parameter<T>;
 template <typename T>
 using Parameter_Type = two_wheel_vehicle_model_ada_mpc_ekf_parameter::Parameter_Type<T>;
 
-namespace two_wheel_vehicle_model_ada_mpc_ekf_state_function {
+namespace two_wheel_vehicle_model_ada_mpc_ekf_state_equation {
 
 template <typename T>
 using A_Type = two_wheel_vehicle_model_ekf_A::type<T>;
@@ -179,9 +179,9 @@ inline auto function(const X_Type<T> X, const U_Type<T> U, const Parameter_Type<
         l_f);
 }
 
-} // namespace two_wheel_vehicle_model_ada_mpc_ekf_state_function
+} // namespace two_wheel_vehicle_model_ada_mpc_ekf_state_equation
 
-namespace two_wheel_vehicle_model_ada_mpc_ekf_state_function_jacobian {
+namespace two_wheel_vehicle_model_ada_mpc_ekf_state_equation_jacobian {
 
 template <typename T>
 using A_Type = two_wheel_vehicle_model_ekf_A::type<T>;
@@ -301,9 +301,9 @@ inline auto function(const X_Type<T> X, const U_Type<T> U, const Parameter_Type<
     return sympy_function(r, theta, V, delta, beta, K_r, m, K_f, I, l_r, l_f);
 }
 
-} // namespace two_wheel_vehicle_model_ada_mpc_ekf_state_function_jacobian
+} // namespace two_wheel_vehicle_model_ada_mpc_ekf_state_equation_jacobian
 
-namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_function {
+namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_equation {
 
 template <typename T>
 using A_Type = two_wheel_vehicle_model_ekf_A::type<T>;
@@ -348,9 +348,9 @@ inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> Y
     return sympy_function(r, theta, V, px, py);
 }
 
-} // namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_function
+} // namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_equation
 
-namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_function_jacobian {
+namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_equation_jacobian {
 
 template <typename T>
 using A_Type = two_wheel_vehicle_model_ekf_A::type<T>;
@@ -412,7 +412,7 @@ inline auto function(const X_Type<T> X, const Parameter_Type<T> Parameters) -> C
 }
 
 
-} // namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_function_jacobian
+} // namespace two_wheel_vehicle_model_ada_mpc_ekf_measurement_equation_jacobian
 
 namespace two_wheel_vehicle_model_ada_mpc_ekf {
 
@@ -477,34 +477,34 @@ inline auto make() -> type<T> {
 
     Parameter_Type<T> parameters;
 
-    StateFunction_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_object =
+    StateEquation_Object<X_Type<T>, U_Type<T>, Parameter_Type<T>> state_equation_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
-        return two_wheel_vehicle_model_ada_mpc_ekf_state_function::function(X, U, Parameters);
+        return two_wheel_vehicle_model_ada_mpc_ekf_state_equation::function(X, U, Parameters);
 
         };
 
-    StateFunctionJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_function_jacobian_object =
+    StateEquationJacobian_Object<A_Type<T>, X_Type<T>, U_Type<T>, Parameter_Type<T>> state_equation_jacobian_object =
         [](const X_Type<T>& X, const U_Type<T>& U, const Parameter_Type<T>& Parameters) {
-        return two_wheel_vehicle_model_ada_mpc_ekf_state_function_jacobian::function(X, U, Parameters);
+        return two_wheel_vehicle_model_ada_mpc_ekf_state_equation_jacobian::function(X, U, Parameters);
 
         };
 
-    MeasurementFunction_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_object =
+    MeasurementEquation_Object<Y_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_equation_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
-        return two_wheel_vehicle_model_ada_mpc_ekf_measurement_function::function(X, Parameters);
+        return two_wheel_vehicle_model_ada_mpc_ekf_measurement_equation::function(X, Parameters);
 
         };
 
-    MeasurementFunctionJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_function_jacobian_object =
+    MeasurementEquationJacobian_Object<C_Type<T>, X_Type<T>, Parameter_Type<T>> measurement_equation_jacobian_object =
         [](const X_Type<T>& X, const Parameter_Type<T>& Parameters) {
-        return two_wheel_vehicle_model_ada_mpc_ekf_measurement_function_jacobian::function(X, Parameters);
+        return two_wheel_vehicle_model_ada_mpc_ekf_measurement_equation_jacobian::function(X, Parameters);
 
         };
 
     return ExtendedKalmanFilter_Type<
         A_Type<T>, C_Type<T>, U_Type<T>, Q_Type<T>, R_Type<T>, Parameter_Type<T>, NUMBER_OF_DELAY>(
-            Q, R, state_function_object, state_function_jacobian_object,
-            measurement_function_object, measurement_function_jacobian_object,
+            Q, R, state_equation_object, state_equation_jacobian_object,
+            measurement_equation_object, measurement_equation_jacobian_object,
             parameters);
 
 }

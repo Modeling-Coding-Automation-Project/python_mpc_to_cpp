@@ -63,12 +63,12 @@ def create_model(delta_time: float):
     # forward-Euler discretisation: x(k+1) = x(k) + f(x,u) * dt
     fxu: sp.Matrix = X + fxu_continuous * delta_time
 
-    print("State Function (fxu):")
+    print("State Equation (fxu):")
     sp.pprint(fxu)
 
-    # measurement function
+    # measurement equation
     hx = sp.Matrix([[x1], [x2]])
-    print("Measurement Function (hx):")
+    print("Measurement Equation (hx):")
     sp.pprint(hx)
 
     # derive Jacobians
