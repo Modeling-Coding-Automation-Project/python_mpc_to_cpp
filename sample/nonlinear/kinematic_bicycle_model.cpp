@@ -166,14 +166,14 @@ int main(void) {
 
   for (std::size_t step = 0; step < MAX_STEP; ++step) {
     /* system response */
-    X = kinematic_bicycle_model_nonlinear_mpc_ekf_state_function::function(
+    X = kinematic_bicycle_model_nonlinear_mpc_ekf_state_equation::function(
         X, U, parameters);
 
     double q_norm = std::sqrt(X(2, 0) * X(2, 0) + X(3, 0) * X(3, 0));
     X(2, 0) = X(2, 0) / q_norm;
     X(3, 0) = X(3, 0) / q_norm;
 
-    Y = kinematic_bicycle_model_nonlinear_mpc_ekf_measurement_function::
+    Y = kinematic_bicycle_model_nonlinear_mpc_ekf_measurement_equation::
         function(X, parameters);
 
     /* controller */

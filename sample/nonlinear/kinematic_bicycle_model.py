@@ -96,7 +96,7 @@ def create_plant_model():
     Returns:
         fxu (sympy.Matrix): The symbolic state transition function f(x, u),
           representing the next state as a function of current state and control input.
-        hx (sympy.Matrix): The symbolic output function h(x),
+        hx (sympy.Matrix): The symbolic output equation h(x),
           representing the measurement or output equation.
         X (sympy.Matrix): The symbolic state vector [px, py, q0, q3],
           where px and py are positions, and q0, q3 are orientation components.
@@ -252,14 +252,14 @@ def main():
         if i > 0:
             u = np.copy(u_from_mpc)
 
-        x_true = nonlinear_mpc.kalman_filter.state_function(
+        x_true = nonlinear_mpc.kalman_filter.state_equation(
             x_true, u, state_space_parameters)
 
         q_norm = np.sqrt(x_true[2, 0]**2 + x_true[3, 0]**2)
         x_true[2, 0] = x_true[2, 0] / q_norm
         x_true[3, 0] = x_true[3, 0] / q_norm
 
-        y_store[delay_index] = nonlinear_mpc.kalman_filter.measurement_function(
+        y_store[delay_index] = nonlinear_mpc.kalman_filter.measurement_equation(
             x_true, state_space_parameters)
 
         # system delay

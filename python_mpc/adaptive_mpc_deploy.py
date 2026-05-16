@@ -109,7 +109,7 @@ class AdaptiveMPC_Deploy:
         code_file_name_ext = code_file_name + ".hpp"
 
         # %% generate B matrix code
-        _, _, B_symbolic_SparseAvailable_list = KalmanFilterDeploy.create_state_and_measurement_function_code(
+        _, _, B_symbolic_SparseAvailable_list = KalmanFilterDeploy.create_state_and_measurement_equation_code(
             ada_mpc_nc.B_symbolic_file_name, "B_Type"
         )
 
@@ -486,7 +486,7 @@ class AdaptiveMPC_Deploy:
         code_file_name_ext = code_file_name + ".hpp"
 
         # %% generate B matrix code
-        _, _, B_symbolic_SparseAvailable_list = KalmanFilterDeploy.create_state_and_measurement_function_code(
+        _, _, B_symbolic_SparseAvailable_list = KalmanFilterDeploy.create_state_and_measurement_equation_code(
             ada_mpc.B_symbolic_file_name, "B_Type"
         )
 

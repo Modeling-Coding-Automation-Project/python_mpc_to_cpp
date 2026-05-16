@@ -57,7 +57,7 @@ compensate_X_Y_delay(const X_Type &X_in, const Y_Type &Y_in,
   Y_Type Y_measured = Y_in;
 
   X_Type X_out = kalman_filter.get_x_hat_without_delay();
-  auto Y = kalman_filter.calculate_measurement_function(X_out);
+  auto Y = kalman_filter.calculate_measurement_equation(X_out);
 
   Y_store.push(Y);
   auto Y_diff = Y_measured - Y_store.get();
