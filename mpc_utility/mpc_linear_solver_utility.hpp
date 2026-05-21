@@ -413,8 +413,8 @@ public:
    */
   inline auto get_number_of_all_constraints(void) const -> std::size_t {
 
-    return this->_number_of_delta_U_constraints +
-           this->_number_of_U_constraints + this->_number_of_Y_constraints;
+    return NUMBER_OF_DELTA_U_CONSTRAINTS + NUMBER_OF_U_CONSTRAINTS +
+           NUMBER_OF_Y_CONSTRAINTS;
   }
 
   /**
@@ -425,7 +425,7 @@ public:
    * @return The number of delta U constraints.
    */
   inline auto get_number_of_delta_U_constraints(void) const -> std::size_t {
-    return this->_number_of_delta_U_constraints;
+    return NUMBER_OF_DELTA_U_CONSTRAINTS;
   }
 
   /**
@@ -436,7 +436,7 @@ public:
    * @return The number of U constraints.
    */
   inline auto get_number_of_U_constraints(void) const -> std::size_t {
-    return this->_number_of_U_constraints;
+    return NUMBER_OF_U_CONSTRAINTS;
   }
 
   /**
@@ -447,7 +447,7 @@ public:
    * @return The number of Y constraints.
    */
   inline auto get_number_of_Y_constraints(void) const -> std::size_t {
-    return this->_number_of_Y_constraints;
+    return NUMBER_OF_Y_CONSTRAINTS;
   }
 
 public:
@@ -2089,7 +2089,7 @@ public:
    */
   inline auto get_number_of_Y_constraints_prediction_offset(void) const
       -> std::size_t {
-    return this->Y_constraints_prediction_offset_;
+    return Y_CONSTRAINTS_PREDICTION_OFFSET;
   }
 
   /**
