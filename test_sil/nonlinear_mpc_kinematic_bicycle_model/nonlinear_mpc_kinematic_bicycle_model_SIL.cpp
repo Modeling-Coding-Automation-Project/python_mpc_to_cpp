@@ -64,7 +64,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
 
   if (NP != ref_rows) {
     throw std::runtime_error("reference_trajectory must have " +
-                             std::to_string(ReferenceTrajectory_Type::ROWS) +
+                             std::to_string(ReferenceTrajectory_Type::COLS) +
                              " rows (horizon).");
   }
 
@@ -84,14 +84,14 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
   for (std::size_t col = 0; col < OUTPUT_SIZE; ++col) {
     for (std::size_t row = 0; row < NP; ++row) {
 
-      ref.access(col, row) = ref_data_ptr[col * NP + row];
+      ref(col, row) = ref_data_ptr[col * NP + row];
     }
   }
 
   FLOAT *Y_data_ptr = static_cast<FLOAT *>(Y_info.ptr);
   PythonControl::StateSpaceOutput_Type<FLOAT, OUTPUT_SIZE> Y;
   for (std::size_t i = 0; i < OUTPUT_SIZE; ++i) {
-    Y.access(i, 0) = Y_data_ptr[i];
+    Y(i) = Y_data_ptr[i];
   }
 
   /* update */
@@ -102,7 +102,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> reference_trajectory,
   result.resize({static_cast<int>(INPUT_SIZE), static_cast<int>(1)});
 
   for (std::size_t i = 0; i < INPUT_SIZE; ++i) {
-    result.mutable_at(i, 0) = U.access(i, 0);
+    result.mutable_at(i, 0) = U(i);
   }
 
   return result;

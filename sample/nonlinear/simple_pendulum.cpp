@@ -76,8 +76,8 @@ int main(void) {
     std::size_t solver_iteration =
         nonlinear_mpc.get_solver_step_iterated_number();
 
-    std::cout << "Y_0: " << Y(0, 0) << ", ";
-    std::cout << "U_0: " << U(0, 0) << ", ";
+    std::cout << "Y_0: " << Y(0) << ", ";
+    std::cout << "U_0: " << U(0) << ", ";
     std::cout << "iteration: " << solver_iteration << ", ";
 
     std::cout << std::endl;

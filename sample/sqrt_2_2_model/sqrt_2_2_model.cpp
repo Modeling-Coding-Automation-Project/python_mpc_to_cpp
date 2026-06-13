@@ -117,10 +117,10 @@ int main(void) {
     reference(1, 0) = reference_sequence.y2_sequence[sim_step];
     U = ada_mpc_nc.update_manipulation(reference, Y);
 
-    std::cout << "Y_0: " << Y(0, 0) << ", ";
-    std::cout << "Y_1: " << Y(1, 0) << ", ";
-    std::cout << "U_0: " << U(0, 0) << ", ";
-    std::cout << "U_1: " << U(1, 0) << ", ";
+    std::cout << "Y_0: " << Y(0) << ", ";
+    std::cout << "Y_1: " << Y(1) << ", ";
+    std::cout << "U_0: " << U(0) << ", ";
+    std::cout << "U_1: " << U(1) << ", ";
 
     std::cout << std::endl;
   }
