@@ -12,7 +12,7 @@ C++11
 
 ### 動作確認済みPythonバージョン
 
-Python 3.11 以降
+Python 3.12 以降
 
 ## 実装済み機能
 
@@ -32,7 +32,7 @@ Python 3.11 以降
 - 非線形MPC
   - 制約あり
     - 最適化：逐次二次計画（SQP）法
-    - 最適化：Optimization Engine, OpEn
+    - 最適化：Optimization Engine（OpEn）
 
 本ライブラリのOptimization Engineは、以下リンク先のリポジトリにて公開されているアルゴリズムを参考に、本ライブラリとして必要な機能を選別し、オリジナルに実装したものになります。
 
