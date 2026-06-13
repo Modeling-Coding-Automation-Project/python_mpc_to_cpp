@@ -169,9 +169,9 @@ int main(void) {
     X = kinematic_bicycle_model_nonlinear_mpc_ekf_state_equation::function(
         X, U, parameters);
 
-    double q_norm = std::sqrt(X(2, 0) * X(2, 0) + X(3, 0) * X(3, 0));
-    X(2, 0) = X(2, 0) / q_norm;
-    X(3, 0) = X(3, 0) / q_norm;
+    double q_norm = std::sqrt(X(2) * X(2) + X(3) * X(3));
+    X(2) = X(2) / q_norm;
+    X(3) = X(3) / q_norm;
 
     Y = kinematic_bicycle_model_nonlinear_mpc_ekf_measurement_equation::
         function(X, parameters);
@@ -216,21 +216,21 @@ int main(void) {
     std::size_t solver_iteration =
         nonlinear_mpc.get_solver_step_iterated_number();
 
-    double yaw = 2.0 * std::atan2(Y(3, 0), Y(2, 0));
+    double yaw = 2.0 * std::atan2(Y(3), Y(2));
 
-    std::cout << "px: " << Y(0, 0) << ", ";
-    std::cout << "py: " << Y(1, 0) << ", ";
+    std::cout << "px: " << Y(0) << ", ";
+    std::cout << "py: " << Y(1) << ", ";
     std::cout << "yaw: " << yaw << ", ";
-    std::cout << "v: " << U(0, 0) << ", ";
-    std::cout << "delta: " << U(1, 0) << ", ";
+    std::cout << "v: " << U(0) << ", ";
+    std::cout << "delta: " << U(1) << ", ";
     std::cout << "iteration: " << solver_iteration << ", ";
 
     std::cout << std::endl;
 
     // Write data row to CSV if file is open
     if (ofs) {
-      ofs << Y(0, 0) << ',' << Y(1, 0) << ',' << yaw << ',' << U(0, 0) << ','
-          << U(1, 0) << ',' << solver_iteration << '\n';
+      ofs << Y(0) << ',' << Y(1) << ',' << yaw << ',' << U(0) << ',' << U(1)
+          << ',' << solver_iteration << '\n';
     }
   }
 

@@ -81,9 +81,9 @@ int main(void) {
 
     U = lti_mpc.update(reference, sys.get_Y());
 
-    std::cout << "Y_0: " << sys.get_Y()(0, 0) << ", ";
-    std::cout << "Y_1: " << sys.get_Y()(1, 0) << ", ";
-    std::cout << "U_0: " << U(0, 0) << ", ";
+    std::cout << "Y_0: " << sys.get_Y()(0) << ", ";
+    std::cout << "Y_1: " << sys.get_Y()(1) << ", ";
+    std::cout << "U_0: " << U(0) << ", ";
     std::cout << std::endl;
   }
 

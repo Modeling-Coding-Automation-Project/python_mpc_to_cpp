@@ -56,9 +56,9 @@ int main(void) {
 
     U = lti_mpc_nc.update(reference, sys.get_Y());
 
-    std::cout << "X_0: " << sys.get_X()(0, 0) << ", ";
-    std::cout << "X_1: " << sys.get_X()(1, 0) << ", ";
-    std::cout << "Y: " << sys.get_Y()(0, 0) << ", ";
+    std::cout << "X_0: " << sys.get_X()(0) << ", ";
+    std::cout << "X_1: " << sys.get_X()(1) << ", ";
+    std::cout << "Y: " << sys.get_Y()(0) << ", ";
     std::cout << std::endl;
   }
 
