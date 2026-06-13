@@ -44,14 +44,14 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   Reference_Type ref;
   for (std::size_t i = 0; i < Reference_Type::ROWS; ++i) {
     for (std::size_t j = 0; j < Reference_Type::COLS; ++j) {
-      ref.access(i, j) = ref_data_ptr[i * Reference_Type::COLS + j];
+      ref(i, j) = ref_data_ptr[i * Reference_Type::COLS + j];
     }
   }
 
   FLOAT *Y_data_ptr = static_cast<FLOAT *>(Y_info.ptr);
   PythonControl::StateSpaceOutput_Type<FLOAT, OUTPUT_SIZE> Y;
   for (std::size_t i = 0; i < OUTPUT_SIZE; ++i) {
-    Y.access(i, 0) = Y_data_ptr[i];
+    Y(i) = Y_data_ptr[i];
   }
 
   /* update */
@@ -62,7 +62,7 @@ py::array_t<FLOAT> update_manipulation(py::array_t<FLOAT> ref_in,
   result.resize({static_cast<int>(INPUT_SIZE), static_cast<int>(1)});
 
   for (std::size_t i = 0; i < INPUT_SIZE; ++i) {
-    result.mutable_at(i, 0) = U.access(i, 0);
+    result.mutable_at(i, 0) = U(i);
   }
 
   return result;
