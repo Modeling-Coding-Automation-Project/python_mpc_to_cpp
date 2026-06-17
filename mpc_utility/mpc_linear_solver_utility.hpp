@@ -581,9 +581,9 @@ struct Calculate_M_Gamma_Delta_U_Min_Condition<
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
-    M.access(initial_position + I, I) =
+    M.unsafe_access(initial_position + I, I) =
         static_cast<typename M_Type::Value_Type>(-1.0);
-    gamma.access(initial_position + I, 0) =
+    gamma.unsafe_access(initial_position + I, 0) =
         -delta_U_matrix.template get<I, 0>();
     set_count += 1;
   }
@@ -762,9 +762,10 @@ struct Calculate_M_Gamma_Delta_U_Max_Condition<
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
-    M.access(initial_position + I, I) =
+    M.unsafe_access(initial_position + I, I) =
         static_cast<typename M_Type::Value_Type>(1.0);
-    gamma.access(initial_position + I, 0) = delta_U_matrix.template get<I, 0>();
+    gamma.unsafe_access(initial_position + I, 0) =
+        delta_U_matrix.template get<I, 0>();
     set_count += 1;
   }
 };
@@ -944,9 +945,9 @@ struct Calculate_M_Gamma_U_Min_Condition<M_Type, Gamma_Type, U_min_Matrix_Type,
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
-    M.access(initial_position + I, I) =
+    M.unsafe_access(initial_position + I, I) =
         static_cast<typename M_Type::Value_Type>(-1.0);
-    gamma.access(initial_position + I, 0) =
+    gamma.unsafe_access(initial_position + I, 0) =
         -U_matrix.template get<I, 0>() + U.template get<I, 0>();
     set_count += 1;
   }
@@ -1132,9 +1133,9 @@ struct Calculate_M_Gamma_U_Max_Condition<M_Type, Gamma_Type, U_max_Matrix_Type,
                     std::size_t &set_count,
                     const std::size_t &initial_position) {
 
-    M.access(initial_position + I, I) =
+    M.unsafe_access(initial_position + I, I) =
         static_cast<typename M_Type::Value_Type>(1.0);
-    gamma.access(initial_position + I, 0) =
+    gamma.unsafe_access(initial_position + I, 0) =
         U_matrix.template get<I, 0>() - U.template get<I, 0>();
     set_count += 1;
   }
@@ -1302,7 +1303,7 @@ struct Set_M_Y_Min_Cols {
   static void apply(M_Type &M, const Phi_Type &Phi,
                     std::size_t initial_position) {
 
-    M.access(initial_position + I, J) =
+    M.unsafe_access(initial_position + I, J) =
         -Phi.template get<Y_Constraints_Prediction_Offset + I, J>();
     Set_M_Y_Min_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I,
                      J + 1, J_Dif - 1>::apply(M, Phi, initial_position);
@@ -1387,7 +1388,7 @@ struct Calculate_M_Gamma_Y_Min_Condition<
     Set_M_Y_Min_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, 0,
                      (Phi_Type::COLS - 1)>::apply(M, Phi, initial_position);
 
-    gamma.access(initial_position + I, 0) =
+    gamma.unsafe_access(initial_position + I, 0) =
         -Y_min_matrix.template get<I, 0>() +
         F_X.template get<Y_Constraints_Prediction_Offset + I, 0>();
     set_count += 1;
@@ -1580,7 +1581,7 @@ struct Set_M_Y_Max_Cols {
   static void apply(M_Type &M, const Phi_Type &Phi,
                     std::size_t initial_position) {
 
-    M.access(initial_position + I, J) =
+    M.unsafe_access(initial_position + I, J) =
         Phi.template get<Y_Constraints_Prediction_Offset + I, J>();
     Set_M_Y_Max_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I,
                      J + 1, J_Dif - 1>::apply(M, Phi, initial_position);
@@ -1665,7 +1666,7 @@ struct Calculate_M_Gamma_Y_Max_Condition<
     Set_M_Y_Max_Cols<M_Type, Phi_Type, Y_Constraints_Prediction_Offset, I, 0,
                      (Phi_Type::COLS - 1)>::apply(M, Phi, initial_position);
 
-    gamma.access(initial_position + I, 0) =
+    gamma.unsafe_access(initial_position + I, 0) =
         Y_max_matrix.template get<I, 0>() -
         F_X.template get<Y_Constraints_Prediction_Offset + I, 0>();
     set_count += 1;
