@@ -94,8 +94,8 @@ class LTVMatricesDeploy:
         code_text = ""
 
         if file_name_no_extension is not None:
-            code_text += f"#ifndef __{file_name_no_extension.upper()}_HPP__\n"
-            code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
+            code_text += f"#ifndef {file_name_no_extension.upper()}_HPP_\n"
+            code_text += f"#define {file_name_no_extension.upper()}_HPP_\n\n"
 
             code_text += f"namespace {file_name_no_extension} {{\n\n"
 
@@ -105,7 +105,7 @@ class LTVMatricesDeploy:
         if file_name_no_extension is not None:
             code_text += "\n} // namespace " + file_name_no_extension + "\n\n"
 
-            code_text += f"#endif // __{file_name_no_extension.upper()}_HPP__\n"
+            code_text += f"#endif // {file_name_no_extension.upper()}_HPP_\n"
 
         return code_text
 
@@ -148,8 +148,8 @@ class LTVMatricesDeploy:
 
         code_text = ""
 
-        code_text += f"#ifndef __{file_name_no_extension.upper()}_HPP__\n"
-        code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
+        code_text += f"#ifndef {file_name_no_extension.upper()}_HPP_\n"
+        code_text += f"#define {file_name_no_extension.upper()}_HPP_\n\n"
 
         code_text += f"namespace {file_name_no_extension} {{\n\n"
 
@@ -190,7 +190,7 @@ class LTVMatricesDeploy:
 
         code_text += f"}} // namespace {file_name_no_extension}\n\n"
 
-        code_text += f"#endif // __{file_name_no_extension.upper()}_HPP__\n"
+        code_text += f"#endif // {file_name_no_extension.upper()}_HPP_\n"
 
         return code_text
 
@@ -232,8 +232,8 @@ class LTVMatricesDeploy:
 
         code_text = ""
 
-        code_text += f"#ifndef __{file_name_no_extension.upper()}_HPP__\n"
-        code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
+        code_text += f"#ifndef {file_name_no_extension.upper()}_HPP_\n"
+        code_text += f"#define {file_name_no_extension.upper()}_HPP_\n\n"
 
         code_text += f"namespace {file_name_no_extension} {{\n\n"
 
@@ -253,7 +253,7 @@ class LTVMatricesDeploy:
 
         code_text += f"}} // namespace {file_name_no_extension}\n\n"
 
-        code_text += f"#endif // __{file_name_no_extension.upper()}_HPP__\n"
+        code_text += f"#endif // {file_name_no_extension.upper()}_HPP_\n"
 
         return code_text
 
@@ -309,8 +309,8 @@ class LTVMatricesDeploy:
 
         code_text = ""
 
-        code_text += f"#ifndef __{file_name_no_extension.upper()}_HPP__\n"
-        code_text += f"#define __{file_name_no_extension.upper()}_HPP__\n\n"
+        code_text += f"#ifndef {file_name_no_extension.upper()}_HPP_\n"
+        code_text += f"#define {file_name_no_extension.upper()}_HPP_\n\n"
 
         code_text += f"#include \"{embedded_integrator_updater_cpp_name}\"\n"
         code_text += f"#include \"{prediction_matrices_phi_f_updater_cpp_name}\"\n\n"
@@ -337,6 +337,6 @@ class LTVMatricesDeploy:
 
         code_text += f"}} // namespace {file_name_no_extension}\n\n"
 
-        code_text += f"#endif // __{file_name_no_extension.upper()}_HPP__\n"
+        code_text += f"#endif // {file_name_no_extension.upper()}_HPP_\n"
 
         return code_text
