@@ -5,7 +5,6 @@
 
 namespace PythonMPC_KinematicBicycleModelData {
 
-using namespace PythonMath;
 using namespace PythonNumpy;
 using namespace PythonControl;
 using namespace PythonOptimization;
