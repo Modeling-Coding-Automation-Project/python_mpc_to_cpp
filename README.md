@@ -42,9 +42,9 @@ https://github.com/alphaville/optimization-engine
 
 「sample」ディレクトリに使い方の例を示しています。
 
-また、詳細については記事をご参照ください。
+また、本リポジトリ向けに整理したドキュメントは以下です。
 
-https://note.com/claude_a/n/nea53696d7aff
+- [document/README.md](./document/README.md)
 
 ## サポート
 
