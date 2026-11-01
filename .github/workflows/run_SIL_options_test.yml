@@ -28,11 +28,11 @@ jobs:
 
         sudo apt install -y pybind11-dev
 
-        sudo apt install -y python3.12
+        sudo apt install -y python3
 
-        sudo apt install -y python3.12-dev
+        sudo apt install -y python3-dev
 
-        sudo apt install -y python3.12-venv
+        sudo apt install -y python3-venv
 
         '
     - name: Set up Python environment
