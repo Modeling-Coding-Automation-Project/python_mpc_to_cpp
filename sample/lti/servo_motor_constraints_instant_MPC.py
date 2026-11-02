@@ -120,7 +120,7 @@ def create_plant_model():
 
 
 def create_controller(is_reference_trajectory=PATH_FOLLOWING):
-    """Return the discrete plant and the controller shared by the demo and SIL."""
+    """Return the discrete plant and the controller used by this demo."""
     sys = create_plant_model()
 
     dt = 0.05
