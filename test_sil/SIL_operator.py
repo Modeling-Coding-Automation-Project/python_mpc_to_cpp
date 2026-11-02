@@ -1,5 +1,18 @@
-import os
+"""Generate and build the Python bindings used by the SIL tests.
+
+Existing tests build beside their C++ source. A separate module name and working
+directory also allow several controllers in one folder and temporary builds.
+All builds use the Python interpreter running the test and stop on failure.
+"""
+
+import importlib.machinery
+from pathlib import Path
+import shutil
 import subprocess
+import sys
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
 def snake_to_camel(snake_str):
@@ -8,106 +21,128 @@ def snake_to_camel(snake_str):
 
 
 class CmakeGenerator:
-    def __init__(self, SIL_folder):
-        self.SIL_folder = SIL_folder
-
-        self.folder_name = os.path.basename(os.path.normpath(self.SIL_folder))
+    def __init__(self, SIL_folder, sil_name=None, work_dir=None):
+        self.SIL_folder = Path(SIL_folder).resolve()
+        self.folder_name = sil_name or self.SIL_folder.name
+        self.work_dir = (Path(work_dir).resolve() if work_dir is not None
+                         else self.SIL_folder)
 
     def generate_cmake_lists_txt(self):
-        SIL_lib_file_name = snake_to_camel(self.folder_name) + "SIL"
-        SIL_cpp_file_name = self.folder_name + "_SIL"
+        module_name = snake_to_camel(self.folder_name) + "SIL"
+        source_name = self.folder_name + "_SIL.cpp"
+        include_folders = [
+            "mpc_utility",
+            "python_mpc",
+            "external_libraries/python_optimization_to_cpp/optimization_utility",
+            "external_libraries/python_optimization_to_cpp/python_optimization",
+            "external_libraries/python_control_to_cpp/python_control",
+            "external_libraries/python_numpy_to_cpp/python_numpy",
+            "external_libraries/python_numpy_to_cpp/base_matrix",
+            "external_libraries/python_math_to_cpp/base_math",
+            "external_libraries/python_math_to_cpp/python_math",
+            "external_libraries/base_utility_cpp/base_utility",
+        ]
+        includes = [self.work_dir, self.SIL_folder]
+        includes.extend(REPOSITORY_ROOT / folder for folder in include_folders)
+        include_text = "\n".join(
+            f'    "{path.as_posix()}"' for path in includes)
 
-        code_text = ""
-        code_text += "cmake_minimum_required(VERSION 3.14)\n"
-        code_text += "cmake_policy(SET CMP0148 NEW)\n\n"
+        code_text = f'''cmake_minimum_required(VERSION 3.14)
+if(POLICY CMP0148)
+    cmake_policy(SET CMP0148 NEW)
+endif()
 
-        code_text += f"project({SIL_lib_file_name})\n\n"
+project({module_name} LANGUAGES CXX)
 
-        code_text += "set(CMAKE_CXX_STANDARD 11)\n"
-        code_text += "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n"
-        code_text += "set(CMAKE_CXX_FLAGS_RELEASE \"-O2\")\n"
-        code_text += "set(CMAKE_CXX_FLAGS_RELEASE \"${CMAKE_CXX_FLAGS_RELEASE} -flto=auto\")\n\n"
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(PYBIND11_FINDPYTHON ON)
+find_package(pybind11 REQUIRED)
 
-        code_text += "find_package(pybind11 REQUIRED)\n\n"
-
-        code_text += f"pybind11_add_module({SIL_lib_file_name} {SIL_cpp_file_name}.cpp)\n\n"
-
-        code_text += f"target_compile_options({SIL_lib_file_name} PRIVATE -Werror)\n\n"
-
-        code_text += f"target_include_directories({SIL_lib_file_name} PRIVATE\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../mpc_utility\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../python_mpc\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_optimization_to_cpp/optimization_utility\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_optimization_to_cpp/python_optimization\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_control_to_cpp/python_control\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_numpy_to_cpp/python_numpy\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_numpy_to_cpp/base_matrix\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_math_to_cpp/base_math\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/python_math_to_cpp/python_math\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../external_libraries/base_utility_cpp/base_utility\n"
-        code_text += "    ${CMAKE_SOURCE_DIR}/../../test_sil/" + \
-            f"{self.folder_name}\n"
-        code_text += ")\n\n"
-
-        with open(os.path.join(self.SIL_folder, "CMakeLists.txt"), "w", encoding="utf-8") as f:
-            f.write(code_text)
+pybind11_add_module({module_name} {source_name})
+target_compile_options({module_name} PRIVATE -Wall)
+target_include_directories({module_name} PRIVATE
+{include_text}
+)
+'''
+        self.work_dir.mkdir(parents=True, exist_ok=True)
+        (self.work_dir / "CMakeLists.txt").write_text(code_text, encoding="utf-8")
 
 
 class SIL_CodeGenerator:
-    def __init__(self, deployed_file_names, SIL_folder):
-        self.deployed_file_names = deployed_file_names
-        self.SIL_folder = SIL_folder
+    """Deploy headers and build a SIL module, returning its extension path.
 
-        self.folder_name = os.path.basename(os.path.normpath(self.SIL_folder))
+    The two-argument form retains the existing folder-based naming. ``sil_name``
+    selects another ``<name>_SIL.cpp`` in that folder; ``work_dir`` keeps generated
+    files outside the source tree when a test uses a temporary directory.
+    """
+
+    def __init__(self, deployed_file_names, SIL_folder, sil_name=None,
+                 work_dir=None):
+        self.deployed_file_names = deployed_file_names
+        self.SIL_folder = Path(SIL_folder).resolve()
+        self.folder_name = sil_name or self.SIL_folder.name
+        self.work_dir = (Path(work_dir).resolve() if work_dir is not None
+                         else self.SIL_folder)
 
     def move_deployed_files(self, file_names):
         for file_name in file_names:
             if isinstance(file_name, list):
                 self.move_deployed_files(file_name)
             else:
-                src = os.path.join(os.getcwd(), file_name)
-                dst = os.path.join(self.SIL_folder, file_name)
-                if os.path.exists(dst):
-                    os.remove(dst)
-                os.rename(src, dst)
+                source = Path(file_name).resolve()
+                destination = self.work_dir / Path(file_name).name
+                if source != destination:
+                    if destination.exists():
+                        destination.unlink()
+                    shutil.move(str(source), str(destination))
 
     def generate_wrapper_code(self):
-
-        file_name = f"{self.folder_name}" + "_SIL_wrapper.hpp"
-        file_name_without_extension = file_name.split(".")[0]
-
-        deployed_file_name = self.deployed_file_names[-1]
-        deployed_file_name_without_extension = deployed_file_name.split(".")[0]
-
-        code_text = ""
-        code_text += f"#include \"{deployed_file_name}\"\n\n"
-
-        code_text += f"namespace {file_name_without_extension} = {deployed_file_name_without_extension};\n"
-
-        with open(os.path.join(self.SIL_folder, file_name), "w", encoding="utf-8") as f:
-            f.write(code_text)
+        wrapper_name = self.folder_name + "_SIL_wrapper"
+        deployed_file = Path(self.deployed_file_names[-1])
+        code_text = (f'#include "{deployed_file.name}"\n\n'
+                     f'namespace {wrapper_name} = {deployed_file.stem};\n')
+        (self.work_dir / (wrapper_name + ".hpp")).write_text(
+            code_text, encoding="utf-8")
 
     def build_pybind11_code(self):
+        import pybind11
 
-        build_folder = os.path.join(self.SIL_folder, "build")
-        generated_file_name = snake_to_camel(self.folder_name) + "SIL"
+        build_folder = self.work_dir / "build"
+        module_name = snake_to_camel(self.folder_name) + "SIL"
+        if build_folder.exists():
+            shutil.rmtree(build_folder)
 
-        subprocess.run(f"rm -rf {build_folder}", shell=True)
-        subprocess.run(f"mkdir -p {build_folder}", shell=True)
-        subprocess.run(
-            f"cmake -S {self.SIL_folder} -B {build_folder} -DCMAKE_BUILD_TYPE=Release",
-            shell=True
-        )
-        subprocess.run(
-            f"cmake --build {build_folder} --config Release", shell=True)
+        subprocess.run([
+            "cmake", "-S", str(self.work_dir), "-B", str(build_folder),
+            "-DCMAKE_BUILD_TYPE=Release",
+            f"-DPython_EXECUTABLE={sys.executable}",
+            f"-Dpybind11_DIR={pybind11.get_cmake_dir()}",
+        ], check=True)
+        subprocess.run([
+            "cmake", "--build", str(build_folder), "--config", "Release",
+            "--parallel", "1",
+        ], check=True)
 
-        subprocess.run(
-            f"mv {build_folder}/{generated_file_name}.*so {self.SIL_folder}", shell=True)
+        for suffix in importlib.machinery.EXTENSION_SUFFIXES:
+            source = build_folder / (module_name + suffix)
+            if source.is_file():
+                destination = self.work_dir / source.name
+                source.replace(destination)
+                return destination
+        raise FileNotFoundError(f"Built SIL module not found: {module_name}")
 
     def build_SIL_code(self):
-        cmake_generator = CmakeGenerator(self.SIL_folder)
-        cmake_generator.generate_cmake_lists_txt()
+        self.work_dir.mkdir(parents=True, exist_ok=True)
+        source = self.SIL_folder / (self.folder_name + "_SIL.cpp")
+        if self.work_dir != self.SIL_folder:
+            # Quoted includes must select the headers generated for this build.
+            shutil.copy2(source, self.work_dir / source.name)
 
+        CmakeGenerator(self.SIL_folder, self.folder_name,
+                       self.work_dir).generate_cmake_lists_txt()
         self.move_deployed_files(self.deployed_file_names)
         self.generate_wrapper_code()
-        self.build_pybind11_code()
+        return self.build_pybind11_code()

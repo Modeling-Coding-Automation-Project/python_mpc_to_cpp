@@ -12,6 +12,7 @@
 5. [コード生成と Python/C++ インターフェース対応](./05_code_generation_and_cpp_interface.md)
 6. [シミュレーションと実行フロー](./06_simulation_and_run_flow.md)
 7. [利用している外部ライブラリ要約](./07_external_libraries_summary.md)
+8. [Instant MPC（iMPC）の使い方](./08_instant_mpc_usage.md)
 
 ## 最短で読む順番
 

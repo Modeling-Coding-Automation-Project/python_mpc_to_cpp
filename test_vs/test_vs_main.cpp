@@ -10,6 +10,7 @@
 #include "test_mpc_two_wheel_vehicle_model_data.hpp"
 #include "test_Adaptive_MPC_Phi_F_Updater_Function.hpp"
 #include "test_mpc_kinematic_bicycle_model_data.hpp"
+#include "test_instant_mpc.hpp"
 
 #include "MCAP_tester.hpp"
 
@@ -1679,6 +1680,15 @@ void check_Nonlinear_MPC_Optimization_Engine(void) {
 
 
 int main(void) {
+
+    check_InstantMPC_Operations<double>();
+    check_InstantMPC_Operations<float>();
+    check_InstantMPC_UnconstrainedAndTrajectory<double>();
+    check_InstantMPC_UnconstrainedAndTrajectory<float>();
+    check_InstantMPC_ConstraintsAndValueSemantics<double>();
+    check_InstantMPC_ConstraintsAndValueSemantics<float>();
+    check_InstantMPC_Delay<double>();
+    check_InstantMPC_Delay<float>();
 
     check_MPC_PredictionMatrices<double>();
 
