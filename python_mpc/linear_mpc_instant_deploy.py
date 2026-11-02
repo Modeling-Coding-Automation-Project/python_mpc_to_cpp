@@ -2,8 +2,25 @@
 """
 File: linear_mpc_instant_deploy.py
 
-This module provides functionality for deploying Instant Model Predictive
-Control (iMPC) objects (InstantMPC_LTI) to C++ header files.
+Export an offline-designed InstantMPC_LTI controller as C++11 model headers.
+
+The Python controller constructor prepares equality-projection matrices,
+input-constraint matrices, regularized unconstrained initialization maps,
+a semi-implicit inverse, and a fixed Kalman gain. This module serializes those
+existing coefficients; it does not redesign the controller or solve a QP.
+The generated namespace provides ``type``, ``Reference_Type``, horizon/size
+constants and ``make()`` for ``python_linear_mpc_instant.hpp``.
+
+Bounds are encoded by their presence, independently of their numeric value:
+``None`` produces a structurally empty bound type, while a supplied zero bound
+remains active. Point and trajectory references select different C++ types.
+All matrices and substep parameters must be regenerated together when the
+model, weights, horizon, constraints, sample period or integration gain change.
+
+Generated ``make()`` initializes fresh controller history. This is a model
+export, not a checkpoint of the Python object's current primal/dual state,
+state estimate or previous input. Generate before the simulation loop when
+comparing the initial Python and C++ controllers.
 """
 from __future__ import annotations
 
@@ -30,26 +47,51 @@ from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc_instant import Ins
 
 class InstantMPC_LTI_Deploy:
     """
-    A class for deploying InstantMPC_LTI objects to C++ header files.
+    Serialize a prepared InstantMPC_LTI instance and its matrix dependencies.
 
-    Provides a static method to generate all required C++ header files
-    (Kalman filter, matrix definitions, bound types, and the main iMPC header)
-    from a Python InstantMPC_LTI instance.
+    The public entry point is ``generate_InstantMPC_LTI_cpp_code``. It emits
+    Kalman-filter/state-space headers, fixed-size matrix headers, bound types
+    and a final controller factory. Files are written in the current working
+    directory, following the same naming convention as the other MPC deployers.
+
+    The generated factory selects active-bound and trajectory branches through
+    types. No active-set QP solver, runtime inverse or iteration-until-converged
+    loop is generated; C++ performs the controller's configured substeps.
     """
 
     @staticmethod
     def generate_InstantMPC_LTI_cpp_code(
             impc: InstantMPC_LTI, file_name=None):
         """
-        Generates C++ code for an InstantMPC_LTI instance.
+        Generate the complete header set for one offline controller design.
 
         Args:
-            impc (InstantMPC_LTI): The iMPC object to deploy.
-            file_name (str, optional): Base file name for generated files.
-                If None, uses the caller's file name.
+            impc (InstantMPC_LTI): Initialized controller with prepared matrices
+                and a fixed Kalman gain. Bind it to a named variable in the
+                calling function: its local variable name forms part of every
+                generated namespace and file name.
+            file_name (str, optional): File/namespace prefix without extension.
+                If None, use the caller's script basename. Choose a prefix
+                valid in a C++ identifier; it is not an output-directory option.
 
         Returns:
-            list: A list of generated C++ header file names.
+            list: Generated dependencies followed by the main controller header
+                as the last entry. The Kalman-filter dependency entry is itself
+                a list, matching the other deployment APIs.
+
+        Side Effects:
+            Writes or replaces generated headers in the working directory.
+            For ``impc`` in ``motor.py``, the main header and namespace are
+            ``motor_impc.hpp`` and ``motor_impc`` respectively.
+
+        Notes:
+            Scalar type follows the Kalman state matrix dtype and is checked by
+            ControlDeploy/NumpyDeploy. Matrix sparsity is derived from the
+            already prepared coefficients, including Python's near-zero
+            rounding. N_SUB and DTZETA_SUB are exported together with
+            M_sub_inv; changing either constant alone is not a redesign.
+            This function does not serialize running controller history or
+            certify constraint satisfaction/stability of the chosen design.
         """
         number_of_delay = impc.Number_of_Delay
 
@@ -61,6 +103,8 @@ class InstantMPC_LTI_Deploy:
         type_name = NumpyDeploy.check_dtype(impc._Kalman_filter.A)
 
         # %% inspect arguments
+        # Match the caller's object by identity so generated C++ names retain
+        # the Python variable name. The caller must keep a named local binding.
         frame = inspect.currentframe().f_back
         caller_locals = frame.f_locals
         variable_name = None
@@ -81,6 +125,8 @@ class InstantMPC_LTI_Deploy:
         code_file_name_ext = code_file_name + ".hpp"
 
         # --- 1. Kalman filter code ---
+        # Export A/B/C, delay metadata, Q/R and the prepared P/G. The online
+        # iMPC path uses predict_and_update_with_fixed_G, not gain convergence.
         locals_map = {
             f"{variable_name}_lkf": impc._Kalman_filter,
             "caller_file_name_no_extension": caller_file_name_no_extension,
@@ -97,7 +143,10 @@ class InstantMPC_LTI_Deploy:
         lkf_file_name = lkf_file_names[-1]
         lkf_file_name_no_extension = lkf_file_name.split(".")[0]
 
-        # --- 2. WCzT_Qk code (Ns x Ny dense matrix) ---
+        # --- 2. Trajectory gradient map WCzT_Qk (Ns x Ny) ---
+        # WCz = Weight_Y * [0, I]; WCz.T * Weight_Y maps a reference deviation
+        # to its state-gradient block. It is zero in point-reference mode.
+        # NumpyDeploy chooses the actual storage type from the coefficients.
         locals_map = {
             f"{variable_name}_WCzT_Qk": np.array(impc._WCzT_Qk, dtype=data_type),
             "caller_file_name_no_extension": caller_file_name_no_extension
@@ -112,10 +161,18 @@ class InstantMPC_LTI_Deploy:
         WCzT_Qk_file_name_no_extension = WCzT_Qk_file_name.split(".")[0]
 
         # --- 3. Bound matrices (delta_U_min, delta_U_max, U_min, U_max) ---
-        # Use MinMaxCodeGenerator for sparse-empty detection
+        # Encode whether an entire bound vector is enabled, not whether its
+        # numerical entries are zero. Disabled bounds use SparseMatrixEmpty;
+        # enabled bounds receive their values in the final generated make().
         U_size = impc.Nu
 
         def _make_bound_generator(attr_name, bound_flag, min_max_name):
+            """Build a per-input activity mask from the Python bound flag.
+
+            ``attr_name`` selects the numeric array, ``bound_flag`` controls
+            whether all channels of this bound group are active, and
+            ``min_max_name`` supplies its generated field/file suffix.
+            """
             arr = getattr(impc, attr_name, None)
             generator = MinMaxCodeGenerator(
                 min_max_array=arr if bound_flag else None,
@@ -157,7 +214,9 @@ class InstantMPC_LTI_Deploy:
                                          caller_file_name_no_extension)
         deployed_file_names.append(U_max_file_name)
 
-        # --- 4. Ag matrix (Nmu x Nw) ---
+        # --- 4. Inequality coefficients Ag (Nmu x Nw) ---
+        # g = Ag * wproj - bg. Groups are delta-U upper, delta-U lower,
+        # U upper, U lower, each tiled across Np; absent groups are omitted.
         locals_map = {
             f"{variable_name}_Ag": np.array(impc._Ag, dtype=data_type),
             "caller_file_name_no_extension": caller_file_name_no_extension
@@ -171,7 +230,9 @@ class InstantMPC_LTI_Deploy:
         deployed_file_names.append(Ag_file_name)
         Ag_file_name_no_extension = Ag_file_name.split(".")[0]
 
-        # --- 5. bg matrix ---
+        # --- 5. Inequality bounds bg (Nmu x 1) ---
+        # Absolute-U groups are refreshed in C++ from U_max-U_latest and
+        # U_latest-U_min. Delta-U groups retain these exported constant values.
         bg_cpp = np.array(impc._bg, dtype=data_type)
         locals_map = {
             f"{variable_name}_bg": bg_cpp,
@@ -186,7 +247,9 @@ class InstantMPC_LTI_Deploy:
         deployed_file_names.append(bg_file_name)
         bg_file_name_no_extension = bg_file_name.split(".")[0]
 
-        # --- 6. K matrix (Nw x Nw) ---
+        # --- 6. Equality null-space projection K (Nw x Nw) ---
+        # Nominally I - C_eq^+ * C_eq; export the rounded Python matrix as-is.
+        # Nc is already encoded by equality rows for later zero increments.
         locals_map = {
             f"{variable_name}_K": np.array(impc._K, dtype=data_type),
             "caller_file_name_no_extension": caller_file_name_no_extension
@@ -200,7 +263,9 @@ class InstantMPC_LTI_Deploy:
         deployed_file_names.append(K_file_name)
         K_file_name_no_extension = K_file_name.split(".")[0]
 
-        # --- 7. L matrix ---
+        # --- 7. Equality particular-solution map L (Nw x Ns) ---
+        # Nominally -C_eq^+ * D_eq. K*w + L*xt is the affine projection,
+        # where xt = [estimated delta_x; estimated y - base reference].
         L_cpp = np.array(impc._L, dtype=data_type)
         locals_map = {
             f"{variable_name}_L": L_cpp,
@@ -215,7 +280,8 @@ class InstantMPC_LTI_Deploy:
         deployed_file_names.append(L_file_name)
         L_file_name_no_extension = L_file_name.split(".")[0]
 
-        # --- 8. q_K_matrix ---
+        # --- 8. Projected objective offset q_K_matrix (Nw x Ns) ---
+        # Prepared from K*P*L and applied once per control step to xt.
         q_K_matrix_cpp = np.array(impc._q_K_matrix, dtype=data_type)
         locals_map = {
             f"{variable_name}_q_K_matrix": q_K_matrix_cpp,
@@ -230,7 +296,9 @@ class InstantMPC_LTI_Deploy:
         deployed_file_names.append(q_K_matrix_file_name)
         q_K_matrix_file_name_no_extension = q_K_matrix_file_name.split(".")[0]
 
-        # --- 9. w_unc_map ---
+        # --- 9. Unconstrained initialization map w_unc_map (Nw x Ns) ---
+        # Obtained by a regularized equality-constrained KKT solve in Python.
+        # C++ rebuilds its primal guess with this map on every update.
         w_unc_map_cpp = np.array(impc._w_unc_map, dtype=data_type)
         locals_map = {
             f"{variable_name}_w_unc_map": w_unc_map_cpp,
@@ -245,7 +313,9 @@ class InstantMPC_LTI_Deploy:
         deployed_file_names.append(w_unc_map_file_name)
         w_unc_map_file_name_no_extension = w_unc_map_file_name.split(".")[0]
 
-        # --- 10. w_unc_traj_map ---
+        # --- 10. Trajectory initialization correction (Nw x Nw) ---
+        # A second KKT right-hand side maps q_trajectory into the primal guess.
+        # Python provides an all-zero map when trajectory mode is disabled.
         locals_map = {
             f"{variable_name}_w_unc_traj_map": np.array(impc._w_unc_traj_map, dtype=data_type),
             "caller_file_name_no_extension": caller_file_name_no_extension
@@ -260,7 +330,9 @@ class InstantMPC_LTI_Deploy:
         w_unc_traj_map_file_name_no_extension = w_unc_traj_map_file_name.split(".")[
             0]
 
-        # --- 11. M_sub_inv ---
+        # --- 11. Semi-implicit inverse M_sub_inv (Nw x Nw) ---
+        # Prepared from I + DTZETA_SUB * P_K, with P_K derived from K*P*K.
+        # The online loop only multiplies by this matrix; it does not invert it.
         locals_map = {
             f"{variable_name}_M_sub_inv": np.array(impc._M_sub_inv, dtype=data_type),
             "caller_file_name_no_extension": caller_file_name_no_extension
@@ -274,7 +346,8 @@ class InstantMPC_LTI_Deploy:
         deployed_file_names.append(M_sub_inv_file_name)
         M_sub_inv_file_name_no_extension = M_sub_inv_file_name.split(".")[0]
 
-        # --- 12. AgKT ---
+        # --- 12. Projected inequality coupling AgKT (Nw x Nmu) ---
+        # Rounded (Ag*K).T multiplies the previous dual vector times eta.
         AgKT_cpp = np.array(impc._AgKT, dtype=data_type)
         locals_map = {
             f"{variable_name}_AgKT": AgKT_cpp,
@@ -331,7 +404,8 @@ class InstantMPC_LTI_Deploy:
 
         code_text += f"constexpr std::size_t NUMBER_OF_DELAY = {lkf_file_name_no_extension}::NUMBER_OF_DELAY;\n\n"
 
-        # Scalar parameters
+        # Substeps selected by the Python design: h = dt*zeta/N_sub.
+        # Keep these constants paired with the exported semi-implicit inverse.
         code_text += f"constexpr std::size_t N_SUB = {impc._N_sub};\n"
         code_text += f"constexpr {type_name} DTZETA_SUB = " \
             f"static_cast<{type_name}>({impc._dtzeta_sub});\n\n"
@@ -356,6 +430,8 @@ class InstantMPC_LTI_Deploy:
         code_text += f"using M_Sub_Inv_Type = {M_sub_inv_file_name_no_extension}::type;\n\n"
         code_text += f"using AgKT_Type = {AgKT_file_name_no_extension}::type;\n\n"
 
+        # Each trajectory column is one prediction-step reference. Point mode
+        # keeps a single Ny-by-1 column; it is a separate generated C++ type.
         ref_row_size_text = "1"
         if impc.is_reference_trajectory:
             ref_row_size_text = "NP"

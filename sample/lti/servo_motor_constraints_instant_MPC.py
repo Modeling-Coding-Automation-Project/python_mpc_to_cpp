@@ -8,15 +8,14 @@ for a servo motor system.
 The code constructs a discrete-time state-space model of the plant,
 defines MPC weights and constraints,
 and simulates the closed-loop response of the system under the designed iMPC.
-The iMPC performs a single primal-dual update per control step
-instead of solving a full QP, enabling real-time control.
+The iMPC performs a fixed number of primal-dual substeps per control step
+instead of solving a full QP.
 The simulation results,
 including reference tracking, control input,
 and state trajectories, are visualized using a plotting utility.
 
-References:
-    The algorithm is based on the iMPC framework using Lyapunov-based
-    stability guarantees with back-stepping line search.
+Each cycle applies the previous input, measures the updated plant state,
+then computes the next input. The C++ demo and SIL test use the same timing.
 """
 from __future__ import annotations
 
@@ -37,14 +36,11 @@ from external_libraries.MCAP_python_mpc.mpc_utility.state_space_utility import S
 from external_libraries.MCAP_python_mpc.python_mpc.linear_mpc_instant import InstantMPC_LTI
 from python_mpc.linear_mpc_instant_deploy import InstantMPC_LTI_Deploy
 
-from sample.simulation_manager.visualize.simulation_plotter_dash import SimulationPlotterDash
-from sample.simulation_manager.signal_edit.sampler import PulseGenerator
-
 PATH_FOLLOWING = False
 
 
-def create_input_signal(dt, time, Np):
-    if PATH_FOLLOWING:
+def create_input_signal(dt, time, Np, is_reference_trajectory=PATH_FOLLOWING):
+    if is_reference_trajectory:
         latest_time = time[-1]
         for i in range(Np):
             time = np.append(time, latest_time + dt * (i + 1))
@@ -54,20 +50,16 @@ def create_input_signal(dt, time, Np):
         input_signal = (amplitude * np.sin(2 * np.pi *
                         freq * time)).reshape(-1, 1)
     else:
-        _, input_signal = PulseGenerator.sample_pulse(
-            sampling_interval=dt,
-            start_time=time[0],
-            period=20.0,
-            pulse_width=50.0,
-            pulse_amplitude=1.0,
-            duration=time[-1],
-        )
+        # Match the C++ sample exactly, including the transition at 10 seconds.
+        input_signal = np.where(np.remainder(time, 20.0) < 10.0,
+                                1.0, 0.0).reshape(-1, 1)
 
     return input_signal
 
 
-def get_reference_signal(input_signal, index, Np):
-    if PATH_FOLLOWING:
+def get_reference_signal(input_signal, index, Np,
+                         is_reference_trajectory=PATH_FOLLOWING):
+    if is_reference_trajectory:
         reference = np.zeros((2, Np))
         for i in range(Np):
             reference[0, i] = input_signal[index + i, 0]
@@ -127,8 +119,8 @@ def create_plant_model():
     return dc_motor_plant_sys
 
 
-def main():
-    # %% create state-space model
+def create_controller(is_reference_trajectory=PATH_FOLLOWING):
+    """Return the discrete plant and the controller shared by the demo and SIL."""
     sys = create_plant_model()
 
     dt = 0.05
@@ -158,7 +150,20 @@ def main():
         U_min=U_min, U_max=U_max,
         zeta=zeta,
         near_zero_relative_limit=near_zero_relative_limit,
-        is_reference_trajectory=PATH_FOLLOWING)
+        is_reference_trajectory=is_reference_trajectory)
+
+    return sys_d, impc
+
+
+def main():
+    from sample.simulation_manager.visualize.simulation_plotter_dash import SimulationPlotterDash
+
+    sys_d, impc = create_controller(PATH_FOLLOWING)
+    dt = impc.dt
+    Np = impc.Np
+    Number_of_Delay = impc.Number_of_Delay
+    U_min = impc.U_min
+    U_max = impc.U_max
 
     # You can create cpp header which can easily define MPC as C++ code
     deployed_file_names = InstantMPC_LTI_Deploy.generate_InstantMPC_LTI_cpp_code(
@@ -170,7 +175,7 @@ def main():
     time = np.arange(0, t_sim, dt)
 
     # create input signal
-    input_signal = create_input_signal(dt, time, Np)
+    input_signal = create_input_signal(dt, time, Np, PATH_FOLLOWING)
 
     # real plant model
     # You can change the characteristic with changing the A, B, C matrices
@@ -194,7 +199,7 @@ def main():
     delay_index = 0
 
     for i in range(len(time)):
-        # system response
+        # Apply the previous input and measure the updated state.
         X = A @ X + B @ U
         y_store[delay_index] = C @ X
 
@@ -206,7 +211,7 @@ def main():
         y_measured = y_store[delay_index]
 
         # controller
-        reference = get_reference_signal(input_signal, i, Np)
+        reference = get_reference_signal(input_signal, i, Np, PATH_FOLLOWING)
         U = impc.update(reference, y_measured)
 
         plotter.append_name(reference, "reference")

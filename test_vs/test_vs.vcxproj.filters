@@ -56,6 +56,15 @@
     <ClInclude Include="test_mpc_kinematic_bicycle_model_data.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="test_instant_mpc.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="test_instant_mpc_data.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\python_mpc\python_linear_mpc_instant.hpp">
+      <Filter>リソース ファイル</Filter>
+    </ClInclude>
     <ClInclude Include="..\python_mpc\python_nonlinear_mpc_twice_differentiable.hpp">
       <Filter>リソース ファイル</Filter>
     </ClInclude>

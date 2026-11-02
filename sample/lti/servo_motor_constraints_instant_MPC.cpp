@@ -9,6 +9,7 @@
  * the state-space system, and runs a closed-loop simulation where the iMPC
  * computes the control input at each time step to track a reference signal.
  */
+#include <cmath>
 #include <iostream>
 
 /* CAUTION */
@@ -52,9 +53,6 @@ int main(void) {
                                      static_cast<double>(1280.1990063378407),
                                      static_cast<double>(-64.00995031689203));
 
-  using D_Type =
-      SparseAvailable<ColumnAvailable<false>, ColumnAvailable<false>>;
-
   auto D = make_SparseMatrixEmpty<double, 2, 1>();
 
   double dt = 0.05;
@@ -72,17 +70,24 @@ int main(void) {
 
   /* State Space Simulation */
   for (std::size_t sim_step = 0; sim_step < 400; ++sim_step) {
-    /* system response */
+    /* Apply the previous input, then measure the updated state. update()
+     * stores its output before advancing X, so get_Y() is one sample older. */
     sys.update(U);
+    const auto y_measured = sys.output_equation(sys.get_X(), U);
 
     /* controller */
-    reference(0, 0) = 1.0;
-    reference(1, 0) = 0.0;
+    for (std::size_t j = 0; j < reference.cols(); ++j) {
+      const double time = dt * static_cast<double>(sim_step + j);
+      reference(0, j) = reference.cols() == 1
+                            ? (std::fmod(time, 20.0) < 10.0 ? 1.0 : 0.0)
+                            : std::sin(2.0 * std::acos(-1.0) * 0.1 * time);
+      reference(1, j) = 0.0;
+    }
 
-    U = impc.update(reference, sys.get_Y());
+    U = impc.update(reference, y_measured);
 
-    std::cout << "Y_0: " << sys.get_Y()(0) << ", ";
-    std::cout << "Y_1: " << sys.get_Y()(1) << ", ";
+    std::cout << "Y_0: " << y_measured(0) << ", ";
+    std::cout << "Y_1: " << y_measured(1) << ", ";
     std::cout << "U_0: " << U(0) << ", ";
     std::cout << std::endl;
   }
