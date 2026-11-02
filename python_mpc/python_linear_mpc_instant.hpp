@@ -863,30 +863,30 @@ public:
 
 private:
   /* Active constraint flags derived from template types */
-  static constexpr bool _USE_DU_UB = !std::is_same<
+  static constexpr bool USE_DU_UB_ = !std::is_same<
       Delta_U_Max_Type,
       PythonNumpy::SparseMatrixEmpty_Type<T_, INPUT_SIZE, 1>>::value;
 
-  static constexpr bool _USE_DU_LB = !std::is_same<
+  static constexpr bool USE_DU_LB_ = !std::is_same<
       Delta_U_Min_Type,
       PythonNumpy::SparseMatrixEmpty_Type<T_, INPUT_SIZE, 1>>::value;
 
-  static constexpr bool _USE_U_UB = !std::is_same<
+  static constexpr bool USE_U_UB_ = !std::is_same<
       U_Max_Type,
       PythonNumpy::SparseMatrixEmpty_Type<T_, INPUT_SIZE, 1>>::value;
 
-  static constexpr bool _USE_U_LB = !std::is_same<
+  static constexpr bool USE_U_LB_ = !std::is_same<
       U_Min_Type,
       PythonNumpy::SparseMatrixEmpty_Type<T_, INPUT_SIZE, 1>>::value;
 
-  /* Row offsets in _bg for each constraint block */
-  static constexpr std::size_t _DU_UB_ROW_OFFSET = 0;
-  static constexpr std::size_t _DU_LB_ROW_OFFSET =
-      _DU_UB_ROW_OFFSET + (_USE_DU_UB ? NP * INPUT_SIZE : 0);
-  static constexpr std::size_t _U_UB_ROW_OFFSET =
-      _DU_LB_ROW_OFFSET + (_USE_DU_LB ? NP * INPUT_SIZE : 0);
-  static constexpr std::size_t _U_LB_ROW_OFFSET =
-      _U_UB_ROW_OFFSET + (_USE_U_UB ? NP * INPUT_SIZE : 0);
+  /* Row offsets in bg_ for each constraint block */
+  static constexpr std::size_t DU_UB_ROW_OFFSET_ = 0;
+  static constexpr std::size_t DU_LB_ROW_OFFSET_ =
+      DU_UB_ROW_OFFSET_ + (USE_DU_UB_ ? NP * INPUT_SIZE : 0);
+  static constexpr std::size_t U_UB_ROW_OFFSET_ =
+      DU_LB_ROW_OFFSET_ + (USE_DU_LB_ ? NP * INPUT_SIZE : 0);
+  static constexpr std::size_t U_LB_ROW_OFFSET_ =
+      U_UB_ROW_OFFSET_ + (USE_U_UB_ ? NP * INPUT_SIZE : 0);
 
 private:
   /* Check Compatibility */
@@ -951,11 +951,11 @@ public:
    * controller: use the generated make() before calling update().
    */
   InstantMPC_LTI()
-      : _kalman_filter(), _WCzT_Qk(), _delta_U_min(), _delta_U_max(), _U_min(),
-        _U_max(), _Ag(), _bg(), _N_sub(1), _dtzeta_sub(static_cast<T_>(0)),
-        _K(), _L(), _q_K_matrix(), _w_unc_map(), _w_unc_traj_map(),
-        _M_sub_inv(), _AgKT(), _X_inner_model(), _U_latest(), _Y_store(), _w(),
-        _mu(), _ref_prev() {}
+      : kalman_filter_(), WCzT_Qk_(), delta_U_min_(), delta_U_max_(), U_min_(),
+        U_max_(), Ag_(), bg_(), N_sub_(1), dtzeta_sub_(static_cast<T_>(0)),
+        K_(), L_(), q_K_matrix_(), w_unc_map_(), w_unc_traj_map_(),
+        M_sub_inv_(), AgKT_(), X_inner_model_(), U_latest_(), Y_store_(), w_(),
+        mu_(), ref_prev_() {}
 
   /**
    * @brief Construct with all precomputed matrices.
@@ -994,54 +994,54 @@ public:
                  const W_Unc_Map_Type_ &w_unc_map,
                  const W_Unc_Traj_Map_Type_ &w_unc_traj_map,
                  const M_Sub_Inv_Type_ &M_sub_inv, const AgKT_Type &AgKT)
-      : _kalman_filter(kalman_filter), _WCzT_Qk(WCzT_Qk),
-        _delta_U_min(delta_U_min), _delta_U_max(delta_U_max), _U_min(U_min),
-        _U_max(U_max), _Ag(Ag), _bg(bg), _N_sub(N_sub), _dtzeta_sub(dtzeta_sub),
-        _K(K), _L(L), _q_K_matrix(q_K_matrix), _w_unc_map(w_unc_map),
-        _w_unc_traj_map(w_unc_traj_map), _M_sub_inv(M_sub_inv), _AgKT(AgKT),
-        _X_inner_model(), _U_latest(), _Y_store(), _w(), _mu(), _ref_prev() {}
+      : kalman_filter_(kalman_filter), WCzT_Qk_(WCzT_Qk),
+        delta_U_min_(delta_U_min), delta_U_max_(delta_U_max), U_min_(U_min),
+        U_max_(U_max), Ag_(Ag), bg_(bg), N_sub_(N_sub), dtzeta_sub_(dtzeta_sub),
+        K_(K), L_(L), q_K_matrix_(q_K_matrix), w_unc_map_(w_unc_map),
+        w_unc_traj_map_(w_unc_traj_map), M_sub_inv_(M_sub_inv), AgKT_(AgKT),
+        X_inner_model_(), U_latest_(), Y_store_(), w_(), mu_(), ref_prev_() {}
 
   /** @brief Copies coefficients, estimator history and current controller
    * state. */
   InstantMPC_LTI(const InstantMPC_LTI &other)
-      : _kalman_filter(other._kalman_filter), _WCzT_Qk(other._WCzT_Qk),
-        _delta_U_min(other._delta_U_min), _delta_U_max(other._delta_U_max),
-        _U_min(other._U_min), _U_max(other._U_max), _Ag(other._Ag),
-        _bg(other._bg), _N_sub(other._N_sub), _dtzeta_sub(other._dtzeta_sub),
-        _K(other._K), _L(other._L), _q_K_matrix(other._q_K_matrix),
-        _w_unc_map(other._w_unc_map), _w_unc_traj_map(other._w_unc_traj_map),
-        _M_sub_inv(other._M_sub_inv), _AgKT(other._AgKT),
-        _X_inner_model(other._X_inner_model), _U_latest(other._U_latest),
-        _Y_store(other._Y_store), _w(other._w), _mu(other._mu),
-        _ref_prev(other._ref_prev) {}
+      : kalman_filter_(other.kalman_filter_), WCzT_Qk_(other.WCzT_Qk_),
+        delta_U_min_(other.delta_U_min_), delta_U_max_(other.delta_U_max_),
+        U_min_(other.U_min_), U_max_(other.U_max_), Ag_(other.Ag_),
+        bg_(other.bg_), N_sub_(other.N_sub_), dtzeta_sub_(other.dtzeta_sub_),
+        K_(other.K_), L_(other.L_), q_K_matrix_(other.q_K_matrix_),
+        w_unc_map_(other.w_unc_map_), w_unc_traj_map_(other.w_unc_traj_map_),
+        M_sub_inv_(other.M_sub_inv_), AgKT_(other.AgKT_),
+        X_inner_model_(other.X_inner_model_), U_latest_(other.U_latest_),
+        Y_store_(other.Y_store_), w_(other.w_), mu_(other.mu_),
+        ref_prev_(other.ref_prev_) {}
 
   /** @brief Replaces this controller with a full copy, including dynamic state.
    */
   InstantMPC_LTI &operator=(const InstantMPC_LTI &other) {
     if (this != &other) {
-      this->_kalman_filter = other._kalman_filter;
-      this->_WCzT_Qk = other._WCzT_Qk;
-      this->_delta_U_min = other._delta_U_min;
-      this->_delta_U_max = other._delta_U_max;
-      this->_U_min = other._U_min;
-      this->_U_max = other._U_max;
-      this->_Ag = other._Ag;
-      this->_bg = other._bg;
-      this->_N_sub = other._N_sub;
-      this->_dtzeta_sub = other._dtzeta_sub;
-      this->_K = other._K;
-      this->_L = other._L;
-      this->_q_K_matrix = other._q_K_matrix;
-      this->_w_unc_map = other._w_unc_map;
-      this->_w_unc_traj_map = other._w_unc_traj_map;
-      this->_M_sub_inv = other._M_sub_inv;
-      this->_AgKT = other._AgKT;
-      this->_X_inner_model = other._X_inner_model;
-      this->_U_latest = other._U_latest;
-      this->_Y_store = other._Y_store;
-      this->_w = other._w;
-      this->_mu = other._mu;
-      this->_ref_prev = other._ref_prev;
+      this->kalman_filter_ = other.kalman_filter_;
+      this->WCzT_Qk_ = other.WCzT_Qk_;
+      this->delta_U_min_ = other.delta_U_min_;
+      this->delta_U_max_ = other.delta_U_max_;
+      this->U_min_ = other.U_min_;
+      this->U_max_ = other.U_max_;
+      this->Ag_ = other.Ag_;
+      this->bg_ = other.bg_;
+      this->N_sub_ = other.N_sub_;
+      this->dtzeta_sub_ = other.dtzeta_sub_;
+      this->K_ = other.K_;
+      this->L_ = other.L_;
+      this->q_K_matrix_ = other.q_K_matrix_;
+      this->w_unc_map_ = other.w_unc_map_;
+      this->w_unc_traj_map_ = other.w_unc_traj_map_;
+      this->M_sub_inv_ = other.M_sub_inv_;
+      this->AgKT_ = other.AgKT_;
+      this->X_inner_model_ = other.X_inner_model_;
+      this->U_latest_ = other.U_latest_;
+      this->Y_store_ = other.Y_store_;
+      this->w_ = other.w_;
+      this->mu_ = other.mu_;
+      this->ref_prev_ = other.ref_prev_;
     }
     return *this;
   }
@@ -1049,49 +1049,49 @@ public:
   /** @brief Transfers coefficients and current state from another controller.
    */
   InstantMPC_LTI(InstantMPC_LTI &&other) noexcept
-      : _kalman_filter(std::move(other._kalman_filter)),
-        _WCzT_Qk(std::move(other._WCzT_Qk)),
-        _delta_U_min(std::move(other._delta_U_min)),
-        _delta_U_max(std::move(other._delta_U_max)),
-        _U_min(std::move(other._U_min)), _U_max(std::move(other._U_max)),
-        _Ag(std::move(other._Ag)), _bg(std::move(other._bg)),
-        _N_sub(other._N_sub), _dtzeta_sub(other._dtzeta_sub),
-        _K(std::move(other._K)), _L(std::move(other._L)),
-        _q_K_matrix(std::move(other._q_K_matrix)),
-        _w_unc_map(std::move(other._w_unc_map)),
-        _w_unc_traj_map(std::move(other._w_unc_traj_map)),
-        _M_sub_inv(std::move(other._M_sub_inv)), _AgKT(std::move(other._AgKT)),
-        _X_inner_model(std::move(other._X_inner_model)),
-        _U_latest(std::move(other._U_latest)),
-        _Y_store(std::move(other._Y_store)), _w(std::move(other._w)),
-        _mu(std::move(other._mu)), _ref_prev(std::move(other._ref_prev)) {}
+      : kalman_filter_(std::move(other.kalman_filter_)),
+        WCzT_Qk_(std::move(other.WCzT_Qk_)),
+        delta_U_min_(std::move(other.delta_U_min_)),
+        delta_U_max_(std::move(other.delta_U_max_)),
+        U_min_(std::move(other.U_min_)), U_max_(std::move(other.U_max_)),
+        Ag_(std::move(other.Ag_)), bg_(std::move(other.bg_)),
+        N_sub_(other.N_sub_), dtzeta_sub_(other.dtzeta_sub_),
+        K_(std::move(other.K_)), L_(std::move(other.L_)),
+        q_K_matrix_(std::move(other.q_K_matrix_)),
+        w_unc_map_(std::move(other.w_unc_map_)),
+        w_unc_traj_map_(std::move(other.w_unc_traj_map_)),
+        M_sub_inv_(std::move(other.M_sub_inv_)), AgKT_(std::move(other.AgKT_)),
+        X_inner_model_(std::move(other.X_inner_model_)),
+        U_latest_(std::move(other.U_latest_)),
+        Y_store_(std::move(other.Y_store_)), w_(std::move(other.w_)),
+        mu_(std::move(other.mu_)), ref_prev_(std::move(other.ref_prev_)) {}
 
   /** @brief Move-assigns the complete controller and estimator state. */
   InstantMPC_LTI &operator=(InstantMPC_LTI &&other) noexcept {
     if (this != &other) {
-      this->_kalman_filter = std::move(other._kalman_filter);
-      this->_WCzT_Qk = std::move(other._WCzT_Qk);
-      this->_delta_U_min = std::move(other._delta_U_min);
-      this->_delta_U_max = std::move(other._delta_U_max);
-      this->_U_min = std::move(other._U_min);
-      this->_U_max = std::move(other._U_max);
-      this->_Ag = std::move(other._Ag);
-      this->_bg = std::move(other._bg);
-      this->_N_sub = other._N_sub;
-      this->_dtzeta_sub = other._dtzeta_sub;
-      this->_K = std::move(other._K);
-      this->_L = std::move(other._L);
-      this->_q_K_matrix = std::move(other._q_K_matrix);
-      this->_w_unc_map = std::move(other._w_unc_map);
-      this->_w_unc_traj_map = std::move(other._w_unc_traj_map);
-      this->_M_sub_inv = std::move(other._M_sub_inv);
-      this->_AgKT = std::move(other._AgKT);
-      this->_X_inner_model = std::move(other._X_inner_model);
-      this->_U_latest = std::move(other._U_latest);
-      this->_Y_store = std::move(other._Y_store);
-      this->_w = std::move(other._w);
-      this->_mu = std::move(other._mu);
-      this->_ref_prev = std::move(other._ref_prev);
+      this->kalman_filter_ = std::move(other.kalman_filter_);
+      this->WCzT_Qk_ = std::move(other.WCzT_Qk_);
+      this->delta_U_min_ = std::move(other.delta_U_min_);
+      this->delta_U_max_ = std::move(other.delta_U_max_);
+      this->U_min_ = std::move(other.U_min_);
+      this->U_max_ = std::move(other.U_max_);
+      this->Ag_ = std::move(other.Ag_);
+      this->bg_ = std::move(other.bg_);
+      this->N_sub_ = other.N_sub_;
+      this->dtzeta_sub_ = other.dtzeta_sub_;
+      this->K_ = std::move(other.K_);
+      this->L_ = std::move(other.L_);
+      this->q_K_matrix_ = std::move(other.q_K_matrix_);
+      this->w_unc_map_ = std::move(other.w_unc_map_);
+      this->w_unc_traj_map_ = std::move(other.w_unc_traj_map_);
+      this->M_sub_inv_ = std::move(other.M_sub_inv_);
+      this->AgKT_ = std::move(other.AgKT_);
+      this->X_inner_model_ = std::move(other.X_inner_model_);
+      this->U_latest_ = std::move(other.U_latest_);
+      this->Y_store_ = std::move(other.Y_store_);
+      this->w_ = std::move(other.w_);
+      this->mu_ = std::move(other.mu_);
+      this->ref_prev_ = std::move(other.ref_prev_);
     }
     return *this;
   }
@@ -1124,10 +1124,10 @@ public:
                      const Y_Type_ &Y) -> U_Type_ {
 
     /* 1. Kalman filter predict + update */
-    this->_kalman_filter.predict_and_update_with_fixed_G(this->_U_latest, Y);
+    this->kalman_filter_.predict_and_update_with_fixed_G(this->U_latest_, Y);
 
     /* 2. State estimate and delay compensation */
-    X_Type_ X = this->_kalman_filter.get_x_hat();
+    X_Type_ X = this->kalman_filter_.get_x_hat();
 
     X_Type_ X_compensated;
     Y_Type_ Y_compensated;
@@ -1140,27 +1140,27 @@ public:
     Y_Type_ ref = this->_extract_ref(reference);
 
     /* 4. Augmented initial state  xt = [dx; y_dev] */
-    auto dx = X_compensated - this->_X_inner_model;
+    auto dx = X_compensated - this->X_inner_model_;
 
-    auto C_X = this->_kalman_filter.state_space.C * X_compensated;
+    auto C_X = this->kalman_filter_.state_space.C * X_compensated;
     auto y_dev = C_X - ref;
     Xt_Type_ xt = PythonNumpy::concatenate_vertically(dx, y_dev);
 
     /* 5. Reset dual / primal variables on reference change */
     T_ max_diff = LMPC_Instant_Operation::MaxAbsDiffOperation::compute<T_>(
-        ref, this->_ref_prev);
+        ref, this->ref_prev_);
 
     if (max_diff > static_cast<T_>(IMPC_REFERENCE_CHANGED_TOL)) {
-      this->_w = PythonNumpy::make_DenseMatrixZeros<T_, NW_SIZE, 1>();
-      this->_mu = PythonNumpy::make_DenseMatrixZeros<T_, NMU_SIZE, 1>();
-      this->_ref_prev = ref;
+      this->w_ = PythonNumpy::make_DenseMatrixZeros<T_, NW_SIZE, 1>();
+      this->mu_ = PythonNumpy::make_DenseMatrixZeros<T_, NMU_SIZE, 1>();
+      this->ref_prev_ = ref;
     }
 
-    /* 6. Update time-varying rows of _bg (absolute U bounds) */
+    /* 6. Update time-varying rows of bg_ (absolute U bounds) */
     this->_update_bg();
 
     /* 7. Projected gradient offset: q_K = q_K_matrix * xt */
-    auto q_K = this->_q_K_matrix * xt;
+    auto q_K = this->q_K_matrix_ * xt;
 
     /* 8. Trajectory linear correction (trajectory mode only) */
     W_Type_ q_trajectory = this->_compute_q_trajectory(reference, ref);
@@ -1172,15 +1172,15 @@ public:
     W_Type_ w = this->_compute_w_warmstart(xt, q_trajectory);
 
     /* 11. Precompute L * xt (constant across sub-steps) */
-    auto Lxt = this->_L * xt;
+    auto Lxt = this->L_ * xt;
 
     /* 12. iMPC primal-dual sub-steps */
-    Mu_Type_ mu = this->_mu;
+    Mu_Type_ mu = this->mu_;
 
-    for (std::size_t sub = 0; sub < this->_N_sub; ++sub) {
+    for (std::size_t sub = 0; sub < this->N_sub_; ++sub) {
 
       /* Affine projection: wproj = K * w + L * xt */
-      auto wproj = this->_K * w + Lxt;
+      auto wproj = this->K_ * w + Lxt;
 
       /* Constraint gradient and dual update (skip when no constraints) */
       Mu_Type_ mu_new;
@@ -1199,38 +1199,38 @@ public:
     }
 
     /* 13. Final projection and compute u */
-    auto wproj_final = this->_K * w + Lxt;
+    auto wproj_final = this->K_ * w + Lxt;
 
     LMPC_Instant_Operation::AddAssignColumnOperation::compute<INPUT_SIZE>(
-        this->_U_latest, wproj_final);
+        this->U_latest_, wproj_final);
 
     /* 14. Store updated iMPC state */
-    this->_w = w;
-    this->_mu = mu;
-    this->_X_inner_model = X_compensated;
+    this->w_ = w;
+    this->mu_ = mu;
+    this->X_inner_model_ = X_compensated;
 
-    return this->_U_latest;
+    return this->U_latest_;
   }
 
   /** @brief Returns a copy of the last compensated state estimate used in dx.
    */
   inline auto get_X_inner_model() const -> X_Type_ {
-    return this->_X_inner_model;
+    return this->X_inner_model_;
   }
 
   /** @brief Returns a copy of the most recently computed absolute input. */
-  inline auto get_U_latest() const -> U_Type_ { return this->_U_latest; }
+  inline auto get_U_latest() const -> U_Type_ { return this->U_latest_; }
 
   /** @brief Returns a copy of the delay-compensation output-history buffer. */
-  inline auto get_Y_store() const -> Y_Store_Type_ { return this->_Y_store; }
+  inline auto get_Y_store() const -> Y_Store_Type_ { return this->Y_store_; }
 
 private:
   /** @brief Rewrites only active absolute-U bound groups using U_latest. */
   inline void _update_bg(void) {
-    LMPC_Instant_Operation::update_bg<IS_NO_CONSTRAINTS, _USE_U_UB, _USE_U_LB,
-                                      NP, INPUT_SIZE, _U_UB_ROW_OFFSET,
-                                      _U_LB_ROW_OFFSET>(
-        this->_bg, this->_U_max, this->_U_min, this->_U_latest);
+    LMPC_Instant_Operation::update_bg<IS_NO_CONSTRAINTS, USE_U_UB_, USE_U_LB_,
+                                      NP, INPUT_SIZE, U_UB_ROW_OFFSET_,
+                                      U_LB_ROW_OFFSET_>(
+        this->bg_, this->U_max_, this->U_min_, this->U_latest_);
   }
 
   /** @brief Uses the Ny-by-1 point reference directly. */
@@ -1277,7 +1277,7 @@ private:
 
     LMPC_Instant_Operation::ComputeQTrajectoryOperation::compute<
         NP, OUTPUT_SIZE, NS_SIZE, NU>(q_trajectory, reference, ref,
-                                      this->_WCzT_Qk);
+                                      this->WCzT_Qk_);
 
     return q_trajectory;
   }
@@ -1287,7 +1287,7 @@ private:
   inline typename std::enable_if<!IsTrajectory, W_Type_>::type
   _compute_w_warmstart(const Xt_Type_ &xt, const W_Type_ &q_trajectory) const {
     static_cast<void>(q_trajectory);
-    return this->_w_unc_map * xt;
+    return this->w_unc_map_ * xt;
   }
 
   /** @brief Adds the offline trajectory correction to the fresh primal guess.
@@ -1295,7 +1295,7 @@ private:
   template <bool IsTrajectory = IS_REFERENCE_TRAJECTORY>
   inline typename std::enable_if<IsTrajectory, W_Type_>::type
   _compute_w_warmstart(const Xt_Type_ &xt, const W_Type_ &q_trajectory) const {
-    return this->_w_unc_map * xt + this->_w_unc_traj_map * q_trajectory;
+    return this->w_unc_map_ * xt + this->w_unc_traj_map_ * q_trajectory;
   }
 
   /** @brief Keeps the projected gradient offset for a point reference. */
@@ -1312,7 +1312,7 @@ private:
   inline typename std::enable_if<IsTrajectory, W_Type_>::type
   _compute_q_K_eff(const W_Type_ &q_K, const W_Type_ &q_trajectory) const {
 
-    return q_K - this->_K * q_trajectory;
+    return q_K - this->K_ * q_trajectory;
   }
 
   /** @brief Applies the semi-implicit primal step without an inequality term.
@@ -1322,8 +1322,8 @@ private:
   _compute_w_new(const W_Type_ &w, const W_Type_ &q_K_eff,
                  const Mu_Type_ &mu_times_eta) const {
     static_cast<void>(mu_times_eta);
-    auto rhs = w - this->_dtzeta_sub * q_K_eff;
-    return this->_K * (this->_M_sub_inv * rhs);
+    auto rhs = w - this->dtzeta_sub_ * q_K_eff;
+    return this->K_ * (this->M_sub_inv_ * rhs);
   }
 
   /**
@@ -1336,9 +1336,9 @@ private:
   inline typename std::enable_if<!NoConstraints, W_Type_>::type
   _compute_w_new(const W_Type_ &w, const W_Type_ &q_K_eff,
                  const Mu_Type_ &mu_times_eta) const {
-    auto AgKT_mu_eta = this->_AgKT * mu_times_eta;
-    auto rhs = w - this->_dtzeta_sub * (q_K_eff + AgKT_mu_eta);
-    return this->_K * (this->_M_sub_inv * rhs);
+    auto AgKT_mu_eta = this->AgKT_ * mu_times_eta;
+    auto rhs = w - this->dtzeta_sub_ * (q_K_eff + AgKT_mu_eta);
+    return this->K_ * (this->M_sub_inv_ * rhs);
   }
 
   /** @brief Preserves the dummy dual vector and returns a zero coupling term.
@@ -1363,14 +1363,14 @@ private:
                                  std::tuple<Mu_Type_, Mu_Type_>>::type
   _update_mu(const W_Type_ &wproj, const Mu_Type_ &mu) const {
 
-    Mu_Type_ g = this->_Ag * wproj - this->_bg;
+    Mu_Type_ g = this->Ag_ * wproj - this->bg_;
 
     /* gp = max(0, g), but use g[i] when mu[i] > 0 (active constraint) */
     Mu_Type_ gp;
     LMPC_Instant_Operation::ComputeGpOperation::compute<T_>(gp, g, mu);
 
     /* dtzeta_gp = dtzeta_sub * gp */
-    Mu_Type_ dtzeta_gp = this->_dtzeta_sub * gp;
+    Mu_Type_ dtzeta_gp = this->dtzeta_sub_ * gp;
 
     /* eta: safeguard against mu going negative */
     auto eta = PythonNumpy::make_DenseMatrixOnes<T_, NMU_SIZE, 1>();
@@ -1395,43 +1395,43 @@ private:
   inline std::tuple<X_Type_, Y_Type_> _compensate_X_Y_delay(const X_Type_ &X,
                                                             const Y_Type_ &Y) {
     return LMPC_Instant_Operation::compensate_X_Y_delay<NUMBER_OF_DELAY>(
-        X, Y, this->_Y_store, this->_kalman_filter);
+        X, Y, this->Y_store_, this->kalman_filter_);
   }
 
 private:
   /* Variables */
 
   /* Kalman filter for state estimation */
-  LKF_Type _kalman_filter;
+  LKF_Type kalman_filter_;
 
-  /* Offline coefficients and fixed bounds. _bg's absolute-U rows are mutable;
-   * _N_sub and _dtzeta_sub must stay consistent with _M_sub_inv. */
-  WCzT_Qk_Type _WCzT_Qk;
-  Delta_U_Min_Type _delta_U_min;
-  Delta_U_Max_Type _delta_U_max;
-  U_Min_Type _U_min;
-  U_Max_Type _U_max;
-  Ag_Type _Ag;
-  Bg_Type _bg;
-  std::size_t _N_sub;
-  T_ _dtzeta_sub;
-  K_Type _K;
-  L_Type _L;
-  q_K_matrix_Type _q_K_matrix;
-  W_Unc_Map_Type_ _w_unc_map;
-  W_Unc_Traj_Map_Type_ _w_unc_traj_map;
-  M_Sub_Inv_Type_ _M_sub_inv;
-  AgKT_Type _AgKT;
+  /* Offline coefficients and fixed bounds. bg_'s absolute-U rows are mutable;
+   * N_sub_ and dtzeta_sub_ must stay consistent with M_sub_inv_. */
+  WCzT_Qk_Type WCzT_Qk_;
+  Delta_U_Min_Type delta_U_min_;
+  Delta_U_Max_Type delta_U_max_;
+  U_Min_Type U_min_;
+  U_Max_Type U_max_;
+  Ag_Type Ag_;
+  Bg_Type bg_;
+  std::size_t N_sub_;
+  T_ dtzeta_sub_;
+  K_Type K_;
+  L_Type L_;
+  q_K_matrix_Type q_K_matrix_;
+  W_Unc_Map_Type_ w_unc_map_;
+  W_Unc_Traj_Map_Type_ w_unc_traj_map_;
+  M_Sub_Inv_Type_ M_sub_inv_;
+  AgKT_Type AgKT_;
 
-  /* Dynamic state. _w stores the last substep result but is reinitialized from
-   * the unconstrained map next call; _mu persists until a reference reset. */
-  X_Type_ _X_inner_model;
-  U_Type_ _U_latest;
-  Y_Store_Type_ _Y_store;
-  W_Type_ _w;
-  Mu_Type_ _mu;
+  /* Dynamic state. w_ stores the last substep result but is reinitialized from
+   * the unconstrained map next call; mu_ persists until a reference reset. */
+  X_Type_ X_inner_model_;
+  U_Type_ U_latest_;
+  Y_Store_Type_ Y_store_;
+  W_Type_ w_;
+  Mu_Type_ mu_;
   Y_Type_
-      _ref_prev; // Initially zero; updated only when reference reset occurs.
+      ref_prev_; // Initially zero; updated only when reference reset occurs.
 };
 
 /* make InstantMPC_LTI */
