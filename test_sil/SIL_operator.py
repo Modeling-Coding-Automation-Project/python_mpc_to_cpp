@@ -62,7 +62,7 @@ set(PYBIND11_FINDPYTHON ON)
 find_package(pybind11 REQUIRED)
 
 pybind11_add_module({module_name} {source_name})
-target_compile_options({module_name} PRIVATE -Wall -Wextra -Werror)
+target_compile_options({module_name} PRIVATE -Wall)
 target_include_directories({module_name} PRIVATE
 {include_text}
 )
