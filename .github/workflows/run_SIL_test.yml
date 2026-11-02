@@ -55,7 +55,8 @@ jobs:
 
         /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/servo_motor_constraints_instant_MPC_SIL.py
 
-        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/servo_motor_constraints_instant_MPC_SIL.py --trajectory
+        /opt/venv_py_MCAP/bin/python3 ./test_sil/lti_mpc/servo_motor_constraints_instant_MPC_SIL.py
+        --trajectory
 
         /opt/venv_py_MCAP/bin/python3 ./test_sil/servo_motor_ltv_mpc/servo_motor_LTV_SIL.py
 
