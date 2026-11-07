@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/usr/include/python3.14",
+        "/opt/venv_py_MCAP/lib/python3.14/site-packages/pybind11/include"
+      ],
+      "intelliSenseMode": "linux-gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c11",
+      "cppStandard": "gnu++11"
+    }
+  ],
+  "version": 4
+}
