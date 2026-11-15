@@ -44,9 +44,9 @@ def create_model(delta_time: float):
     hx = sp.Matrix([[x1], [x2]])
 
     # derive Jacobians
-    fxu_jacobian_X = fxu.jacobian(X)
-    fxu_jacobian_U = fxu.jacobian(U)
-    hx_jacobian = hx.jacobian(X)
+    fxu_jacobian_X = sp.simplify(fxu.jacobian(X))
+    fxu_jacobian_U = sp.simplify(fxu.jacobian(U))
+    hx_jacobian = sp.simplify(hx.jacobian(X))
 
     return X, U, Y, \
         fxu, fxu_jacobian_X, fxu_jacobian_U, \
