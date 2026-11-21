@@ -12,7 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cxxflags: ['', '-ffp-contract=off']
+        cxxflags:
+        - ''
+        - -ffp-contract=off
         define:
         - ''
 

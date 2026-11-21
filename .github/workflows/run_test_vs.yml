@@ -12,7 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cxxflags: ['', '-ffp-contract=off']
+        cxxflags:
+        - ''
+        - -ffp-contract=off
         define:
         - ''
 
@@ -30,8 +32,8 @@ jobs:
     - name: Build and Run C++ application
       env:
         CXXFLAGS: ${{ matrix.cxxflags }}
-      run: 'g++ $CXXFLAGS -std=c++11 -Wall -Wextra -Werror ${{ matrix.define }} -O2 -I ./mpc_utility
-        -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
+      run: 'g++ $CXXFLAGS -std=c++11 -Wall -Wextra -Werror ${{ matrix.define }} -O2
+        -I ./mpc_utility -I ./python_mpc -I ./external_libraries/python_optimization_to_cpp/optimization_utility
         -I ./external_libraries/python_optimization_to_cpp/python_optimization -I
         ./external_libraries/python_control_to_cpp/python_control -I ./external_libraries/python_numpy_to_cpp/python_numpy
         -I ./external_libraries/python_numpy_to_cpp/base_matrix -I ./external_libraries/python_math_to_cpp/base_math
