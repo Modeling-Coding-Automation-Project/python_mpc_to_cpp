@@ -140,7 +140,13 @@ class AdaptiveMatricesDeploy:
         code_text += f"#ifndef {file_name_no_extension.upper()}_HPP_\n"
         code_text += f"#define {file_name_no_extension.upper()}_HPP_\n\n"
 
+        code_text += '#include "python_math.hpp"\n'
+        code_text += '#include "python_numpy.hpp"\n\n'
+
         code_text += f"namespace {file_name_no_extension} {{\n\n"
+
+        code_text += "using namespace PythonMath;\n"
+        code_text += "using namespace PythonNumpy;\n\n"
 
         arg_list = []
 
